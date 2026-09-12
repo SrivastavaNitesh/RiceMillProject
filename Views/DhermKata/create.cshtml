@@ -1,0 +1,45 @@
+﻿@model RiceMillProject.Models.DhermKata
+@{
+    ViewData["Title"] = "Add Office";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Add New Office</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label asp-for="Mainofficeid" class="form-label fw-bold">Office Name</label>
+                       <select asp-items="Model.MainOfficelist" asp-for="Mainofficeid" class="form-control">
+                           <option value="0">--Select--</option>
+                       </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="childofficeName" class="form-label fw-bold">DhermKata</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <input asp-for="childofficeName" class="form-control" placeholder="Enter DhermKata" required />
+                        </div>
+                    </div>
+
+                    <!-- Hidden field since IsActive is default true for new -->
+                    <input type="hidden" asp-for="IsActive" value="true" />
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

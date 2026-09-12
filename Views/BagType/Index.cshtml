@@ -1,0 +1,56 @@
+@model IEnumerable<RiceMillProject.Models.BagType>
+@{
+    ViewData["Title"] = "Bag Type Management";
+}
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="bi bi-bag"></i> Bag Type List
+        </h4>
+        <a asp-action="Create" class="btn btn-light btn-sm fw-bold">
+            <i class="bi bi-plus-circle"></i> Add New Bag
+        </a>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Bag Type Name</th>
+                    <th>Deduction (Grams)</th>
+                    <th>Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.BagTypeId</td>
+                        <td class="fw-bold">@item.BagTypeName</td>
+                        <td><span class="badge bg-secondary">@item.DeductionWeightGrams g</span></td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="Edit" asp-route-id="@item.BagTypeId" class="btn btn-sm btn-outline-primary">
+                                Edit
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@item.BagTypeId" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "System Reports Dashboard";
+}
+
+<div class="container-fluid mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-premium-blue"><i class="bi bi-graph-up-arrow me-2"></i> @ViewData["Title"]</h3>
+    </div>
+
+    <div class="row">
+        <!-- Gate Entry Report Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded text-primary me-3">
+                            <i class="bi bi-sign-turn-right fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title fw-bold mb-0">Daily Gate Entry Report</h5>
+                            <small class="text-muted">Total: @ViewBag.TotalGateEntries Records</small>
+                        </div>
+                    </div>
+                    <p class="card-text text-muted">View a comprehensive list of all inbound trucks, gross weights, and timestamps.</p>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3">
+                    <a asp-action="DailyGateReport" class="btn btn-outline-primary w-100 fw-bold">View Report <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unloading Report Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded text-success me-3">
+                            <i class="bi bi-truck fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title fw-bold mb-0">Unload Summary Report</h5>
+                            <small class="text-muted">Total: @ViewBag.TotalUnloads Records</small>
+                        </div>
+                    </div>
+                    <p class="card-text text-muted">Analyze all truck unloadings, worker assignments (Meth/Supervisor), and bag deductions.</p>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3">
+                    <a asp-action="UnloadSummaryReport" class="btn btn-outline-success w-100 fw-bold">View Report <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

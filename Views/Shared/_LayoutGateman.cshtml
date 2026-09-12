@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Gateman Portal - RiceMill</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .gateman-navbar { background: linear-gradient(180deg, #1e3c72 0%, #162d56 100%); color: white; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .nav-pills .nav-link { color: rgba(255,255,255,0.85); border-radius: 6px; font-weight: 500; }
+        .nav-pills .nav-link:hover, .nav-pills .nav-link.active { background-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
+    </style>
+</head>
+<body>
+    <nav class="navbar gateman-navbar shadow-sm px-4 py-2">
+        <div class="d-flex align-items-center w-100 justify-content-between flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-door-open-fill me-2"></i> Gateman Portal</h4>
+                <ul class="nav nav-pills ms-4">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Gateman" asp-action="Index"><i class="bi bi-sign-turn-right me-1"></i> Gate Entries</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Visitor" asp-action="Index"><i class="bi bi-card-heading me-1"></i> Visitor Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="TempMaterial" asp-action="Index"><i class="bi bi-tools me-1"></i> Temp Tools Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Incident" asp-action="Index"><i class="bi bi-exclamation-triangle me-1"></i> Security Incidents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Vehicle" asp-action="Index"><i class="bi bi-truck me-1"></i> Vehicles</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-3 text-white my-1">
+                <span><i class="bi bi-person-circle me-1"></i> @User.Identity?.Name (Gate Man)</span>
+                <a asp-controller="Account" asp-action="Logout" class="btn btn-sm btn-light text-danger fw-bold"><i class="bi bi-power"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-4">
+        @RenderBody()
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

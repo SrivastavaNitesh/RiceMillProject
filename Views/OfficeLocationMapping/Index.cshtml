@@ -1,0 +1,155 @@
+@model IEnumerable<RiceMillProject.Models.OfficeLocationMapping>
+@{
+    ViewData["Title"] = "Office - Location Mapping";
+    var newMapping = ViewBag.NewMapping as RiceMillProject.Models.OfficeLocationMapping ?? new RiceMillProject.Models.OfficeLocationMapping { EffectiveFrom = DateTime.Now, IsActive = true, UnloadingAllowed = true };
+}
+
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-link-45deg"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">OFFICE – LOCATION MAPPING</h3>
+            <p class="erp-page-subtitle">Configure allowed unloading locations per office branch</p>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2 text-success"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Form Section -->
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-diagram-2 text-primary me-2"></i> Mapping Details</span>
+            </div>
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <input type="hidden" name="MappingId" value="@newMapping.MappingId" />
+
+                    <div class="col-md-12">
+                        <label class="form-label">Office <span class="req-star">*</span></label>
+                        <select name="OfficeId" asp-items="ViewBag.Offices" class="form-select" required>
+                            <option value="">Select Office</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Location <span class="req-star">*</span></label>
+                        <select name="LocationId" asp-items="ViewBag.Locations" class="form-select" required>
+                            <option value="">Select Location</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label d-block">Unloading Allowed <span class="req-star">*</span></label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="UnloadingAllowed" id="radYes" value="true" @(newMapping.UnloadingAllowed ? "checked" : "") />
+                            <label class="form-check-label fw-semibold" for="radYes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline ms-3">
+                            <input class="form-check-input" type="radio" name="UnloadingAllowed" id="radNo" value="false" @(!newMapping.UnloadingAllowed ? "checked" : "") />
+                            <label class="form-check-label fw-semibold" for="radNo">No</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Effective From</label>
+                        <input type="date" name="EffectiveFrom" class="form-control" value="@newMapping.EffectiveFrom.ToString("yyyy-MM-dd")" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" name="IsActive" id="chkStatus" value="true" @(newMapping.IsActive ? "checked" : "") />
+                            <label class="form-check-label fw-bold" for="chkStatus">Active</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 text-center mt-4 pt-3 border-top d-flex justify-content-center gap-3">
+                        <button type="submit" class="btn-erp-primary px-4 py-2"><i class="bi bi-floppy me-1"></i> Save Mapping</button>
+                        <button type="reset" class="btn-erp-secondary px-4 py-2"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Mapped Locations Data Grid -->
+        <div class="erp-card">
+            <div class="erp-card-header bg-white">
+                <span class="fw-bold text-dark"><i class="bi bi-table text-primary me-2"></i> Mapped Locations</span>
+            </div>
+            <div class="erp-card-body p-0">
+                <div class="table-responsive">
+                    <table class="erp-table">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">S.No.</th>
+                                <th>Office</th>
+                                <th>Location</th>
+                                <th>Unloading Allowed</th>
+                                <th>Effective From</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                int sno = 1;
+                                foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-muted">@(sno++)</td>
+                                        <td><strong class="text-dark">@item.OfficeName</strong></td>
+                                        <td>@item.LocationName</td>
+                                        <td>
+                                            @if (item.UnloadingAllowed)
+                                            {
+                                                <span class="badge-erp badge-erp-success">Yes</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-erp badge-erp-danger">No</span>
+                                            }
+                                        </td>
+                                        <td>@item.EffectiveFrom.ToString("dd-MM-yyyy")</td>
+                                        <td>
+                                            @if (item.IsActive)
+                                            {
+                                                <span class="badge-erp badge-erp-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-erp badge-erp-danger">Inactive</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <form asp-action="Delete" asp-route-id="@item.MappingId" method="post" class="d-inline" onsubmit="return confirm('Delete this mapping?');">
+                                                <button type="submit" class="btn-erp-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No mappings created yet.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

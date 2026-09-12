@@ -1,0 +1,404 @@
+/* ==========================================================================
+   ENTERPRISE ERP GLOBAL DESIGN SYSTEM CSS
+   Module: Rice Mill Management ERP
+   Standard: Unified Deep Blue Enterprise Theme
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS & CSS VARIABLES
+   -------------------------------------------------------------------------- */
+:root {
+    /* Brand Colors */
+    --erp-primary: #1e3c72;
+    --erp-primary-hover: #162d56;
+    --erp-primary-active: #0f1e3d;
+    --erp-primary-light: #eef2ff;
+    
+    /* Layout & Surfaces */
+    --erp-bg: #f8fafc;
+    --erp-surface: #ffffff;
+    --erp-sidebar-bg: linear-gradient(180deg, #1e3c72 0%, #162d56 100%);
+    --erp-header-bg: #ffffff;
+    
+    /* Text & Typography */
+    --erp-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --erp-text-main: #1e293b;
+    --erp-text-heading: #0f172a;
+    --erp-text-muted: #64748b;
+    --erp-text-light: #94a3b8;
+    
+    /* Borders & Lines */
+    --erp-border: #cbd5e1;
+    --erp-border-light: #e2e8f0;
+    
+    /* Functional / Semantic Status Colors */
+    --erp-success: #16a34a;
+    --erp-success-bg: #f0fdf4;
+    --erp-success-border: #bbf7d0;
+    --erp-success-text: #15803d;
+    
+    --erp-danger: #dc2626;
+    --erp-danger-bg: #fef2f2;
+    --erp-danger-border: #fecaca;
+    --erp-danger-text: #b91c1c;
+    
+    --erp-warning: #d97706;
+    --erp-warning-bg: #fffbeb;
+    --erp-warning-border: #fde68a;
+    --erp-warning-text: #b45309;
+    
+    --erp-info: #2563eb;
+    --erp-info-bg: #eff6ff;
+    --erp-info-border: #bfdbfe;
+    --erp-info-text: #1d4ed8;
+    
+    /* Elevation & Shadows */
+    --erp-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --erp-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --erp-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+    
+    /* Radii & Heights */
+    --erp-radius-sm: 4px;
+    --erp-radius-md: 6px;
+    --erp-radius-lg: 8px;
+    --erp-input-height: 38px;
+}
+
+/* --------------------------------------------------------------------------
+   2. BASE TYPOGRAPHY & RESET
+   -------------------------------------------------------------------------- */
+html, body {
+    font-family: var(--erp-font-family);
+    background-color: var(--erp-bg);
+    color: var(--erp-text-main);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--erp-text-heading);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   3. PAGE HEADER COMPONENT
+   -------------------------------------------------------------------------- */
+.erp-page-header {
+    background-color: var(--erp-surface);
+    border-bottom: 1px solid var(--erp-border-light);
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--erp-shadow-sm);
+    border-radius: var(--erp-radius-md);
+}
+
+.erp-page-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.erp-page-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--erp-primary-light);
+    color: var(--erp-primary);
+    border-radius: var(--erp-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.erp-page-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--erp-text-heading);
+    margin: 0;
+}
+
+.erp-page-subtitle {
+    font-size: 0.85rem;
+    color: var(--erp-text-muted);
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. CARDS & CONTAINERS
+   -------------------------------------------------------------------------- */
+.erp-card {
+    background: var(--erp-surface);
+    border: 1px solid var(--erp-border-light);
+    border-radius: var(--erp-radius-lg);
+    box-shadow: var(--erp-shadow-sm);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.erp-card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--erp-border-light);
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--erp-text-heading);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.erp-card-body {
+    padding: 20px;
+}
+
+/* Section Divider Titles inside forms */
+.erp-form-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--erp-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--erp-primary-light);
+    padding-bottom: 6px;
+    margin-top: 10px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   5. FORM CONTROLS & INPUTS
+   -------------------------------------------------------------------------- */
+.form-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+    margin-bottom: 5px;
+}
+
+.form-label .required, .req-star {
+    color: var(--erp-danger);
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+.form-control, .form-select {
+    height: var(--erp-input-height);
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius-md);
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    color: var(--erp-text-main);
+    background-color: #ffffff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--erp-primary);
+    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
+    outline: none;
+}
+
+.form-control[readonly], .form-control:disabled, .form-select:disabled {
+    background-color: #f1f5f9;
+    color: var(--erp-text-muted);
+    cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   6. BUTTON SYSTEM
+   -------------------------------------------------------------------------- */
+.btn-erp-primary {
+    background-color: var(--erp-primary) !important;
+    border-color: var(--erp-primary) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    height: var(--erp-input-height);
+    padding: 6px 18px;
+    border-radius: var(--erp-radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: var(--erp-shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.btn-erp-primary:hover {
+    background-color: var(--erp-primary-hover) !important;
+    border-color: var(--erp-primary-hover) !important;
+    color: #ffffff !important;
+    box-shadow: var(--erp-shadow-md);
+}
+
+.btn-erp-secondary {
+    background-color: #f1f5f9 !important;
+    border: 1px solid var(--erp-border) !important;
+    color: var(--erp-text-main) !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    height: var(--erp-input-height);
+    padding: 6px 16px;
+    border-radius: var(--erp-radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-erp-secondary:hover {
+    background-color: #e2e8f0 !important;
+    color: var(--erp-text-heading) !important;
+}
+
+.btn-erp-danger {
+    background-color: var(--erp-danger) !important;
+    border-color: var(--erp-danger) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    height: var(--erp-input-height);
+    padding: 6px 16px;
+    border-radius: var(--erp-radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-erp-danger:hover {
+    background-color: #b91c1c !important;
+    color: #ffffff !important;
+}
+
+.btn-erp-outline {
+    background-color: transparent !important;
+    border: 1px solid var(--erp-border) !important;
+    color: var(--erp-text-muted) !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    height: var(--erp-input-height);
+    padding: 6px 16px;
+    border-radius: var(--erp-radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-erp-outline:hover {
+    background-color: #f8fafc !important;
+    color: var(--erp-text-heading) !important;
+    border-color: #94a3b8 !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. TABLE DESIGN STANDARD
+   -------------------------------------------------------------------------- */
+.erp-table-container {
+    background: #ffffff;
+    border: 1px solid var(--erp-border-light);
+    border-radius: var(--erp-radius-lg);
+    box-shadow: var(--erp-shadow-sm);
+    overflow: hidden;
+}
+
+.erp-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+    vertical-align: middle;
+}
+
+.erp-table thead th {
+    background-color: #0f172a;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 12px 16px;
+    border: none;
+}
+
+.erp-table tbody td {
+    padding: 12px 16px;
+    font-size: 0.875rem;
+    color: var(--erp-text-main);
+    border-bottom: 1px solid var(--erp-border-light);
+}
+
+.erp-table tbody tr:nth-of-type(even) {
+    background-color: #f8fafc;
+}
+
+.erp-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* --------------------------------------------------------------------------
+   8. STATUS BADGES SYSTEM
+   -------------------------------------------------------------------------- */
+.badge-erp {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 50rem;
+    line-height: 1;
+}
+
+.badge-erp-success {
+    background-color: var(--erp-success-bg);
+    color: var(--erp-success-text);
+    border: 1px solid var(--erp-success-border);
+}
+
+.badge-erp-danger {
+    background-color: var(--erp-danger-bg);
+    color: var(--erp-danger-text);
+    border: 1px solid var(--erp-danger-border);
+}
+
+.badge-erp-warning {
+    background-color: var(--erp-warning-bg);
+    color: var(--erp-warning-text);
+    border: 1px solid var(--erp-warning-border);
+}
+
+.badge-erp-info {
+    background-color: var(--erp-info-bg);
+    color: var(--erp-info-text);
+    border: 1px solid var(--erp-info-border);
+}
+
+/* Standard backward compatibility helper styles */
+.bg-premium-blue {
+    background: var(--erp-primary) !important;
+    color: #ffffff !important;
+}
+
+.btn-premium-blue {
+    background: var(--erp-primary) !important;
+    border-color: var(--erp-primary) !important;
+    color: #ffffff !important;
+}
+
+.btn-premium-blue:hover {
+    background: var(--erp-primary-hover) !important;
+    border-color: var(--erp-primary-hover) !important;
+    color: #ffffff !important;
+}

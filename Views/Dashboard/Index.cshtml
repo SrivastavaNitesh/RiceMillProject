@@ -1,0 +1,133 @@
+@model RiceMillProject.Models.DashboardStats
+@{
+    ViewData["Title"] = "My Dashboard";
+    var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Unknown";
+}
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="container-fluid mt-2">
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-primary">Welcome, @(User.Identity?.Name ?? "User")!</h2>
+            <p class="text-muted mb-0">Role: <span class="badge bg-secondary">@userRole</span></p>
+        </div>
+        <div>
+            <span class="text-muted"><i class="bi bi-clock"></i> @DateTime.Now.ToString("dd MMM yyyy, hh:mm tt")</span>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <!-- ADMIN DASHBOARD -->
+        <h4 class="mb-3 fw-bold text-secondary">System Overview</h4>
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card glass-card h-100 p-3 border-start border-4 border-primary">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase">Trucks Inside Mill</h6>
+                        <h2 class="display-4 fw-bold text-primary">@Model.TotalEntered</h2>
+                        <a asp-controller="GateEntry" asp-action="Index" class="text-decoration-none small fw-bold">View Gate Log <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card glass-card h-100 p-3 border-start border-4 border-success">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase">Pending Unload</h6>
+                        <h2 class="display-4 fw-bold text-success">@Model.PendingUnload</h2>
+                        <a asp-controller="Unload" asp-action="Index" class="text-decoration-none small fw-bold text-success">Go to Unloading <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card glass-card h-100 p-3 border-start border-4 border-warning">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase">Pending Lab Check</h6>
+                        <h2 class="display-4 fw-bold text-warning">@Model.PendingLab</h2>
+                        <a asp-controller="Lab" asp-action="Index" class="text-decoration-none small fw-bold text-warning">Go to Lab <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card glass-card h-100 p-3 border-start border-4 border-dark">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase">Pending Billing</h6>
+                        <h2 class="display-4 fw-bold text-dark">@Model.PendingSettlement</h2>
+                        <a asp-controller="Settlement" asp-action="Index" class="text-decoration-none small fw-bold text-dark">Go to Billing <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (User.IsInRole("Gate Man"))
+    {
+        <!-- GATEMAN DASHBOARD -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6 text-center">
+                <i class="bi bi-sign-turn-right text-primary" style="font-size: 5rem;"></i>
+                <h3 class="mt-3">Gate Operations</h3>
+                <p class="text-muted">Currently @Model.TotalEntered trucks are inside the mill premises.</p>
+                <a asp-controller="GateEntry" asp-action="Index" class="btn btn-primary btn-lg mt-3 fw-bold rounded-pill shadow-sm">
+                    Open Gate Register <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    }
+    else if (User.IsInRole("Supervisor"))
+    {
+        <!-- SUPERVISOR DASHBOARD -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6 text-center">
+                <i class="bi bi-truck text-success" style="font-size: 5rem;"></i>
+                <h3 class="mt-3">Unloading Dashboard</h3>
+                <p class="text-muted">You have @Model.PendingUnload trucks waiting to be unloaded.</p>
+                <a asp-controller="Unload" asp-action="Index" class="btn btn-success btn-lg mt-3 fw-bold rounded-pill shadow-sm">
+                    Start Unloading <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    }
+    else if (User.IsInRole("Lab Technician") || User.IsInRole("Employee"))
+    {
+        <!-- LAB DASHBOARD -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6 text-center">
+                <i class="bi bi-moisture text-warning" style="font-size: 5rem;"></i>
+                <h3 class="mt-3">Lab Quality Check</h3>
+                <p class="text-muted">There are @Model.PendingLab trucks awaiting quality tests.</p>
+                <a asp-controller="Lab" asp-action="Index" class="btn btn-warning text-dark btn-lg mt-3 fw-bold rounded-pill shadow-sm">
+                    Open Pending Tests <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-4">
+            Welcome to the portal. Please select an option from the menu.
+        </div>
+    }
+</div>

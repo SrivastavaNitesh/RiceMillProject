@@ -1,0 +1,62 @@
+@model RiceMillProject.Models.GateMaster
+@{
+    ViewData["Title"] = "Add New Gate";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-7">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-door-open me-2"></i> Setup New Gate</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Gate Code</label>
+                        <input asp-for="GateCode" class="form-control" placeholder="e.g. GATE-01" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Gate Name</label>
+                        <input asp-for="GateName" class="form-control" placeholder="e.g. Main Gate 1" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Gate Type</label>
+                        <select asp-for="GateType" class="form-select">
+                            <option value="Main Gate">Main Gate</option>
+                            <option value="Dispatch Gate">Dispatch Gate</option>
+                            <option value="Staff Gate">Staff Gate</option>
+                            <option value="Gate-1">Gate-1</option>
+                            <option value="Gate-2">Gate-2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Location / Area</label>
+                        <input asp-for="LocationArea" class="form-control" placeholder="e.g. East Mill Entrance" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Department Served</label>
+                        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" asp-for="InwardAllowed" id="chkInward">
+                            <label class="form-check-label fw-bold" for="chkInward">Inward Allowed</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" asp-for="OutwardAllowed" id="chkOutward">
+                            <label class="form-check-label fw-bold" for="chkOutward">Outward Allowed</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="bi bi-save me-1"></i> Save Gate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,63 @@
+@model RiceMillProject.Models.SecurityIncident
+@{
+    ViewData["Title"] = "Log Security Incident / Exception";
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-md-8">
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-danger text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> Security Incident / Exception Register</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Gate Location</label>
+                        <select asp-for="GateId" asp-items="ViewBag.Gates" class="form-select border-danger" required>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Incident Type</label>
+                        <select asp-for="IncidentType" class="form-select border-danger" required>
+                            <option value="Document Mismatch">Document / Weight Mismatch</option>
+                            <option value="Unauthorized Movement">Unauthorized Movement</option>
+                            <option value="Vehicle Issue">Vehicle Damage / Driver Dispute</option>
+                            <option value="Material Mismatch">Material Quality / Weight Issue</option>
+                            <option value="Visitor Issue">Visitor Exception</option>
+                            <option value="Other">Other Exception</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Related Entry / Gate Pass No</label>
+                        <input asp-for="RelatedEntryNo" class="form-control" placeholder="e.g. INW-1002 / CHAL-55" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Severity Level</label>
+                        <select asp-for="Severity" class="form-select">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Incident Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Describe exact issue..." required></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Immediate Action Taken</label>
+                        <textarea asp-for="ActionTaken" class="form-control" rows="2" placeholder="e.g. Stopped truck at gate, informed supervisor..."></textarea>
+                    </div>
+
+                    <div class="col-12 text-end mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold me-2">Cancel</a>
+                        <button type="submit" class="btn btn-danger btn-lg px-5 shadow fw-bold"><i class="bi bi-shield-slash-fill me-2"></i> Log Security Exception</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

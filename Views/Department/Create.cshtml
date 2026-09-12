@@ -1,0 +1,36 @@
+@model RiceMillProject.Models.DepartmentMaster
+@{
+    ViewData["Title"] = "Add New Department";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-7">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-diagram-3 me-2"></i> Add Department</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Department Code</label>
+                        <input asp-for="DepartmentCode" class="form-control" placeholder="e.g. DEP-PRD" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Department Name</label>
+                        <input asp-for="DepartmentName" class="form-control" placeholder="e.g. Production & Milling" required />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Assigned Office Branch</label>
+                        <select asp-for="OfficeId" asp-items="ViewBag.Offices" class="form-select">
+                        </select>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="bi bi-save me-1"></i> Save Department</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

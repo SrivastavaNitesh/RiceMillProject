@@ -1,0 +1,70 @@
+@model RiceMillProject.Models.UnloadTransaction
+@{
+    ViewData["Title"] = "Assignment Challan Print";
+    Layout = null; // No layout for printing
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assignment Challan - @Model.RSTNumber</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-color: #fff; font-family: 'Times New Roman', Times, serif; }
+        .print-container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; margin-top: 20px; }
+        .header-title { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .data-row { margin-bottom: 10px; font-size: 1.1rem; }
+        .data-label { font-weight: bold; width: 200px; display: inline-block; }
+        @@media print {
+            .no-print { display: none; }
+            .print-container { border: none; margin-top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center mt-3 no-print">
+        <button onclick="window.print()" class="btn btn-primary btn-lg">Print Challan</button>
+        <a href="/Unload/Index" class="btn btn-secondary btn-lg ms-2">Back to Dashboard</a>
+    </div>
+
+    <div class="print-container">
+        <div class="header-title">
+            <h1>RICE MILL PRO</h1>
+            <h3>METH ASSIGNMENT CHALLAN</h3>
+        </div>
+
+        <div class="row">
+            <div class="col-6">
+                <div class="data-row"><span class="data-label">RST No:</span> @Model.RSTNumber</div>
+            </div>
+            <div class="col-6 text-end">
+                <div class="data-row"><span class="data-label">Date:</span> @DateTime.Now.ToString("dd MMM yyyy HH:mm")</div>
+            </div>
+        </div>
+        <hr />
+        
+        <h4 class="mt-4 mb-3">Assignment Details</h4>
+        <div class="data-row"><span class="data-label">Supervisor Assigned:</span> @Model.SupervisorName</div>
+        <div class="data-row"><span class="data-label">Assigned To Meth:</span> @Model.MethName</div>
+        <div class="data-row"><span class="data-label">Status:</span> <strong>@Model.Status</strong></div>
+        
+        <div class="mt-5 p-3 border" style="min-height: 150px;">
+            <p><strong>Instructions for Meth:</strong></p>
+            <p>Please present this challan at the time of unloading. Log in to your portal to submit unloading details (Bag count, workers, and location).</p>
+        </div>
+
+        <div class="row mt-5 pt-5">
+            <div class="col-6 text-center">
+                <hr style="width: 70%; margin: 0 auto;" />
+                <p class="mt-2">Supervisor Signature</p>
+            </div>
+            <div class="col-6 text-center">
+                <hr style="width: 70%; margin: 0 auto;" />
+                <p class="mt-2">Meth Signature</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

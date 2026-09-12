@@ -1,0 +1,49 @@
+@model RiceMillProject.Models.UnloadTransaction
+@{
+    ViewData["Title"] = "Assign Meth";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-premium-blue">
+                <h5 class="mb-0">Assign Meth for Unloading</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Assign" method="post">
+                    <input type="hidden" asp-for="RSTNumber" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">RST Number</label>
+                        <input type="text" class="form-control bg-light" value="@Model.RSTNumber" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SupervisorId" class="form-label fw-bold">Supervisor</label>
+                        <select asp-for="SupervisorId" class="form-select" asp-items="ViewBag.Supervisors" required>
+                            <option value="">-- Select Supervisor --</option>
+                        </select>
+                        <span asp-validation-for="SupervisorId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MethId" class="form-label fw-bold">Assign to Meth</label>
+                        <select asp-for="MethId" class="form-select" asp-items="ViewBag.Meths" required>
+                            <option value="">-- Select Meth --</option>
+                        </select>
+                        <span asp-validation-for="MethId" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Back to Dashboard</a>
+                        <button type="submit" class="btn btn-premium-blue fw-bold">Generate Assignment Challan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

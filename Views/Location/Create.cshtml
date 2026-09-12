@@ -1,0 +1,103 @@
+@model RiceMillProject.Models.LocationMaster
+@{
+    ViewData["Title"] = Model.LocationId == 0 ? "Create Location Master" : "Edit Location Master";
+}
+
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-geo-alt"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">LOCATION MASTER</h3>
+            <p class="erp-page-subtitle">Configure storage locations, godowns, yards, and capacity limits</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-pin-map text-primary me-2"></i> Location Details</span>
+            </div>
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <input type="hidden" asp-for="LocationId" />
+
+                    <div class="col-md-12">
+                        <label class="form-label">Location Code <span class="req-star">*</span></label>
+                        <div class="input-group">
+                            <input asp-for="LocationCode" class="form-control bg-light" placeholder="[ Auto-Generated Location Code ]" readonly />
+                            <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Location Name <span class="req-star">*</span></label>
+                        <input asp-for="LocationName" class="form-control" placeholder="Enter Location Name" required />
+                        <span asp-validation-for="LocationName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Location Type <span class="req-star">*</span></label>
+                        <select asp-for="LocationType" class="form-select" required>
+                            <option value="">Select Location Type</option>
+                            <option value="Godown">Godown</option>
+                            <option value="Yard">Yard</option>
+                            <option value="Shed">Shed</option>
+                            <option value="Warehouse">Warehouse</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="LocationType" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Capacity</label>
+                        <input asp-for="Capacity" type="number" step="0.01" class="form-control" placeholder="Enter Capacity" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Select Unit</label>
+                        <select asp-for="CapacityUnit" class="form-select">
+                            <option value="MT">MT</option>
+                            <option value="Qtl">Qtl</option>
+                            <option value="Bags">Bags</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Location Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="Enter Location Description"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Area / Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter Area / Address"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Remarks</label>
+                        <textarea asp-for="Remarks" class="form-control" rows="2" placeholder="Enter Remarks (Optional)"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" asp-for="IsActive" id="chkActive" />
+                            <label class="form-check-label fw-bold" for="chkActive">Status Active</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 text-start mt-4 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn-erp-primary px-4"><i class="bi bi-floppy me-1"></i> Save</button>
+                        <button type="reset" class="btn-erp-secondary px-4"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</button>
+                        <a asp-action="Index" class="btn-erp-outline px-4"><i class="bi bi-x-lg me-1"></i> Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

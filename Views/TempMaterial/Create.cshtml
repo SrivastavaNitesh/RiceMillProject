@@ -1,0 +1,80 @@
+@model RiceMillProject.Models.TempMaterialRegister
+@{
+    ViewData["Title"] = "Temporary Tools Inward Registration";
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-md-9">
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-warning text-dark py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-tools me-2"></i> Temporary Material / Tools Inward (Returnable)</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Select Gate</label>
+                        <select asp-for="GateId" asp-items="ViewBag.Gates" class="form-select border-warning" required>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Owner / Vendor Name</label>
+                        <input asp-for="OwnerVendor" class="form-control border-warning" placeholder="Person / Service Company Name" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Item Category</label>
+                        <select asp-for="ItemCategory" class="form-select" required>
+                            <option value="Machine">Machine / Heavy Equipment</option>
+                            <option value="Tool">Hand Tool / Kit</option>
+                            <option value="Electrical">Electrical Component / Motor</option>
+                            <option value="Spare">Spare Part</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Item Description</label>
+                        <input asp-for="ItemDescription" class="form-control" placeholder="Detailed description of tool" required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Quantity</label>
+                        <input asp-for="Quantity" type="number" step="0.01" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Unit</label>
+                        <select asp-for="Unit" class="form-select">
+                            <option value="Nos">Nos</option>
+                            <option value="Set">Set</option>
+                            <option value="Box">Box</option>
+                            <option value="Kg">Kg</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Serial / Asset No</label>
+                        <input asp-for="SerialAssetNo" class="form-control" placeholder="Equipment Tag / Serial No" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Purpose</label>
+                        <select asp-for="Purpose" class="form-select">
+                            <option value="Repair">Repair Work</option>
+                            <option value="Service">Routine Servicing</option>
+                            <option value="Installation">New Installation</option>
+                            <option value="Demo">Trial / Demo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Target Department</label>
+                        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
+                        </select>
+                    </div>
+
+                    <div class="col-12 text-end mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold me-2">Cancel</a>
+                        <button type="submit" class="btn btn-warning btn-lg px-5 shadow fw-bold"><i class="bi bi-box-arrow-in-down me-2"></i> Register Tool Inward</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

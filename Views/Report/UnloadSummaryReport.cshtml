@@ -1,0 +1,54 @@
+@model IEnumerable<RiceMillProject.Models.UnloadTransaction>
+@{
+    ViewData["Title"] = "Unloading Summary Report";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-success"><i class="bi bi-file-earmark-spreadsheet me-2"></i> @ViewData["Title"]</h4>
+        <div>
+            <button onclick="window.print()" class="btn btn-secondary shadow-sm"><i class="bi bi-printer me-2"></i>Print Report</button>
+            <a asp-action="Index" class="btn btn-outline-primary ms-2 shadow-sm">Back</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="bg-success text-white">
+                        <tr>
+                            <th class="ps-4">RST Number</th>
+                            <th>Supervisor</th>
+                            <th>Gate Man</th>
+                            <th>Meth</th>
+                            <th>Bag Type</th>
+                            <th>Total Bags</th>
+                            <th>Deduction</th>
+                            <th>Unload Time</th>
+                            <th class="no-print">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@item.RSTNumber</td>
+                                <td>@item.SupervisorName</td>
+                                <td>@item.GateManId</td>
+                                <td>@item.MethName</td>
+                                <td>@item.BagTypeName</td>
+                                <td>@item.NumberOfBags</td>
+                                <td>@item.TotalBagDeductionGrams g</td>
+                                <td>@(item.UnloadTime?.ToString("dd-MMM-yyyy HH:mm") ?? "-")</td>
+                                <td class="no-print">
+                                    <a asp-controller="Unload" asp-action="Print" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-success" target="_blank"><i class="bi bi-printer"></i> Challan</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

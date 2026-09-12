@@ -1,0 +1,41 @@
+@model RiceMillProject.Models.GateEntry
+@{
+    ViewData["Title"] = "Gate Exit Process";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Phase 2: Outbound Gate Exit (Tare Weight)</h5>
+            </div>
+            <div class="card-body bg-light">
+                <div class="mb-3">
+                    <strong>RST Number:</strong> <span class="badge bg-primary fs-6">@Model.RSTNumber</span>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6"><strong>Vehicle:</strong> @Model.VehicleNumber</div>
+                    <div class="col-6"><strong>Gross Weight:</strong> @Model.GrossWeight kg</div>
+                </div>
+                
+                <form asp-action="Outbound" method="post" class="mt-4 border-top pt-4">
+                    <input type="hidden" name="rstNumber" value="@Model.RSTNumber" />
+                    
+                    <div class="mb-3">
+                        <label for="tareWeight" class="form-label fw-bold text-danger">Tare Weight (Empty Truck in KG)</label>
+                        <div class="input-group">
+                            <input type="number" id="tareWeight" name="tareWeight" step="0.01" class="form-control form-control-lg border-danger" required />
+                            <span class="input-group-text bg-danger text-white">KG</span>
+                        </div>
+                        <small class="text-muted">Net weight will be automatically calculated.</small>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger fw-bold">Finalize Exit & Calculate Net Weight</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,64 @@
+@model IEnumerable<RiceMillProject.Models.GateEntry>
+@{
+    ViewData["Title"] = "Settlement / Billing Dashboard";
+}
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="bi bi-receipt"></i> Settlement Dashboard (Ready for Billing)
+        </h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>RST Number</th>
+                    <th>Vehicle</th>
+                    <th>Party Name</th>
+                    <th>Net Weight</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(!Model.Any()) {
+                    <tr><td colspan="6" class="text-center text-muted">No pending bills at the moment.</td></tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@item.RSTNumber</td>
+                        <td>@item.VehicleNumber</td>
+                        <td>@item.PartyName</td>
+                        <td>
+                            @if(item.NetWeight.HasValue)
+                            {
+                                @item.NetWeight <span>kg</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Awaiting Exit</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark">@item.Status</span>
+                        </td>
+                        <td class="text-center">
+                            @if(item.NetWeight.HasValue)
+                            {
+                                <a asp-action="Bill" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-dark fw-bold">
+                                    <i class="bi bi-printer"></i> Generate Bill
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-secondary" disabled>Need Tare Weight</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

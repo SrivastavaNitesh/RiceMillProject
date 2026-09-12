@@ -1,0 +1,108 @@
+@model RiceMillProject.Models.GateEntry
+@{
+    ViewData["Title"] = "New Gate Entry";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-premium-blue">
+                <h5 class="mb-0">Phase 1: Inbound Gate Entry (First Weight)</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="VehicleId" class="form-label fw-bold">Select Vehicle</label>
+                            <select asp-for="VehicleId" class="form-select" asp-items="ViewBag.Vehicles" required>
+                                <option value="">-- Select Vehicle --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PartyId" class="form-label fw-bold">Select Party (Kisan/Gov)</label>
+                            <select asp-for="PartyId" class="form-select" asp-items="ViewBag.Parties" required>
+                                <option value="">-- Select Party --</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DriverId" class="form-label fw-bold">Select Driver</label>
+                            <select asp-for="DriverId" id="driverDropdown" class="form-select" asp-items="ViewBag.Drivers" required>
+                                <option value="">-- Select Driver --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="GrossWeight" class="form-label fw-bold">Gross Weight (Loaded Truck in KG)</label>
+                            <div class="input-group">
+                                <input asp-for="GrossWeight" type="number" step="0.01" class="form-control" required />
+                                <span class="input-group-text">KG</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TargetOfficeId" class="form-label fw-bold">Target Office</label>
+                            <select asp-for="TargetOfficeId" class="form-select" asp-items="ViewBag.Offices" id="gateOfficeDropdown">
+                                <option value="">-- Optional --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                        <label asp-for="TargetLocationIds" class="form-label text-secondary fw-bold">Target Locations (Multiple)</label>
+                        <select asp-for="TargetLocationIds" class="form-select border-primary shadow-sm" asp-items="ViewBag.Locations" multiple="multiple" style="height: 100px;">
+                        </select>
+                        <span asp-validation-for="TargetLocationIds" class="text-danger"></span>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple locations</small>
+                    </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <button type="submit" class="btn btn-premium-blue fw-bold">Generate RST & Enter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            $('#VehicleId').change(function () {
+                var vehicleId = $(this).val();
+                if (vehicleId) {
+                    $.getJSON('/Vehicle/GetVehicleMapping', { vehicleId: vehicleId }, function (data) {
+                        if (data) {
+                            if(data.partyId) {
+                                $('#PartyId').val(data.partyId);
+                            }
+                            if(data.driverId) {
+                                $('#driverDropdown').val(data.driverId);
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('#gateOfficeDropdown').change(function () {
+                var officeId = $(this).val();
+                var locationSelect = $('#TargetLocationIds');
+                locationSelect.empty();
+                if (officeId) {
+                    $.getJSON('/Office/GetLocations', { officeId: officeId }, function (data) {
+                        $.each(data, function (index, item) {
+                            locationSelect.append($('<option/>', {
+                                value: item.locationId,
+                                text: item.locationName
+                            }));
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+}

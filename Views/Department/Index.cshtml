@@ -1,0 +1,73 @@
+@model IEnumerable<RiceMillProject.Models.DepartmentMaster>
+@{
+    ViewData["Title"] = "Department Master Management";
+}
+
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-diagram-3"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">Department Master</h3>
+            <p class="erp-page-subtitle">Configure organization departments, office branches, and responsible officers</p>
+        </div>
+    </div>
+    <a asp-action="Create" class="btn-erp-primary">
+        <i class="bi bi-plus-lg"></i> Add New Department
+    </a>
+</div>
+
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">Dept Code</th>
+                    <th>Department Name</th>
+                    <th>Office Branch</th>
+                    <th>Responsible Officer</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-primary">@item.DepartmentCode</td>
+                            <td><strong class="text-dark">@item.DepartmentName</strong></td>
+                            <td>@item.OfficeName</td>
+                            <td>@item.ResponsibleOfficerName</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge-erp badge-erp-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-erp badge-erp-danger">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <form asp-action="Delete" asp-route-id="@item.DepartmentId" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to deactivate this department?');">
+                                    <button type="submit" class="btn-erp-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No departments created yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

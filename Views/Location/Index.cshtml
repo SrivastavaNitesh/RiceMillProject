@@ -1,0 +1,85 @@
+@model IEnumerable<RiceMillProject.Models.LocationMaster>
+@{
+    ViewData["Title"] = "Location Master";
+}
+
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-geo-alt"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">Location Master</h3>
+            <p class="erp-page-subtitle">Stores all storage locations (Godown, Yard, Shed etc.)</p>
+        </div>
+    </div>
+    <a asp-action="Create" class="btn-erp-primary">
+        <i class="bi bi-plus-lg"></i> Add New Location
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2 text-success"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">Location Code</th>
+                    <th>Location Name</th>
+                    <th>Type</th>
+                    <th>Capacity</th>
+                    <th>Unit</th>
+                    <th>Address / Area</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-primary">@item.LocationCode</td>
+                            <td><strong class="text-dark">@item.LocationName</strong></td>
+                            <td><span class="badge-erp badge-erp-info">@item.LocationType</span></td>
+                            <td>@item.Capacity.ToString("N2")</td>
+                            <td>@item.CapacityUnit</td>
+                            <td>@(item.Address ?? "N/A")</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge-erp badge-erp-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-erp badge-erp-danger">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Edit" asp-route-id="@item.LocationId" class="btn-erp-outline btn-sm me-1"><i class="bi bi-pencil"></i></a>
+                                <form asp-action="Delete" asp-route-id="@item.LocationId" method="post" class="d-inline" onsubmit="return confirm('Deactivate location?');">
+                                    <button type="submit" class="btn-erp-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">No locations created yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

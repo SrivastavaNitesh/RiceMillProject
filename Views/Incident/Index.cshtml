@@ -1,0 +1,82 @@
+@model IEnumerable<RiceMillProject.Models.SecurityIncident>
+@{
+    ViewData["Title"] = "Security Incident / Exception Register";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-dark mb-0"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i> Security Exception Register</h3>
+    <a asp-action="Create" class="btn btn-danger btn-lg shadow"><i class="bi bi-plus-lg me-1"></i> Log New Exception</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow border-0 rounded-3">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">Incident No</th>
+                        <th>Type</th>
+                        <th>Related Entry</th>
+                        <th>Severity</th>
+                        <th>Description</th>
+                        <th>Logged Date & Time</th>
+                        <th class="text-end pe-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-danger">@item.IncidentNo</td>
+                                <td><span class="badge bg-dark">@item.IncidentType</span></td>
+                                <td>@(item.RelatedEntryNo ?? "N/A")</td>
+                                <td>
+                                    @if (item.Severity == "Critical")
+                                    {
+                                        <span class="badge bg-danger">Critical</span>
+                                    }
+                                    else if (item.Severity == "High")
+                                    {
+                                        <span class="badge bg-warning text-dark">High</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark">@item.Severity</span>
+                                    }
+                                </td>
+                                <td>@item.Description</td>
+                                <td>@item.IncidentDateTime.ToString("dd MMM hh:mm tt")</td>
+                                <td class="text-end pe-4">
+                                    @if (item.Status == "Open")
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger">Open</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success">Resolved</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No security incidents logged.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

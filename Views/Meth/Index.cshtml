@@ -1,0 +1,108 @@
+@{
+    ViewData["Title"] = "Meth Dashboard";
+    var pendingUnloads = ViewBag.PendingUnloads as List<RiceMillProject.Models.UnloadTransaction>;
+    var completedUnloads = ViewBag.CompletedUnloads as List<RiceMillProject.Models.UnloadTransaction>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary fw-bold">Meth Unloading Dashboard</h2>
+</div>
+
+<div class="row">
+    <!-- Pending Unloads (Assigned to Meth) -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Assigned Trucks (Pending Unload)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>RST Number</th>
+                                <th>Supervisor</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(pendingUnloads != null && pendingUnloads.Any())
+                            {
+                                foreach(var unload in pendingUnloads)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-dark">@unload.RSTNumber</td>
+                                        <td>@unload.SupervisorName</td>
+                                        <td>
+                                            <a asp-action="ExecuteUnload" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-primary fw-bold">Execute Unload</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">No pending unloads</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Unloads -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-success text-white fw-bold">
+                <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Completed Unloads</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>RST Number</th>
+                                <th>Bags</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(completedUnloads != null && completedUnloads.Any())
+                            {
+                                foreach(var unload in completedUnloads)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-success">@unload.RSTNumber</td>
+                                        <td>@unload.NumberOfBags</td>
+                                        <td>
+                                            @if(unload.Status == "Verified")
+                                            {
+                                                <span class="badge bg-success">Verified</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending Verify</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="PrintSlip" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success">Print Slip</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No completed unloads</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

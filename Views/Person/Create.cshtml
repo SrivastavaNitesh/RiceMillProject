@@ -1,0 +1,146 @@
+@model RiceMillProject.Models.Person
+@{
+    ViewData["Title"] = "Add New Person / Registration";
+}
+
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-9">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-person-plus-fill me-2"></i> @ViewData["Title"]</h4>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PersonType" class="form-label fw-bold text-secondary">Person Role / Type</label>
+                            <select asp-for="PersonType" asp-items="ViewBag.Post" class="form-select border-primary shadow-sm" id="personTypeSelect" required>
+                            </select>
+                            <span asp-validation-for="PersonType" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6" style="display:none;" id="Methdiv">
+                            <label asp-for="MethdesignatationId" class="form-label fw-bold text-secondary">Select Meth</label>
+                            <select asp-for="MethdesignatationId" asp-items="ViewBag.Meth" class="form-select border-primary shadow-sm" id="MethSelect">
+                            </select>
+                            <span asp-validation-for="MethdesignatationId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Party Type Category Selection (Direct Party vs Center) -->
+                    <div class="card border-info mb-4 p-3 bg-white" id="partyCategorySection" style="display:none;">
+                        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-diagram-3 me-2"></i> Party Category Type</h6>
+                        <div class="d-flex gap-4 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="PartyCategory" id="partyDirect" value="1" checked>
+                                <label class="form-check-label fw-bold" for="partyDirect">Direct Party</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="PartyCategory" id="partyCenter" value="2">
+                                <label class="form-check-label fw-bold" for="partyCenter">Center Party</label>
+                            </div>
+                        </div>
+
+                        <!-- Center Specific Fields -->
+                        <div class="row g-3" id="centerFields" style="display:none;">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Firm Name</label>
+                                <input asp-for="FirmName" class="form-control" placeholder="Enter Firm Name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Firm Designation</label>
+                                <input asp-for="FirmDesignation" class="form-control" placeholder="e.g. Incharge, Representative" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PersonName" class="form-label fw-bold text-secondary">Person / Contact Name</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-white text-primary"><i class="bi bi-person"></i></span>
+                                <input asp-for="PersonName" class="form-control border-start-0" required placeholder="Enter name..." />
+                            </div>
+                            <span asp-validation-for="PersonName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MobileNumber" class="form-label fw-bold text-secondary">Mobile Number</label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-white text-primary"><i class="bi bi-phone"></i></span>
+                                <input asp-for="MobileNumber" class="form-control border-start-0" placeholder="10 Digit Mobile..." maxlength="10" />
+                            </div>
+                            <span asp-validation-for="MobileNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3" id="employeeDetailsSection" style="display: none;">
+                        <h5 class="text-primary border-bottom pb-2 mt-2 mb-3">Employee Professional Details</h5>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold text-secondary">Office Branch</label>
+                            <select name="OfficeId" class="form-select border-primary shadow-sm" asp-items="ViewBag.Offices">
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold text-secondary">Department</label>
+                            <select asp-for="DepartmentId" class="form-select border-primary shadow-sm" asp-items="ViewBag.Departments">
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Address" class="form-label fw-bold text-secondary">Address</label>
+                            <input asp-for="Address" class="form-control" placeholder="Work Location..." />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold shadow-sm">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important; border: none;">
+                            <i class="bi bi-save me-2"></i> Save Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            function toggleFields() {
+                $("#Methdiv").css('display','none');
+                $("#partyCategorySection").css('display', 'none');
+
+                var selectedText = $('#personTypeSelect option:selected').text().toLowerCase();
+                var val = $('#personTypeSelect').val();
+
+                if (selectedText.includes('party') || selectedText.includes('kisan') || selectedText.includes('center')) {
+                    $("#partyCategorySection").fadeIn();
+                }
+
+                if (selectedText.includes('worker')) {
+                    $("#Methdiv").fadeIn();
+                }
+
+                var employeeRoles = ["1", "2", "3", "4", "5", "6"];
+                if (employeeRoles.includes(val)) {
+                    $('#employeeDetailsSection').fadeIn();
+                } else {
+                    $('#employeeDetailsSection').fadeOut();
+                }
+            }
+
+            $('input[name="PartyCategory"]').change(function () {
+                if ($(this).val() == "2") {
+                    $('#centerFields').slideDown();
+                } else {
+                    $('#centerFields').slideUp();
+                }
+            });
+
+            $('#personTypeSelect').change(toggleFields);
+            toggleFields();
+        });
+    </script>
+}

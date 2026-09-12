@@ -1,0 +1,34 @@
+@model RiceMillProject.Models.ItemCategory
+@{
+    ViewData["Title"] = "Add Category";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Add New Category</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label asp-for="CategoryName" class="form-label fw-bold">Category Name</label>
+                        <input asp-for="CategoryName" class="form-control" required placeholder="e.g. Paddy, Rice" />
+                        <span asp-validation-for="CategoryName" class="text-danger"></span>
+                    </div>
+                    
+                    <input type="hidden" asp-for="IsActive" value="true" />
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

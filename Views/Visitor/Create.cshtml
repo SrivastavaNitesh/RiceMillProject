@@ -1,0 +1,117 @@
+@model RiceMillProject.Models.VisitorRegister
+@{
+    ViewData["Title"] = "Visitor Registration & Gate Pass";
+}
+
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-person-badge"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">Visitor Registration & Gate Pass</h3>
+            <p class="erp-page-subtitle">Issue official visitor entry pass and log identity credentials</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left"></i> Back to Register
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-shield-check text-primary me-2"></i> Security Pass Details</span>
+                <span class="badge-erp badge-erp-info">New Visitor Entry</span>
+            </div>
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
+                    
+                    <div class="col-12">
+                        <div class="erp-form-section-title">
+                            <i class="bi bi-door-open"></i> Gate & Location Assignment
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Select Gate <span class="req-star">*</span></label>
+                        <select asp-for="GateId" asp-items="ViewBag.Gates" class="form-select" required>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Purpose of Visit <span class="req-star">*</span></label>
+                        <select asp-for="PurposeOfVisit" class="form-select" required>
+                            <option value="Official">Official Visit</option>
+                            <option value="Vendor">Vendor / Supplier</option>
+                            <option value="Customer">Customer / Buyer</option>
+                            <option value="Interview">Job Interview</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="erp-form-section-title">
+                            <i class="bi bi-person-bounding-box"></i> Visitor Information
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Visitor Full Name <span class="req-star">*</span></label>
+                        <input asp-for="VisitorName" class="form-control" placeholder="Enter Full Name" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mobile Number <span class="req-star">*</span></label>
+                        <input asp-for="MobileNo" class="form-control" placeholder="10 Digit Mobile No" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Company / Organization</label>
+                        <input asp-for="CompanyOrg" class="form-control" placeholder="Visitor Company Name" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Person to Meet <span class="req-star">*</span></label>
+                        <input asp-for="PersonToMeetName" class="form-control" placeholder="Officer / Employee Name" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Target Department</label>
+                        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="erp-form-section-title">
+                            <i class="bi bi-card-checklist"></i> Verification & Security Logs
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ID Proof Type</label>
+                        <select asp-for="VisitorIDType" class="form-select">
+                            <option value="Aadhaar">Aadhaar Card</option>
+                            <option value="Driving Licence">Driving Licence</option>
+                            <option value="PAN Card">PAN Card</option>
+                            <option value="Voter ID">Voter ID</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ID Reference No</label>
+                        <input asp-for="IDReference" class="form-control" placeholder="e.g. XXXX-XXXX-1234" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vehicle No (If any)</label>
+                        <input asp-for="VehicleNo" class="form-control" placeholder="e.g. UP70AB1234" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Security Remarks</label>
+                        <textarea asp-for="Remarks" class="form-control" rows="1" placeholder="Additional observations..."></textarea>
+                    </div>
+
+                    <div class="col-12 text-end mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn-erp-outline me-2">Cancel</a>
+                        <button type="submit" class="btn-erp-primary"><i class="bi bi-printer"></i> Issue & Print Visitor Pass</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

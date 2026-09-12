@@ -1,0 +1,34 @@
+@model RiceMillProject.Models.Post
+@{
+    ViewData["Title"] = "Add Post";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Add New Post</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label asp-for="PostName" class="form-label fw-bold">Post Name</label>
+                        <input asp-for="PostName" class="form-control" required />
+                        <span asp-validation-for="PostName" class="text-danger"></span>
+                    </div>
+                    
+                    <input type="hidden" asp-for="IsActive" value="true" />
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <button type="submit" class="btn btn-info text-white">Save Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

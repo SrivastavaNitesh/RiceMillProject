@@ -1,0 +1,41 @@
+@model RiceMillProject.Models.Item
+@{
+    ViewData["Title"] = "Add Item";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Add New Item</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label asp-for="CategoryId" class="form-label fw-bold">Select Category</label>
+                        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ItemName" class="form-label fw-bold">Item Name</label>
+                        <input asp-for="ItemName" class="form-control" required placeholder="e.g. Mansuri, Sonam" />
+                        <span asp-validation-for="ItemName" class="text-danger"></span>
+                    </div>
+                    
+                    <input type="hidden" asp-for="IsActive" value="true" />
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold">Save Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

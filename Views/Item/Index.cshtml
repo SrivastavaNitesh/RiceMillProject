@@ -1,0 +1,56 @@
+@model IEnumerable<RiceMillProject.Models.Item>
+@{
+    ViewData["Title"] = "Item Management";
+}
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="bi bi-box"></i> Item List
+        </h4>
+        <a asp-action="Create" class="btn btn-light btn-sm fw-bold">
+            <i class="bi bi-plus-circle"></i> Add New Item
+        </a>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ItemId</td>
+                        <td class="fw-bold">@item.ItemName</td>
+                        <td><span class="badge bg-secondary">@item.CategoryName</span></td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="Edit" asp-route-id="@item.ItemId" class="btn btn-sm btn-outline-primary">
+                                Edit
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@item.ItemId" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

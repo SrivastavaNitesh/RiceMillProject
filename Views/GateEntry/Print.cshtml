@@ -1,0 +1,80 @@
+@model RiceMillProject.Models.GateEntry
+@{
+    ViewData["Title"] = "Gate Entry Challan";
+    Layout = null; // No layout for clean printing
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Gate Entry Challan - @Model.RSTNumber</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fff; color: #000; }
+        .challan-container { max-width: 800px; margin: 0 auto; padding: 40px; border: 1px solid #ccc; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-weight: bold; color: #1e3c72; }
+        .header h4 { margin: 5px 0 0 0; color: #555; }
+        .details-table { width: 100%; margin-bottom: 30px; }
+        .details-table th, .details-table td { padding: 10px; border: 1px solid #ddd; }
+        .details-table th { background-color: #f8f9fa; width: 40%; font-weight: bold; }
+        .signatures { margin-top: 80px; display: flex; justify-content: space-between; }
+        .signature-box { border-top: 1px solid #000; padding-top: 10px; width: 200px; text-align: center; }
+        
+        @@media print {
+            .no-print { display: none; }
+            .challan-container { border: none; padding: 0; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="challan-container">
+        <div class="no-print text-end mb-3">
+            <button onclick="window.print()" class="btn btn-primary">Print</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+        </div>
+        
+        <div class="header">
+            <h1>SRI BALAJI RICE MILL</h1>
+            <h4>INBOUND GATE ENTRY CHALLAN</h4>
+        </div>
+        
+        <table class="details-table">
+            <tr>
+                <th>RST Number (Receipt)</th>
+                <td style="font-weight: bold; font-size: 1.2rem;">@Model.RSTNumber</td>
+            </tr>
+            <tr>
+                <th>Date & Time of Entry</th>
+                <td>@Model.GateEntryTime.ToString("dd MMM yyyy, hh:mm tt")</td>
+            </tr>
+            <tr>
+                <th>Vehicle Number</th>
+                <td>@Model.VehicleNumber</td>
+            </tr>
+            <tr>
+                <th>Party / Kisan</th>
+                <td>@Model.PartyName</td>
+            </tr>
+            <tr>
+                <th>Driver Name</th>
+                <td>@Model.DriverName</td>
+            </tr>
+            <tr>
+                <th>Gross Weight (Loaded)</th>
+                <td style="font-weight: bold;">@Model.GrossWeight KG</td>
+            </tr>
+            <tr>
+                <th>Target Office (If assigned)</th>
+                <td>@Model.TargetOfficeId</td>
+            </tr>
+        </table>
+        
+        <div class="signatures">
+            <div class="signature-box">Driver Signature</div>
+            <div class="signature-box">Gate Man Signature</div>
+        </div>
+    </div>
+</body>
+</html>

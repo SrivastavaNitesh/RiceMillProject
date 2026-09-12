@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "Supervisor Dashboard";
+    var pendingAssignments = ViewBag.PendingAssignments as List<RiceMillProject.Models.GateEntry>;
+    var pendingVerifications = ViewBag.PendingVerifications as List<RiceMillProject.Models.UnloadTransaction>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary fw-bold">Supervisor Unloading Dashboard</h2>
+</div>
+
+<div class="row">
+    <!-- Pending Assignments -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-premium-blue">
+                <h5 class="mb-0">New Trucks (Pending Assignment)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>RST Number</th>
+                                <th>Vehicle</th>
+                                <th>Gross Wt</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(pendingAssignments != null && pendingAssignments.Any())
+                            {
+                                foreach(var entry in pendingAssignments)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-primary">@entry.RSTNumber</td>
+                                        <td>@entry.VehicleNumber</td>
+                                        <td>@entry.GrossWeight KG</td>
+                                        <td>
+                                            <a asp-action="Assign" asp-route-rstNumber="@entry.RSTNumber" class="btn btn-sm btn-outline-primary fw-bold">Assign Meth</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No trucks waiting for assignment</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Verifications -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Unloaded Slips (Pending Verification)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>RST Number</th>
+                                <th>Meth Name</th>
+                                <th>Bags</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(pendingVerifications != null && pendingVerifications.Any())
+                            {
+                                foreach(var unload in pendingVerifications)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-success">@unload.RSTNumber</td>
+                                        <td>@unload.MethName</td>
+                                        <td>@unload.NumberOfBags</td>
+                                        <td>
+                                            <a asp-action="Verify" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success fw-bold">Verify & Add Deductions</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No unloaded slips waiting for verification</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,65 @@
+@model RiceMillProject.Models.UnloadTransaction
+@{
+    ViewData["Title"] = "Unload Slip Print";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unload Slip - @Model.RSTNumber</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-color: #fff; font-family: 'Courier New', Courier, monospace; }
+        .print-container { max-width: 600px; margin: 0 auto; padding: 20px; border: 2px dashed #000; margin-top: 20px; }
+        .header-title { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .data-row { margin-bottom: 8px; font-size: 1.2rem; }
+        .data-label { font-weight: bold; width: 250px; display: inline-block; }
+        @@media print {
+            .no-print { display: none; }
+            .print-container { border: none; margin-top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center mt-3 no-print">
+        <button onclick="window.print()" class="btn btn-primary btn-lg">Print Unload Slip</button>
+        <a href="/Meth/Index" class="btn btn-secondary btn-lg ms-2">Back to Dashboard</a>
+    </div>
+
+    <div class="print-container">
+        <div class="header-title">
+            <h2 class="fw-bold">RICE MILL PRO</h2>
+            <h4>METH UNLOAD SLIP</h4>
+        </div>
+
+        <div class="data-row"><span class="data-label">RST No:</span> @Model.RSTNumber</div>
+        <div class="data-row"><span class="data-label">Date & Time:</span> @Model.UnloadTime?.ToString("dd-MMM-yyyy HH:mm")</div>
+        <div class="data-row"><span class="data-label">Meth Name:</span> @Model.MethName</div>
+        <hr />
+        
+        <h5 class="mt-3 mb-2 fw-bold">Unloading Details</h5>
+        <div class="data-row"><span class="data-label">Bag Type:</span> @Model.BagTypeName</div>
+        <div class="data-row"><span class="data-label">Total Bags:</span> <span class="fw-bold fs-4">@Model.NumberOfBags</span></div>
+        <div class="data-row"><span class="data-label">Status:</span> <strong>@Model.Status</strong></div>
+        
+        <div class="mt-4 p-3 border border-dark">
+            <p><strong>Note to Supervisor:</strong></p>
+            <p>Please present this slip to the Supervisor for verification. Any deductions for short weight will be calculated by the Supervisor.</p>
+        </div>
+
+        <div class="row mt-5 pt-4">
+            <div class="col-6 text-center">
+                <hr style="width: 80%; border-color:#000; margin: 0 auto;" />
+                <p class="mt-2 fw-bold">Meth Signature</p>
+            </div>
+            <div class="col-6 text-center">
+                <hr style="width: 80%; border-color:#000; margin: 0 auto;" />
+                <p class="mt-2 fw-bold">Supervisor Signature</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
