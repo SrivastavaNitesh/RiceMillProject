@@ -94,44 +94,66 @@ namespace RiceMillProject.DAL
         public List<Person> GetEmployeeList(string Mode)
         {
             var persons = new List<Person>();
-
-            DataTable dt = new DataTable();
-            try
+            using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                SqlParameter[] sp = new SqlParameter[2];
-                sp[0] = new SqlParameter("@officeid", "0");
-                sp[1] = new SqlParameter("@Mode", Mode);
-                dt = ExecuteDataTable("sp_GetAllPersons", sp);
-                if (dt!=null && dt.Rows.Count>0)
+                string query;
+                if (Mode == "emp")
                 {
-                    for (int i = 0; i < dt.Rows.Count; i++)
+                    query = @"
+                        SELECT p.PersonId, p.PersonName, ISNULL(p.MobileNumber, '') AS MobileNumber, 
+                               ISNULL(p.Address, '') AS Address, 
+                               ISNULL(post.PostName, ISNULL(p.PersonType, 'Staff')) AS PersonType, 
+                               p.IsActive
+                        FROM p02_Person p
+                        LEFT JOIN o10_post post ON TRY_CAST(p.PersonType AS INT) = post.PostId
+                        WHERE p.PersonType NOT IN ('Kisan', 'Farmer', 'Party', 'Supplier', 'Driver', 'Worker')
+                           OR post.PostId IS NOT NULL
+                        ORDER BY p.PersonId DESC";
+                }
+                else
+                {
+                    query = @"
+                        SELECT p.PersonId, p.PersonName, ISNULL(p.MobileNumber, '') AS MobileNumber, 
+                               ISNULL(p.Address, '') AS Address, 
+                               ISNULL(p.PersonType, 'Other') AS PersonType, 
+                               p.IsActive
+                        FROM p02_Person p
+                        LEFT JOIN o10_post post ON TRY_CAST(p.PersonType AS INT) = post.PostId
+                        WHERE p.PersonType IN ('Kisan', 'Farmer', 'Party', 'Supplier', 'Driver', 'Worker')
+                           OR post.PostId IS NULL
+                        ORDER BY p.PersonId DESC";
+                }
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    con.Open();
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
-                        persons.Add(new Person
+                        while (rdr.Read())
                         {
-                            PersonId = Convert.ToInt32(dt.Rows[i]["PersonId"]),
-                            PersonName = dt.Rows[i]["PersonName"].ToString() ?? "",
-                            MobileNumber = dt.Rows[i]["MobileNumber"].ToString() ?? "",
-                            Address = dt.Rows[i]["Address"].ToString() ?? "",
-                            PersonType = dt.Rows[i]["PersonType"].ToString() ?? "",
-                            IsActive = Convert.ToBoolean(dt.Rows[i]["IsActive"])
-                        });
+                            persons.Add(new Person
+                            {
+                                PersonId = Convert.ToInt32(rdr["PersonId"]),
+                                PersonName = rdr["PersonName"].ToString() ?? "",
+                                MobileNumber = rdr["MobileNumber"].ToString() ?? "",
+                                Address = rdr["Address"].ToString() ?? "",
+                                PersonType = rdr["PersonType"].ToString() ?? "",
+                                IsActive = Convert.ToBoolean(rdr["IsActive"])
+                            });
+                        }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                dt = null;
             }
             return persons;
         }
 
         public bool IsMobileNumberUnique(string mobileNumber, int excludePersonId = 0)
         {
-            if (string.IsNullOrWhiteSpace(mobileNumber)) return false;
+            if (string.IsNullOrWhiteSpace(mobileNumber)) return true;
             var all = GetAllPersonsForcheckdublicateMobileRecord();
             foreach (var p in all)
             {
-                if (p.PersonId != excludePersonId && p.IsActive && p.MobileNumber == mobileNumber)
+                if (p.PersonId != excludePersonId && p.IsActive && !string.IsNullOrWhiteSpace(p.MobileNumber) && p.MobileNumber == mobileNumber)
                 {
                     return false; // Not unique
                 }
@@ -150,53 +172,56 @@ namespace RiceMillProject.DAL
                     con.Open();
                 }
                 SqlTransaction trans = con.BeginTransaction();
+                try
                 {
-                    try
+                    using (SqlCommand cmd = new SqlCommand("sp_SavePersondetails", con, trans))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@PersonName", person.PersonName ?? "");
+                        cmd.Parameters.AddWithValue("@MobileNumber", (object?)person.MobileNumber ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Address", (object?)person.Address ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PersonType", person.PersonType ?? "");
+                        cmd.Parameters.AddWithValue("@O05_officeId", person.OfficeId > 0 ? person.OfficeId : (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@o10postid", person.PersonType ?? "");
+                        cmd.Parameters.AddWithValue("@o12_parentid", person.MethdesignatationId > 0 ? person.MethdesignatationId : (object)DBNull.Value);
+                        
+                        SqlParameter designationparam = new SqlParameter("@designatationId", SqlDbType.Int);
+                        designationparam.Direction = ParameterDirection.Output;
+                        cmd.Parameters.Add(designationparam);
 
-                        using (SqlCommand cmd = new SqlCommand("sp_SavePersondetails", con, trans))
+                        object? result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
                         {
-                            cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("@PersonName", person.PersonName);
-                            cmd.Parameters.AddWithValue("@MobileNumber", person.MobileNumber ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Address", person.Address ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@PersonType", person.PersonType);
-                            cmd.Parameters.AddWithValue("@O05_officeId", person.OfficeId);
-                            cmd.Parameters.AddWithValue("@o10postid", person.PersonType);
-                            cmd.Parameters.AddWithValue("@o12_parentid", person.MethdesignatationId);
-                            SqlParameter designationparamm= cmd.Parameters.AddWithValue("@designatationId", SqlDbType.Int);
-                            designationparamm.Direction = ParameterDirection.Output;
-                            //con.Open();
-                            object? result = cmd.ExecuteScalar();
-                            if (result != null)
-                            {
-                                personId = Convert.ToInt32(result);
-                                designatationId = Convert.ToInt32(designationparamm.Value);
-                            }
+                            personId = Convert.ToInt32(result);
                         }
-
-                        // If it's an employee (not Kisan, Driver, Worker, Center, Party) create login
-                        var employeeRoles = new List<string> { "4", "1", "2", "3", "4", "5", "6" };
-                        if (personId > 0 && employeeRoles.Contains(person.PersonType))
+                        if (designationparam.Value != null && designationparam.Value != DBNull.Value)
                         {
-                            using (SqlCommand loginCmd = new SqlCommand("sp_CreateUserLogin", con, trans))
-                            {
-                                loginCmd.CommandType = CommandType.StoredProcedure;
-                                loginCmd.Parameters.AddWithValue("@PersonId", personId);
-                                loginCmd.Parameters.AddWithValue("@MobileNumber", person.MobileNumber ?? "");
-                                loginCmd.Parameters.AddWithValue("@designatationId", designatationId);
-                                loginCmd.Parameters.AddWithValue("@PersonName", person.PersonName);
-                                loginCmd.Parameters.AddWithValue("@O05_OfficeId", person.OfficeId);
-                                loginCmd.Parameters.AddWithValue("@O10_PostId", person.PersonType);
-                                loginCmd.ExecuteNonQuery();
-                            }
+                            designatationId = Convert.ToInt32(designationparam.Value);
                         }
-                        trans.Commit();
                     }
-                    catch (Exception e)
+
+                    // If it's an employee (roles 1-6 or Gateman/Weightman), create login
+                    var employeeRoles = new List<string> { "1", "2", "3", "4", "5", "6", "Gateman", "Weightman", "Admin", "Supervisor" };
+                    if (personId > 0 && employeeRoles.Contains(person.PersonType))
                     {
-                        trans.Rollback();
+                        using (SqlCommand loginCmd = new SqlCommand("sp_CreateUserLogin", con, trans))
+                        {
+                            loginCmd.CommandType = CommandType.StoredProcedure;
+                            loginCmd.Parameters.AddWithValue("@PersonId", personId);
+                            loginCmd.Parameters.AddWithValue("@MobileNumber", (object?)person.MobileNumber ?? "");
+                            loginCmd.Parameters.AddWithValue("@DesignationId", designatationId);
+                            loginCmd.Parameters.AddWithValue("@PersonName", person.PersonName ?? "");
+                            loginCmd.Parameters.AddWithValue("@OfficeId", person.OfficeId > 0 ? person.OfficeId : 1);
+                            loginCmd.Parameters.AddWithValue("@o10_postid", person.PersonType ?? "1");
+                            loginCmd.ExecuteNonQuery();
+                        }
                     }
+                    trans.Commit();
+                }
+                catch (Exception)
+                {
+                    trans.Rollback();
+                    throw;
                 }
             }
             return personId;

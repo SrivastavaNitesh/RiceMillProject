@@ -44,17 +44,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                DataTable dtInward = _busLayer.GetActiveInwardEntriesForDropdown();
-                ViewBag.InwardEntries = Allclass.CreateDropdown(dtInward);
-
-                ViewBag.Vehicles = new SelectList(_vehicleBal.GetAllVehicles(), "VehicleId", "VehicleNumber");
-                var allPersons = _personBal.GetAllPersons();
-                ViewBag.Parties = new SelectList(allPersons.Where(p => p.PersonType == "Kisan" || p.PersonType == "Government Office"), "PersonId", "PersonName");
-                ViewBag.Drivers = new SelectList(allPersons.Where(p => p.PersonType == "Driver"), "PersonId", "PersonName");
-                
-                DataTable dtOffice = _busLayer.GetAllMainoffice();
-                ViewBag.Offices = Allclass.CreateDropdown(dtOffice);
-                
+                PopulateDropdowns(new GateEntry());
                 return View(new GateEntry());
             }
             catch (Exception ex)
@@ -69,29 +59,48 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
+                if (ModelState.IsValid || entry.GrossWeight > 0)
                 {
-                    _gateBal.CreateGateEntry(entry);
-                    return RedirectToAction("Index");
+                    string generatedRST = _gateBal.CreateGateEntry(entry);
+                    TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {generatedRST}";
+                    return RedirectToAction("Create");
                 }
                 
-                DataTable dtInward = _busLayer.GetActiveInwardEntriesForDropdown();
-                ViewBag.InwardEntries = Allclass.CreateDropdown(dtInward);
-
-                ViewBag.Vehicles = new SelectList(_vehicleBal.GetAllVehicles(), "VehicleId", "VehicleNumber", entry.VehicleId);
-                var allPersons = _personBal.GetAllPersons();
-                ViewBag.Parties = new SelectList(allPersons.Where(p => p.PersonType == "Kisan" || p.PersonType == "Government Office"), "PersonId", "PersonName", entry.PartyId);
-                ViewBag.Drivers = new SelectList(allPersons.Where(p => p.PersonType == "Driver"), "PersonId", "PersonName", entry.DriverId);
-                
-                DataTable dtOffice = _busLayer.GetAllMainoffice();
-                ViewBag.Offices = Allclass.CreateDropdown(dtOffice);
-                
+                PopulateDropdowns(entry);
                 return View(entry);
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
-                return RedirectToAction("Index");
+                TempData["ErrorMessage"] = "An error occurred while saving entry: " + ex.Message;
+                return RedirectToAction("Create");
+            }
+        }
+
+        private void PopulateDropdowns(GateEntry entry)
+        {
+            try
+            {
+                DataTable dtInward = _busLayer.GetActiveInwardEntriesForDropdown();
+                ViewBag.InwardEntries = Allclass.CreateDropdown(dtInward);
+
+                ViewBag.Vehicles = new SelectList(_vehicleBal.GetAllVehicles(), "VehicleId", "VehicleNumber", entry.VehicleId);
+                
+                var allPersons = _personBal.GetAllPersons();
+                ViewBag.Parties = new SelectList(allPersons, "PersonId", "PersonName", entry.PartyId);
+                
+                var driversList = _gateBal.GetDriversWithMobile();
+                ViewBag.Drivers = new SelectList(driversList, "DriverId", "DriverNameMobile", entry.DriverId);
+                
+                DataTable dtOffice = _busLayer.GetAllMainoffice();
+                ViewBag.Offices = Allclass.CreateDropdown(dtOffice);
+            }
+            catch (Exception)
+            {
+                ViewBag.InwardEntries = Enumerable.Empty<SelectListItem>();
+                ViewBag.Vehicles = Enumerable.Empty<SelectListItem>();
+                ViewBag.Parties = Enumerable.Empty<SelectListItem>();
+                ViewBag.Drivers = Enumerable.Empty<SelectListItem>();
+                ViewBag.Offices = Enumerable.Empty<SelectListItem>();
             }
         }
 
@@ -139,6 +148,93 @@ namespace RiceMillProject.Controllers
             {
                 TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
                 return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetInwardDetails(string inwardNo)
+        {
+            try
+            {
+                var dt = _gateBal.GetInwardDetails(inwardNo);
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    var row = dt.Rows[0];
+                    return Json(new
+                    {
+                        success = true,
+                        inwardNo = row["InwardNo"]?.ToString(),
+                        partyId = row["PartyId"] != DBNull.Value ? Convert.ToInt32(row["PartyId"]) : (int?)null,
+                        partyName = row["PartyName"]?.ToString(),
+                        vehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : (int?)null,
+                        vehicleNo = row["VehicleNo"]?.ToString(),
+                        driverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : (int?)null,
+                        driverName = row["DriverName"]?.ToString(),
+                        driverMobile = row["DriverMobile"]?.ToString()
+                    });
+                }
+                return Json(new { success = false, message = "Inward details not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetLinkageByParty(int partyId)
+        {
+            try
+            {
+                var data = _gateBal.GetLinkageByParty(partyId);
+                return Json(new { success = true, vehicleId = data.vehicleId, driverId = data.driverId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetPartyOptions(int partyId)
+        {
+            try
+            {
+                var vehicles = _gateBal.GetVehiclesByParty(partyId);
+                var drivers = _gateBal.GetDriversByParty(partyId);
+                
+                int defaultVehicleId = 0;
+                int defaultDriverId = 0;
+                
+                foreach (dynamic v in vehicles)
+                {
+                    if (v.IsLinked)
+                    {
+                        defaultVehicleId = v.VehicleId;
+                        break;
+                    }
+                }
+                foreach (dynamic d in drivers)
+                {
+                    if (d.IsLinked)
+                    {
+                        defaultDriverId = d.DriverId;
+                        break;
+                    }
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    vehicles = vehicles,
+                    drivers = drivers,
+                    defaultVehicleId = defaultVehicleId,
+                    defaultDriverId = defaultDriverId
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

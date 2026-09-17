@@ -1,49 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Weighbridge Portal - RiceMill</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <style>
-        .weighbridge-navbar { background: linear-gradient(180deg, #1e3c72 0%, #162d56 100%); color: white; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .nav-pills .nav-link { color: rgba(255,255,255,0.85); border-radius: 6px; font-weight: 500; }
-        .nav-pills .nav-link:hover, .nav-pills .nav-link.active { background-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
-    </style>
-</head>
-<body>
-    <nav class="navbar weighbridge-navbar shadow-sm px-4 py-2">
-        <div class="d-flex align-items-center w-100 justify-content-between flex-wrap">
-            <div class="d-flex align-items-center gap-3">
-                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-speedometer2 me-2"></i> Weighbridge / Dharamkata Portal</h4>
-                <ul class="nav nav-pills ms-4">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="GateEntry" asp-action="Index"><i class="bi bi-speedometer me-1"></i> Weighbridge RST Entry</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="GateEntry" asp-action="Create"><i class="bi bi-plus-lg me-1"></i> New Weight Entry</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Vehicle" asp-action="Index"><i class="bi bi-truck me-1"></i> Vehicle Master</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="d-flex align-items-center gap-3 text-white my-1">
-                <span><i class="bi bi-person-badge me-1"></i> @User.Identity?.Name (Weighbridge Operator)</span>
-                <a asp-controller="Account" asp-action="Logout" class="btn btn-sm btn-light text-dark fw-bold"><i class="bi bi-power"></i> Logout</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid p-4">
-        @RenderBody()
-    </div>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
+@{
+    Layout = "_LayoutAdmin";
+}
+@RenderBody()
+@await RenderSectionAsync("Scripts", required: false)
 

@@ -3,41 +3,49 @@
     ViewData["Title"] = "Lab Dashboard";
 }
 
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="bi bi-moisture"></i> Lab Dashboard (Pending Quality Checks)
-        </h4>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-moisture"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">LAB QUALITY DASHBOARD</h3>
+            <p class="erp-page-subtitle">Pending quality checks, moisture analysis, and grain sample test logs</p>
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-hover table-striped align-middle">
-            <thead class="table-light">
+</div>
+
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
                 <tr>
-                    <th>RST Number</th>
+                    <th class="ps-4">RST Number</th>
                     <th>Vehicle</th>
                     <th>Party</th>
                     <th>Gross Wt.</th>
                     <th>Status</th>
-                    <th class="text-center">Action</th>
+                    <th class="text-center pe-4">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @if(!Model.Any()) {
-                    <tr><td colspan="6" class="text-center text-muted">No pending tests at the moment.</td></tr>
+                    <tr><td colspan="6" class="text-center py-4 text-muted">No pending tests at the moment.</td></tr>
                 }
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="fw-bold">@item.RSTNumber</td>
-                        <td>@item.VehicleNumber</td>
+                        <td class="ps-4 fw-bold text-primary">@item.RSTNumber</td>
+                        <td><strong class="text-dark">@item.VehicleNumber</strong></td>
                         <td>@item.PartyName</td>
-                        <td>@item.GrossWeight kg</td>
+                        <td><span class="badge-erp badge-erp-info">@item.GrossWeight kg</span></td>
                         <td>
-                            <span class="badge bg-secondary">@item.Status</span>
+                            <span class="badge-erp badge-erp-warning">@item.Status</span>
                         </td>
-                        <td class="text-center">
-                            <a asp-action="Create" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-warning text-dark fw-bold">
-                                <i class="bi bi-clipboard-check"></i> Enter Lab Report
+                        <td class="text-center pe-4">
+                            <a asp-action="Create" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-primary fw-bold">
+                                <i class="bi bi-clipboard-check me-1"></i> Enter Lab Report
                             </a>
                         </td>
                     </tr>

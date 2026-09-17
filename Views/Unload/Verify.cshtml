@@ -3,40 +3,58 @@
     ViewData["Title"] = "Verify Unload Slip";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Verify Meth's Unload Slip</h5>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-patch-check-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">VERIFY UNLOAD SLIP</h3>
+            <p class="erp-page-subtitle">Verify labor unloading slip and approve bag deduction weights</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left me-1"></i> Back to Unload Queue
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-card-checklist text-primary me-2"></i> Unload Slip Verification (RST: @Model.RSTNumber)</span>
             </div>
-            <div class="card-body">
-                <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
-                    <div class="row">
-                        <div class="col-md-6 mb-2"><strong>RST Number:</strong> <span class="text-dark">@Model.RSTNumber</span></div>
-                        <div class="col-md-6 mb-2"><strong>Meth Assigned:</strong> <span class="text-dark">@Model.MethName</span></div>
-                        <div class="col-md-6 mb-2"><strong>Bag Type:</strong> <span class="text-dark">@Model.BagTypeName</span></div>
-                        <div class="col-md-6 mb-2"><strong>Total Bags:</strong> <span class="text-dark">@Model.NumberOfBags</span></div>
-                        <div class="col-md-6 mb-2"><strong>Unloaded At:</strong> <span class="text-dark">@Model.UnloadTime?.ToString("dd/MMM/yyyy HH:mm")</span></div>
-                        <div class="col-md-6 mb-2"><strong>Gate Man (Verifier):</strong> <span class="text-dark">@Model.GateManId</span></div>
+            <div class="erp-card-body">
+                <div class="p-3 bg-light rounded border border-light-subtle mb-4">
+                    <div class="row g-2">
+                        <div class="col-md-6"><strong>RST Number:</strong> <span class="badge bg-primary font-monospace ms-1">@Model.RSTNumber</span></div>
+                        <div class="col-md-6"><strong>Meth Assigned:</strong> <span class="fw-bold text-dark ms-1">@Model.MethName</span></div>
+                        <div class="col-md-6"><strong>Bag Type:</strong> <span class="badge bg-info text-dark ms-1">@Model.BagTypeName</span></div>
+                        <div class="col-md-6"><strong>Total Bags:</strong> <span class="fw-bold ms-1">@Model.NumberOfBags</span></div>
+                        <div class="col-md-6"><strong>Unloaded At:</strong> <span class="text-secondary ms-1">@Model.UnloadTime?.ToString("dd/MMM/yyyy HH:mm")</span></div>
+                        <div class="col-md-6"><strong>Verifier Gate Man:</strong> <span class="text-secondary ms-1">@Model.GateManId</span></div>
                     </div>
                 </div>
 
-                <form asp-action="Verify" method="post">
+                <form asp-action="Verify" method="post" class="row g-3">
                     <input type="hidden" asp-for="UnloadId" />
                     
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-danger">Bag Deductions (If any weight shortage found in Grams)</label>
+                    <div class="col-md-12">
+                        <label class="form-label text-danger">Bag Shortage / Quality Deduction (Grams) <span class="req-star">*</span></label>
                         <div class="input-group">
                             <input type="number" step="0.01" class="form-control border-danger" name="TotalBagDeductionGrams" value="0.00" required />
                             <span class="input-group-text bg-danger text-white border-danger">Grams</span>
                         </div>
-                        <small class="text-muted">Enter 0 if all bags are perfect.</small>
+                        <small class="text-muted">Enter 0 if all unloaded bags are in perfect condition.</small>
                     </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-success fw-bold">
-                            <i class="bi bi-check-circle me-2"></i> Approve & Verify Slip
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Approve & Verify Slip
                         </button>
                     </div>
                 </form>

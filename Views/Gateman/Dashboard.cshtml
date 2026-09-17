@@ -1,0 +1,214 @@
+@model IEnumerable<RiceMillProject.Models.InwardHeader>
+@{
+    ViewData["Title"] = "Gateman Dashboard";
+}
+
+<!-- Page Header -->
+<div class="erp-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon bg-primary text-white rounded p-2">
+            <i class="bi bi-speedometer2 fs-3"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title fw-bold text-dark mb-0">GATEMAN DASHBOARD</h3>
+            <p class="erp-page-subtitle text-muted mb-0">Live Overview of Gate Inward Traffic & Pending Weighment</p>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a asp-action="Index" class="btn btn-primary shadow-sm px-3 py-2 fw-semibold">
+            <i class="bi bi-plus-circle-fill me-1"></i> New Gate Inward Entry
+        </a>
+        <a asp-action="Report" class="btn btn-outline-secondary px-3 py-2 fw-semibold">
+            <i class="bi bi-journal-text me-1"></i> My Inward Register
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger shadow-sm mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.ErrorMessage
+    </div>
+}
+
+<!-- KPI Count Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-primary border-4">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase text-muted fw-bold style-sm d-block" style="font-size: 0.75rem;">TODAY'S INWARD ENTRIES</span>
+                        <h2 class="fw-bold text-primary mb-0 mt-1">@(ViewBag.TodayCount ?? 0)</h2>
+                    </div>
+                    <div class="bg-primary-subtle text-primary rounded-circle p-3">
+                        <i class="bi bi-truck fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-warning border-4">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase text-muted fw-bold style-sm d-block" style="font-size: 0.75rem;">PENDING WEIGHMENT (WITH RST)</span>
+                        <h2 class="fw-bold text-warning mb-0 mt-1">@(ViewBag.PendingRstCount ?? 0)</h2>
+                    </div>
+                    <div class="bg-warning-subtle text-warning rounded-circle p-3">
+                        <i class="bi bi-hourglass-split fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-info border-4">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase text-muted fw-bold style-sm d-block" style="font-size: 0.75rem;">WITHOUT RST ENTRIES</span>
+                        <h2 class="fw-bold text-info mb-0 mt-1">@(ViewBag.WithoutRstCount ?? 0)</h2>
+                    </div>
+                    <div class="bg-info-subtle text-info rounded-circle p-3">
+                        <i class="bi bi-card-checklist fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-success border-4">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase text-muted fw-bold style-sm d-block" style="font-size: 0.75rem;">MY TOTAL INWARD ENTRIES</span>
+                        <h2 class="fw-bold text-success mb-0 mt-1">@(ViewBag.MyEntriesCount ?? 0)</h2>
+                    </div>
+                    <div class="bg-success-subtle text-success rounded-circle p-3">
+                        <i class="bi bi-person-badge fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Workflow Hub -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-primary border-4 p-2">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-pencil-square me-2 text-primary"></i> New Gate Inward Form</h5>
+                    <p class="mb-0 text-muted small">Register new vehicle entry, party/supplier name, and driver details.</p>
+                </div>
+                <a asp-action="Index" class="btn btn-primary text-white fw-bold px-4 py-2 shadow-sm rounded-pill">
+                    Open Form <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-success border-4 p-2">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-file-earmark-text-fill me-2 text-success"></i> My Inward Register Report</h5>
+                    <p class="mb-0 text-muted small">View complete report register of all inward entries logged by you.</p>
+                </div>
+                <a asp-action="Report" class="btn btn-success text-white fw-bold px-4 py-2 shadow-sm rounded-pill">
+                    View Report <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Inward Entries Table Preview -->
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Gate Inward Entries</h5>
+        <a asp-action="Report" class="btn btn-sm btn-outline-primary fw-semibold">View All Register <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>INWARD NO</th>
+                        <th>GATE ENTRY NO</th>
+                        <th>DATE & TIME</th>
+                        <th>PARTY / SUPPLIER</th>
+                        <th>VEHICLE NO</th>
+                        <th>DRIVER / MOBILE</th>
+                        <th>INWARD TYPE</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary font-monospace">@item.InwardNo</td>
+                                <td class="fw-bold font-monospace">@item.GateEntryNo</td>
+                                <td>
+                                    <small class="d-block text-dark fw-semibold">@item.InwardDate.ToString("dd MMM yyyy")</small>
+                                    <small class="text-muted">@item.InwardTime</small>
+                                </td>
+                                <td class="fw-bold text-dark">@item.PartyName</td>
+                                <td><span class="badge bg-secondary font-monospace fs-6">@item.VehicleNo</span></td>
+                                <td>
+                                    <div class="fw-semibold">@item.DriverName</div>
+                                    <small class="text-muted">@(string.IsNullOrWhiteSpace(item.DriverMobile) ? "-" : item.DriverMobile)</small>
+                                </td>
+                                <td>
+                                    @if (item.RSTRequired)
+                                    {
+                                        <span class="badge bg-primary">With RST</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Without RST</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.RSTRequired)
+                                    {
+                                        if (item.IsRSTGenerated)
+                                        {
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> RST Generated</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pending Weighment</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark"><i class="bi bi-info-circle me-1"></i> Direct Inward</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                                No recent gate inward entries found. Click <strong>"New Gate Inward Entry"</strong> to add your first record!
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -48,7 +48,13 @@ namespace RiceMillProject.DAL
             var locations = new List<OfficeLocation>();
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT LocationId, OfficeId, LocationName FROM t_OfficeLocations", con))
+                string query = @"
+                    SELECT l.LocationId, ISNULL(m.OfficeId, 1) AS OfficeId, l.LocationName 
+                    FROM m_LocationMaster l
+                    LEFT JOIN t_OfficeLocationMapping m ON l.LocationId = m.LocationId
+                    WHERE l.IsActive = 1";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())

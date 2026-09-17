@@ -3,21 +3,37 @@
     ViewData["Title"] = "Add Office";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Add New Office</h5>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-building"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">ADD NEW OFFICE / MILL UNIT</h3>
+            <p class="erp-page-subtitle">Configure office branch and associate storage locations</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-plus-circle text-primary me-2"></i> Office Branch Information</span>
             </div>
-            <div class="card-body">
-                <form asp-action="Create" method="post">
-                    <div class="mb-3">
-                        <label asp-for="OfficeName" class="form-label fw-bold">Office Name</label>
-                        <input asp-for="OfficeName" class="form-control" required />
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-12">
+                        <label asp-for="OfficeName" class="form-label">Office / Plant Name <span class="req-star">*</span></label>
+                        <input asp-for="OfficeName" class="form-control" placeholder="e.g. Main Plant Unit 1" required />
                         <span asp-validation-for="OfficeName" class="text-danger"></span>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="Location" class="form-label fw-bold">Locations</label>
+                    <div class="col-md-12">
+                        <label asp-for="Location" class="form-label">Locations <span class="req-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
                             <input asp-for="Location" class="form-control" placeholder="e.g. Godown A, Godown B, Main Plant..." required />
@@ -29,9 +45,13 @@
                     <!-- Hidden field since IsActive is default true for new -->
                     <input type="hidden" asp-for="IsActive" value="true" />
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-                        <button type="submit" class="btn btn-primary">Save Office</button>
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Save Office
+                        </button>
                     </div>
                 </form>
             </div>

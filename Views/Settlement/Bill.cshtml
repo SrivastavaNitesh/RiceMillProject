@@ -3,82 +3,103 @@
     ViewData["Title"] = "Final Settlement Bill";
 }
 
-<div class="row justify-content-center mt-4 mb-5">
-    <div class="col-md-8">
-        <div class="card shadow border-0" id="printArea">
-            <div class="card-header bg-dark text-white text-center py-4">
-                <h3 class="mb-0 text-uppercase tracking-wide"><i class="bi bi-buildings"></i> SRI BALAJI RICE MILL</h3>
-                <p class="mb-0 text-white-50">Final Settlement Invoice / Farmer Receipt</p>
+<!-- Page Header -->
+<div class="erp-page-header d-print-none">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">FINAL SETTLEMENT BILL</h3>
+            <p class="erp-page-subtitle">Print official weighment and final settlement receipt for RST: <span class="badge bg-primary text-white font-monospace">@Model.RSTNumber</span></p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn-erp-outline">
+            <i class="bi bi-arrow-left me-1"></i> Back to Queue
+        </a>
+        <button onclick="window.print()" class="btn-erp-primary">
+            <i class="bi bi-printer me-1"></i> Print Invoice
+        </button>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-md-11">
+        <div class="erp-card shadow-sm border" id="printArea">
+            <div class="erp-card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0 text-uppercase tracking-wider text-white"><i class="bi bi-buildings me-2"></i> SRI BALAJI RICE MILL</h4>
+                <p class="mb-0 text-white-50 small">Official Final Settlement Invoice & Weighment Receipt</p>
             </div>
-            <div class="card-body p-5">
+            <div class="erp-card-body p-4">
                 
                 <div class="row mb-4 pb-3 border-bottom">
                     <div class="col-sm-6">
-                        <h6 class="text-muted text-uppercase mb-2">Transaction Details</h6>
-                        <h5 class="fw-bold text-dark">RST: @Model.RSTNumber</h5>
-                        <p class="mb-1"><strong>Status:</strong> @Model.Status</p>
+                        <h6 class="text-muted text-uppercase mb-1 small fw-bold">Transaction Details</h6>
+                        <h5 class="fw-bold text-dark font-monospace mb-1">RST: @Model.RSTNumber</h5>
+                        <p class="mb-0 small"><strong>Status:</strong> <span class="badge badge-erp bg-success">@Model.Status</span></p>
                     </div>
                     <div class="col-sm-6 text-sm-end">
-                        <h6 class="text-muted text-uppercase mb-2">Party Info</h6>
-                        <h5 class="fw-bold text-dark">@Model.PartyName</h5>
-                        <p class="mb-1"><strong>Vehicle No:</strong> @Model.VehicleNumber</p>
+                        <h6 class="text-muted text-uppercase mb-1 small fw-bold">Party / Farmer Info</h6>
+                        <h5 class="fw-bold text-dark mb-1">@Model.PartyName</h5>
+                        <p class="mb-0 small"><strong>Vehicle No:</strong> <span class="font-monospace">@Model.VehicleNumber</span></p>
                     </div>
                 </div>
 
-                <h5 class="mb-3 text-primary border-bottom pb-2">1. Weighbridge Details</h5>
-                <div class="row text-center mb-4">
+                <h6 class="mb-3 text-primary border-bottom pb-2 fw-bold"><i class="bi bi-speedometer2 me-1"></i> 1. Weighbridge Metrics</h6>
+                <div class="row text-center mb-4 g-3">
                     <div class="col-4">
-                        <div class="p-3 bg-light rounded shadow-sm">
-                            <h6 class="text-muted mb-1">Gross Weight</h6>
-                            <h4 class="mb-0 text-dark">@Model.GrossWeight <small class="text-muted fs-6">kg</small></h4>
+                        <div class="p-3 bg-light rounded border">
+                            <h6 class="text-muted mb-1 small fw-bold">Gross Weight</h6>
+                            <h4 class="mb-0 text-dark font-monospace">@Model.GrossWeight <small class="text-muted fs-6">kg</small></h4>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-3 bg-light rounded shadow-sm">
-                            <h6 class="text-muted mb-1">Tare Weight</h6>
-                            <h4 class="mb-0 text-dark">@Model.TareWeight <small class="text-muted fs-6">kg</small></h4>
+                        <div class="p-3 bg-light rounded border">
+                            <h6 class="text-muted mb-1 small fw-bold">Tare Weight</h6>
+                            <h4 class="mb-0 text-dark font-monospace">@Model.TareWeight <small class="text-muted fs-6">kg</small></h4>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="p-3 bg-primary text-white rounded shadow-sm">
-                            <h6 class="text-white-50 mb-1">Net Weight</h6>
-                            <h4 class="mb-0">@Model.NetWeight <small class="text-white-50 fs-6">kg</small></h4>
+                            <h6 class="text-white-50 mb-1 small fw-bold">Net Weight</h6>
+                            <h4 class="mb-0 font-monospace text-white">@Model.NetWeight <small class="text-white-50 fs-6">kg</small></h4>
                         </div>
                     </div>
                 </div>
 
-                <h5 class="mb-3 text-danger border-bottom pb-2">2. Deductions</h5>
+                <h6 class="mb-3 text-danger border-bottom pb-2 fw-bold"><i class="bi bi-dash-circle me-1"></i> 2. Deductions</h6>
                 <table class="table table-borderless table-sm mb-4">
                     <tbody>
                         <tr>
-                            <td class="text-muted">Total Bag Deduction (Weight of Gunny/Plastic Bags):</td>
-                            <td class="text-end fw-bold text-danger">- @Model.TotalBagDeductionKG kg</td>
+                            <td class="text-muted">Total Bag Deduction (Tare of Gunny/Plastic Bags):</td>
+                            <td class="text-end fw-bold text-danger font-monospace">- @Model.TotalBagDeductionKG kg</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Lab Quality Penalty (Moisture, Dust, etc.):</td>
-                            <td class="text-end fw-bold text-danger">@Model.LabDeductionPct % (applied to net wt)</td>
+                            <td class="text-muted">Lab Quality Penalty (Moisture, Dust, Payia):</td>
+                            <td class="text-end fw-bold text-danger font-monospace">@Model.LabDeductionPct % (applied to net wt)</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <h5 class="mb-3 text-success border-bottom pb-2">3. Expenses (Paid by Mill)</h5>
+                <h6 class="mb-3 text-success border-bottom pb-2 fw-bold"><i class="bi bi-plus-circle me-1"></i> 3. Expenses (Paid by Mill)</h6>
                 <table class="table table-borderless table-sm mb-4">
                     <tbody>
                         <tr>
-                            <td class="text-muted">Total Palledari / Worker Labour Charges:</td>
-                            <td class="text-end fw-bold text-success">₹ @Model.TotalPalledariCharges.ToString("0.00")</td>
+                            <td class="text-muted">Total Palledari / Worker Labor Charges:</td>
+                            <td class="text-end fw-bold text-success font-monospace">₹ @Model.TotalPalledariCharges.ToString("0.00")</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <div class="bg-dark text-white p-4 rounded mt-5">
+                <div class="bg-dark text-white p-4 rounded mt-4">
                     <div class="row align-items-center">
                         <div class="col-sm-6">
-                            <h4 class="mb-0 text-white-50">Final Payable Weight</h4>
-                            <small>After all deductions</small>
+                            <h5 class="mb-0 text-white-50">Final Payable Weight</h5>
+                            <small class="text-white-50">Net weight minus total bag & lab deductions</small>
                         </div>
                         <div class="col-sm-6 text-sm-end">
-                            <h1 class="display-6 mb-0 text-warning fw-bold">@Model.FinalPayableWeight.ToString("0.00") kg</h1>
+                            <h2 class="mb-0 text-warning fw-bold font-monospace">@Model.FinalPayableWeight.ToString("0.00") kg</h2>
                         </div>
                     </div>
                 </div>
@@ -86,20 +107,15 @@
                 <div class="row mt-5 pt-4 text-center">
                     <div class="col-6">
                         <hr class="w-50 mx-auto" />
-                        <span class="text-muted">Authorized Signatory</span>
+                        <span class="text-muted small">Authorized Signatory</span>
                     </div>
                     <div class="col-6">
                         <hr class="w-50 mx-auto" />
-                        <span class="text-muted">Party / Farmer Signature</span>
+                        <span class="text-muted small">Party / Farmer Signature</span>
                     </div>
                 </div>
 
             </div>
-        </div>
-        
-        <div class="text-center mt-4">
-            <a asp-action="Index" class="btn btn-secondary me-2">Back to Dashboard</a>
-            <button onclick="window.print()" class="btn btn-dark fw-bold"><i class="bi bi-printer"></i> Print Invoice</button>
         </div>
     </div>
 </div>

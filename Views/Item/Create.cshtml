@@ -3,32 +3,52 @@
     ViewData["Title"] = "Add Item";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">Add New Item</h5>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-box-seam-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">ADD NEW ITEM</h3>
+            <p class="erp-page-subtitle">Configure product item name and link with category</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-plus-circle text-primary me-2"></i> Item Details</span>
             </div>
-            <div class="card-body">
-                <form asp-action="Create" method="post">
-                    <div class="mb-3">
-                        <label asp-for="CategoryId" class="form-label fw-bold">Select Category</label>
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-12">
+                        <label asp-for="CategoryId" class="form-label">Select Category <span class="req-star">*</span></label>
                         <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
                             <option value="">-- Select Category --</option>
                         </select>
                         <span asp-validation-for="CategoryId" class="text-danger"></span>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="ItemName" class="form-label fw-bold">Item Name</label>
-                        <input asp-for="ItemName" class="form-control" required placeholder="e.g. Mansuri, Sonam" />
+                    <div class="col-md-12">
+                        <label asp-for="ItemName" class="form-label">Item Name <span class="req-star">*</span></label>
+                        <input asp-for="ItemName" class="form-control" required placeholder="e.g. Mansuri, Sonam, Raw Paddy Grade A" />
                         <span asp-validation-for="ItemName" class="text-danger"></span>
                     </div>
                     
                     <input type="hidden" asp-for="IsActive" value="true" />
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-                        <button type="submit" class="btn btn-warning text-dark fw-bold">Save Item</button>
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Save Item
+                        </button>
                     </div>
                 </form>
             </div>

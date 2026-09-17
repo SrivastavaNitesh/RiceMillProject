@@ -3,57 +3,65 @@
     ViewData["Title"] = "Settlement / Billing Dashboard";
 }
 
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="bi bi-receipt"></i> Settlement Dashboard (Ready for Billing)
-        </h4>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-receipt-cutoff"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">SETTLEMENT & BILLING DASHBOARD</h3>
+            <p class="erp-page-subtitle">Generate final billing slips, net weight settlements, and party invoices</p>
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-hover table-striped align-middle">
-            <thead class="table-light">
+</div>
+
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
                 <tr>
-                    <th>RST Number</th>
+                    <th class="ps-4">RST Number</th>
                     <th>Vehicle</th>
                     <th>Party Name</th>
                     <th>Net Weight</th>
                     <th>Status</th>
-                    <th class="text-center">Action</th>
+                    <th class="text-center pe-4">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @if(!Model.Any()) {
-                    <tr><td colspan="6" class="text-center text-muted">No pending bills at the moment.</td></tr>
+                    <tr><td colspan="6" class="text-center py-4 text-muted">No pending bills at the moment.</td></tr>
                 }
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="fw-bold">@item.RSTNumber</td>
-                        <td>@item.VehicleNumber</td>
+                        <td class="ps-4 fw-bold text-primary">@item.RSTNumber</td>
+                        <td><strong class="text-dark">@item.VehicleNumber</strong></td>
                         <td>@item.PartyName</td>
                         <td>
                             @if(item.NetWeight.HasValue)
                             {
-                                @item.NetWeight <span>kg</span>
+                                <span class="badge-erp badge-erp-success">@item.NetWeight kg</span>
                             }
                             else
                             {
-                                <span class="badge bg-warning text-dark">Awaiting Exit</span>
+                                <span class="badge-erp badge-erp-warning">Awaiting Exit</span>
                             }
                         </td>
                         <td>
-                            <span class="badge bg-info text-dark">@item.Status</span>
+                            <span class="badge-erp badge-erp-info">@item.Status</span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center pe-4">
                             @if(item.NetWeight.HasValue)
                             {
-                                <a asp-action="Bill" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-dark fw-bold">
-                                    <i class="bi bi-printer"></i> Generate Bill
+                                <a asp-action="Bill" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-primary fw-bold">
+                                    <i class="bi bi-printer me-1"></i> Generate Bill
                                 </a>
                             }
                             else
                             {
-                                <button class="btn btn-sm btn-secondary" disabled>Need Tare Weight</button>
+                                <button class="btn btn-sm btn-light border text-muted" disabled>Need Tare Weight</button>
                             }
                         </td>
                     </tr>

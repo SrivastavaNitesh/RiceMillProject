@@ -3,20 +3,28 @@
     ViewData["Title"] = "Gate Operations";
 }
 
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="bi bi-door-open"></i> Gate Entry (Inbound / Outbound)
-        </h4>
-        <a asp-action="Create" class="btn btn-light btn-sm fw-bold text-primary">
-            <i class="bi bi-box-arrow-in-right"></i> New Inbound Entry
-        </a>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-door-open-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">GATE OPERATIONS</h3>
+            <p class="erp-page-subtitle">Inbound & outbound truck weight register & movement history</p>
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-hover table-striped align-middle">
-            <thead class="table-light">
+    <a asp-action="Create" class="btn-erp-primary">
+        <i class="bi bi-plus-lg me-1"></i> New Inbound Entry
+    </a>
+</div>
+
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
                 <tr>
-                    <th>RST Number</th>
+                    <th class="ps-4">RST Number</th>
                     <th>Vehicle</th>
                     <th>Party</th>
                     <th>Driver</th>
@@ -24,22 +32,22 @@
                     <th>Tare Wt.</th>
                     <th>Net Wt.</th>
                     <th>Status</th>
-                    <th class="text-center">Action</th>
+                    <th class="text-center pe-4">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="fw-bold">@item.RSTNumber</td>
-                        <td>@item.VehicleNumber</td>
+                        <td class="ps-4 fw-bold text-primary">@item.RSTNumber</td>
+                        <td><strong class="text-dark">@item.VehicleNumber</strong></td>
                         <td>@item.PartyName</td>
                         <td>@item.DriverName</td>
-                        <td><span class="badge bg-secondary">@item.GrossWeight kg</span></td>
+                        <td><span class="badge-erp badge-erp-info">@item.GrossWeight kg</span></td>
                         <td>
                             @if (item.TareWeight.HasValue)
                             {
-                                <span class="badge bg-secondary">@item.TareWeight kg</span>
+                                <span class="badge-erp badge-erp-warning">@item.TareWeight kg</span>
                             }
                             else
                             {
@@ -49,7 +57,7 @@
                         <td>
                             @if (item.NetWeight.HasValue)
                             {
-                                <span class="badge bg-success">@item.NetWeight kg</span>
+                                <span class="badge-erp badge-erp-success">@item.NetWeight kg</span>
                             }
                             else
                             {
@@ -59,44 +67,44 @@
                         <td>
                             @if (item.Status == "Entered")
                             {
-                                <span class="badge bg-warning text-dark">Inside Mill</span>
+                                <span class="badge-erp badge-erp-warning">Inside Mill</span>
                             }
                             else if (item.Status == "Tested")
                             {
-                                <span class="badge bg-info text-dark">Quality Checked</span>
+                                <span class="badge-erp badge-erp-info">Quality Checked</span>
                             }
                             else if (item.Status == "Exited")
                             {
-                                <span class="badge bg-success">Exited</span>
+                                <span class="badge-erp badge-erp-success">Exited</span>
                             }
                             else
                             {
-                                <span class="badge bg-primary">@item.Status</span>
+                                <span class="badge-erp badge-erp-info">@item.Status</span>
                             }
                         </td>
-                        <td class="text-center">
+                        <td class="text-center pe-4">
                             <div class="btn-group" role="group">
                                 @if (item.Status == "Entered")
                                 {
-                                    <a asp-controller="Unload" asp-action="Create" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-truck"></i> Unload
+                                    <a asp-controller="Unload" asp-action="Create" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-success fw-bold">
+                                        <i class="bi bi-truck me-1"></i> Unload
                                     </a>
-                                    <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-box-arrow-right"></i> Exit
+                                    <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-danger fw-bold">
+                                        <i class="bi bi-box-arrow-right me-1"></i> Exit
                                     </a>
                                 }
                                 else if (item.Status != "Exited")
                                 {
-                                    <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-box-arrow-right"></i> Exit
+                                    <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-danger fw-bold">
+                                        <i class="bi bi-box-arrow-right me-1"></i> Exit
                                     </a>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-sm btn-secondary" disabled>Completed</button>
+                                    <button class="btn btn-sm btn-light border text-muted" disabled>Completed</button>
                                 }
-                                <a asp-action="Print" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-secondary" target="_blank">
-                                    <i class="bi bi-printer"></i> Print
+                                <a asp-action="Print" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                    <i class="bi bi-printer"></i>
                                 </a>
                             </div>
                         </td>

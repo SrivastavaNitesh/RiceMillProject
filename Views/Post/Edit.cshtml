@@ -3,31 +3,53 @@
     ViewData["Title"] = "Edit Post";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Edit Post</h5>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">EDIT DESIGNATION / POST</h3>
+            <p class="erp-page-subtitle">Update designation title and active operational status</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-pencil-square text-primary me-2"></i> Edit Designation Details</span>
             </div>
-            <div class="card-body">
-                <form asp-action="Edit" method="post">
+            <div class="erp-card-body">
+                <form asp-action="Edit" method="post" class="row g-3">
                     <input type="hidden" asp-for="PostId" />
 
-                    <div class="mb-3">
-                        <label asp-for="PostName" class="form-label fw-bold">Post Name</label>
+                    <div class="col-md-12">
+                        <label asp-for="PostName" class="form-label">Post / Designation Name <span class="req-star">*</span></label>
                         <input asp-for="PostName" class="form-control" required />
                         <span asp-validation-for="PostName" class="text-danger"></span>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input class="form-check-input" type="checkbox" asp-for="IsActive" id="flexCheckDefault">
-                        <label class="form-check-label" for="flexCheckDefault">
-                            Active
-                        </label>
+                    <div class="col-md-12">
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" asp-for="IsActive" id="flexCheckDefault">
+                            <label class="form-check-label fw-semibold" for="flexCheckDefault">
+                                Active Status
+                            </label>
+                        </div>
                     </div>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-                        <button type="submit" class="btn btn-info text-white">Update Post</button>
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Update Post
+                        </button>
                     </div>
                 </form>
             </div>

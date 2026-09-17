@@ -23,18 +23,77 @@ namespace RiceMillProject.Controllers
             _personBal = new PersonBAL(configuration);
         }
 
+        [HttpGet]
+        public IActionResult Dashboard()
+        {
+            try
+            {
+                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var allEntries = _inwardBal.GetAllInwardEntries();
+                
+                DateTime today = DateTime.Today;
+                int todayCount = allEntries.Count(e => e.InwardDate.Date == today || e.GateInDateTime.Date == today);
+                int pendingRstCount = allEntries.Count(e => e.RSTRequired && !e.IsRSTGenerated);
+                int withoutRstCount = allEntries.Count(e => !e.RSTRequired);
+                int myEntriesCount = allEntries.Count;
+
+                ViewBag.TodayCount = todayCount;
+                ViewBag.PendingRstCount = pendingRstCount;
+                ViewBag.WithoutRstCount = withoutRstCount;
+                ViewBag.MyEntriesCount = myEntriesCount;
+
+                var recentEntries = allEntries
+                                    .OrderByDescending(e => e.InwardId)
+                                    .Take(5)
+                                    .ToList();
+
+                return View(recentEntries);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "An error occurred while loading dashboard: " + ex.Message;
+                ViewBag.TodayCount = 0;
+                ViewBag.PendingRstCount = 0;
+                ViewBag.WithoutRstCount = 0;
+                ViewBag.MyEntriesCount = 0;
+                return View(new List<InwardHeader>());
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Report()
+        {
+            try
+            {
+                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var allEntries = _inwardBal.GetAllInwardEntries();
+                
+                bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
+                var myEntries = allEntries;
+
+                return View(myEntries);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while loading report: " + ex.Message;
+                return View(new List<InwardHeader>());
+            }
+        }
+
         public IActionResult Index()
         {
             try
             {
                 PopulateDropdowns();
                 var entries = _inwardBal.GetAllInwardEntries();
+                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 ViewBag.NewInward = new InwardHeader
                 {
                     InwardDate = DateTime.Now,
                     InwardTime = DateTime.Now.ToString("hh:mm tt"),
                     GateInDateTime = DateTime.Now,
-                    GateManName = User?.Identity?.Name ?? "GateMan1 (System)"
+                    CreatedBy = currentUserId > 0 ? currentUserId : 2,
+                    GateManName = User?.Identity?.Name ?? "Gateman"
                 };
                 return View(entries);
             }
@@ -51,12 +110,21 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
+                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
+
+                if (!isAdmin || model.CreatedBy <= 0)
+                {
+                    model.CreatedBy = currentUserId > 0 ? currentUserId : 2;
+                }
+
+                if (ModelState.IsValid || !string.IsNullOrWhiteSpace(model.VehicleNo))
                 {
                     _inwardBal.SaveInwardEntry(model);
                     TempData["SuccessMessage"] = "Gate Inward Entry created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
+
                 PopulateDropdowns();
                 var entries = _inwardBal.GetAllInwardEntries();
                 ViewBag.NewInward = model;
@@ -66,6 +134,20 @@ namespace RiceMillProject.Controllers
             {
                 TempData["ErrorMessage"] = "An error occurred while creating entry: " + ex.Message;
                 return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpGet]
+        public IActionResult CheckDriverMobile(string mobileNumber)
+        {
+            try
+            {
+                bool isDuplicate = _inwardBal.IsDriverMobileDuplicate(mobileNumber);
+                return Json(new { success = true, isDuplicate = isDuplicate });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -154,6 +236,13 @@ namespace RiceMillProject.Controllers
         {
             try
             {
+                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
+                ViewBag.IsAdmin = isAdmin;
+
+                var gatemen = _inwardBal.GetGatemenList();
+                ViewBag.Gatemen = new SelectList(gatemen, "UserId", "GatemanName");
+
                 var dtGates = _busLayer.ManageGateMaster("GETALL");
                 var gates = new List<GateMaster>();
                 if (dtGates != null && dtGates.Rows.Count > 0)
@@ -170,19 +259,18 @@ namespace RiceMillProject.Controllers
 
                 var inwardTypes = _inwardBal.GetInwardTypes();
                 var vehicleTypes = _inwardBal.GetVehicleTypes();
-                var parties = _personBal.GetAllPersons();
 
                 ViewBag.Gates = new SelectList(gates, "GateId", "GateName");
                 ViewBag.InwardTypes = new SelectList(inwardTypes, "InwardTypeId", "InwardTypeName");
                 ViewBag.VehicleTypes = new SelectList(vehicleTypes, "VehicleTypeId", "VehicleTypeName");
-                ViewBag.Parties = new SelectList(parties, "PersonId", "PersonName");
             }
             catch (Exception)
             {
+                ViewBag.IsAdmin = true;
+                ViewBag.Gatemen = Enumerable.Empty<SelectListItem>();
                 ViewBag.Gates = Enumerable.Empty<SelectListItem>();
                 ViewBag.InwardTypes = Enumerable.Empty<SelectListItem>();
                 ViewBag.VehicleTypes = Enumerable.Empty<SelectListItem>();
-                ViewBag.Parties = Enumerable.Empty<SelectListItem>();
             }
         }
     }
