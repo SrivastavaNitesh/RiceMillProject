@@ -3,49 +3,59 @@
     ViewData["Title"] = "Office Management";
 }
 
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="bi bi-building"></i> Office/Location List
-        </h4>
-        <a asp-action="Create" class="btn btn-light btn-sm text-primary fw-bold">
-            <i class="bi bi-plus-circle"></i> Add New Office
-        </a>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-building-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">OFFICE BRANCHES</h3>
+            <p class="erp-page-subtitle">Master list of office locations, mill premises, and branch offices</p>
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-hover table-striped align-middle">
-            <thead class="table-light">
+    <a asp-action="Create" class="btn-erp-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New Office
+    </a>
+</div>
+
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
                 <tr>
-                    <th>ID</th>
+                    <th class="ps-4">Office ID</th>
                     <th>Office Name</th>
-                    <th>Location</th>
+                    <th>Location / Area</th>
                     <th>Status</th>
-                    <th class="text-center">Actions</th>
+                    <th class="text-center pe-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@item.OfficeId</td>
-                        <td class="fw-bold">@item.OfficeName</td>
+                        <td class="ps-4 text-muted font-monospace">#@item.OfficeId</td>
+                        <td><strong class="text-dark">@item.OfficeName</strong></td>
                         <td>@item.Location</td>
                         <td>
                             @if (item.IsActive)
                             {
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge-erp badge-erp-success">Active</span>
                             }
                             else
                             {
-                                <span class="badge bg-danger">Inactive</span>
+                                <span class="badge-erp badge-erp-danger">Inactive</span>
                             }
                         </td>
-                        <td class="text-center">
-                            <a asp-action="Edit" asp-route-id="@item.OfficeId" class="btn btn-sm btn-outline-primary">
-                                Edit
+                        <td class="text-center pe-4">
+                            <a asp-action="Edit" asp-route-id="@item.OfficeId" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil me-1"></i> Edit
                             </a>
-                            <form asp-action="Delete" asp-route-id="@item.OfficeId" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            <form asp-action="Delete" asp-route-id="@item.OfficeId" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this office branch?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i> Delete
+                                </button>
                             </form>
                         </td>
                     </tr>

@@ -22,17 +22,37 @@ namespace RiceMillProject.BAL
 
         public string CreateGateEntry(GateEntry entry)
         {
-            // Auto generate RST Number if not provided
-            if (string.IsNullOrEmpty(entry.RSTNumber))
-            {
-                entry.RSTNumber = "RST-" + DateTime.Now.ToString("yyyyMMddHHmmss");
-            }
             return _gateDal.CreateGateEntry(entry);
+        }
+
+        public List<dynamic> GetDriversWithMobile()
+        {
+            return _gateDal.GetDriversWithMobile();
         }
 
         public bool CompleteGateExit(string rstNumber, decimal tareWeight)
         {
             return _gateDal.CompleteGateExit(rstNumber, tareWeight);
+        }
+
+        public System.Data.DataTable GetInwardDetails(string inwardNo)
+        {
+            return _gateDal.GetInwardDetails(inwardNo);
+        }
+
+        public dynamic GetLinkageByParty(int partyId)
+        {
+            return _gateDal.GetLinkageByParty(partyId);
+        }
+
+        public List<dynamic> GetVehiclesByParty(int partyId)
+        {
+            return _gateDal.GetVehiclesByParty(partyId);
+        }
+
+        public List<dynamic> GetDriversByParty(int partyId)
+        {
+            return _gateDal.GetDriversByParty(partyId);
         }
     }
 }

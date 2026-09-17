@@ -19,9 +19,9 @@ namespace RiceMillProject.BAL
             return _unloadDal.GetAllUnloading();
         }
 
-        public int AssignUnloading(string rstNumber, int supervisorId, int methId)
+        public int AssignUnloading(string rstNumber, int supervisorId, int methId, int? itemId = null)
         {
-            return _unloadDal.AssignUnloading(rstNumber, supervisorId, methId);
+            return _unloadDal.AssignUnloading(rstNumber, supervisorId, methId, itemId);
         }
 
         public bool SubmitUnloading(int unloadId, int gateManId, int bagTypeId, int numberOfBags)

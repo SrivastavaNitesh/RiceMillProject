@@ -3,30 +3,50 @@
     ViewData["Title"] = "Add Bag Type";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0">Add New Bag Type</h5>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-bag-check-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">ADD NEW BAG TYPE</h3>
+            <p class="erp-page-subtitle">Configure bag type details and standard tare weight deduction</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-plus-circle text-primary me-2"></i> Bag Type Details</span>
             </div>
-            <div class="card-body">
-                <form asp-action="Create" method="post">
-                    <div class="mb-3">
-                        <label asp-for="BagTypeName" class="form-label fw-bold">Bag Type Name</label>
-                        <input asp-for="BagTypeName" class="form-control" required placeholder="e.g. Plastic, Old Jute" />
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
+                    <div class="col-md-12">
+                        <label asp-for="BagTypeName" class="form-label">Bag Type Name <span class="req-star">*</span></label>
+                        <input asp-for="BagTypeName" class="form-control" required placeholder="e.g. Plastic, Old Jute, New Jute" />
                         <span asp-validation-for="BagTypeName" class="text-danger"></span>
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="DeductionWeightGrams" class="form-label fw-bold">Deduction Weight (Grams)</label>
-                        <input asp-for="DeductionWeightGrams" type="number" class="form-control" required />
+                    <div class="col-md-12">
+                        <label asp-for="DeductionWeightGrams" class="form-label">Deduction Weight (Grams) <span class="req-star">*</span></label>
+                        <input asp-for="DeductionWeightGrams" type="number" class="form-control" required placeholder="e.g. 500" />
                         <span asp-validation-for="DeductionWeightGrams" class="text-danger"></span>
                     </div>
                     
                     <input type="hidden" asp-for="IsActive" value="true" />
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-                        <button type="submit" class="btn btn-dark">Save Bag Type</button>
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Save Bag Type
+                        </button>
                     </div>
                 </form>
             </div>

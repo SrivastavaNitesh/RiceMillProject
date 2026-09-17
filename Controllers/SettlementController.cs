@@ -18,9 +18,9 @@ namespace RiceMillProject.Controllers
 
         public IActionResult Index()
         {
-            // Get trucks that have been quality tested and are ready for settlement
+            // Get trucks that have NetWeight calculated and are ready for settlement & billing
             var readyForBill = _gateBal.GetAllGateEntries()
-                .Where(g => g.Status == "Tested" || g.Status == "Exited")
+                .Where(g => g.NetWeight.HasValue && g.NetWeight.Value > 0)
                 .ToList();
             return View(readyForBill);
         }

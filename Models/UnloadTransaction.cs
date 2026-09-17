@@ -11,6 +11,7 @@ namespace RiceMillProject.Models
         public int SupervisorId { get; set; }
         public int GateManId { get; set; }
         public int MethId { get; set; }
+        public int? ItemId { get; set; }
         public int? BagTypeId { get; set; }
         public int? NumberOfBags { get; set; }
         public decimal? TotalBagDeductionGrams { get; set; }
@@ -22,5 +23,6 @@ namespace RiceMillProject.Models
         public string? SupervisorName { get; set; }
         public string? MethName { get; set; }
         public string? BagTypeName { get; set; }
+        public string? ItemName { get; set; }
     }
 }

@@ -24,5 +24,11 @@ namespace RiceMillProject.Models
         public string VehicleNumber { get; set; } = string.Empty;
         public string PartyName { get; set; } = string.Empty;
         public string DriverName { get; set; } = string.Empty;
+        public string? DriverMobile { get; set; }
+        public int? TotalBags { get; set; }
+        public decimal WeighmentCharge { get; set; } = 0;
+        public string InwardOutward { get; set; } = "Inward";
+        public int CreatedBy { get; set; } = 1;
+        public string? GateManName { get; set; } = "Weightman";
     }
 }

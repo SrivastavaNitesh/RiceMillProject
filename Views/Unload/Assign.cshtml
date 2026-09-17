@@ -3,40 +3,68 @@
     ViewData["Title"] = "Assign Meth";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-premium-blue">
-                <h5 class="mb-0">Assign Meth for Unloading</h5>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-person-plus-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">ASSIGN METH / UNLOADING CONTRACTOR</h3>
+            <p class="erp-page-subtitle">Assign supervisor and labor team (Meth) for RST vehicle unloading</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left me-1"></i> Back to Unload Queue
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-person-check text-primary me-2"></i> Unloading Assignment Details</span>
             </div>
-            <div class="card-body">
-                <form asp-action="Assign" method="post">
+            <div class="erp-card-body">
+                <form asp-action="Assign" method="post" class="row g-3">
                     <input type="hidden" asp-for="RSTNumber" />
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">RST Number</label>
-                        <input type="text" class="form-control bg-light" value="@Model.RSTNumber" readonly />
+                    <div class="col-md-12">
+                        <label class="form-label">RST Number</label>
+                        <input type="text" class="form-control bg-light font-monospace fw-bold" value="@Model.RSTNumber" readonly />
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="SupervisorId" class="form-label fw-bold">Supervisor</label>
+                    <div class="col-md-12">
+                        <label asp-for="SupervisorId" class="form-label">Select Supervisor <span class="req-star">*</span></label>
                         <select asp-for="SupervisorId" class="form-select" asp-items="ViewBag.Supervisors" required>
                             <option value="">-- Select Supervisor --</option>
                         </select>
                         <span asp-validation-for="SupervisorId" class="text-danger"></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="MethId" class="form-label fw-bold">Assign to Meth</label>
+                    <div class="col-md-12">
+                        <label asp-for="ItemId" class="form-label">Paddy Variety / Item Type <span class="req-star">*</span></label>
+                        <select asp-for="ItemId" class="form-select" asp-items="ViewBag.Items" required>
+                            <option value="">-- Select Paddy Type (From Master Data) --</option>
+                        </select>
+                        <span asp-validation-for="ItemId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="MethId" class="form-label">Assign to Meth (Labor Head) <span class="req-star">*</span></label>
                         <select asp-for="MethId" class="form-select" asp-items="ViewBag.Meths" required>
                             <option value="">-- Select Meth --</option>
                         </select>
                         <span asp-validation-for="MethId" class="text-danger"></span>
                     </div>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">Back to Dashboard</a>
-                        <button type="submit" class="btn btn-premium-blue fw-bold">Generate Assignment Challan</button>
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-file-earmark-check me-1"></i> Generate Assignment Slip
+                        </button>
                     </div>
                 </form>
             </div>

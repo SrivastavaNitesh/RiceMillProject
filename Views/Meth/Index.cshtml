@@ -4,25 +4,34 @@
     var completedUnloads = ViewBag.CompletedUnloads as List<RiceMillProject.Models.UnloadTransaction>;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary fw-bold">Meth Unloading Dashboard</h2>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-person-badge-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">METH (LABOUR HEAD) DASHBOARD</h3>
+            <p class="erp-page-subtitle">Assigned unloading trucks, bag recording, and labour slip generation</p>
+        </div>
+    </div>
 </div>
 
 <div class="row">
     <!-- Pending Unloads (Assigned to Meth) -->
     <div class="col-md-6 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-warning text-dark fw-bold">
-                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Assigned Trucks (Pending Unload)</h5>
+        <div class="erp-card h-100 mb-0">
+            <div class="erp-card-header">
+                <span><i class="bi bi-clock-history text-primary me-2"></i> Assigned Trucks (Pending Unload)</span>
             </div>
-            <div class="card-body p-0">
+            <div class="erp-card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                    <table class="erp-table">
+                        <thead>
                             <tr>
-                                <th>RST Number</th>
+                                <th class="ps-4">RST Number</th>
                                 <th>Supervisor</th>
-                                <th>Action</th>
+                                <th class="text-center pe-4">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -31,10 +40,12 @@
                                 foreach(var unload in pendingUnloads)
                                 {
                                     <tr>
-                                        <td class="fw-bold text-dark">@unload.RSTNumber</td>
+                                        <td class="ps-4 fw-bold text-primary">@unload.RSTNumber</td>
                                         <td>@unload.SupervisorName</td>
-                                        <td>
-                                            <a asp-action="ExecuteUnload" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-primary fw-bold">Execute Unload</a>
+                                        <td class="text-center pe-4">
+                                            <a asp-action="ExecuteUnload" asp-route-id="@unload.UnloadId" class="btn-erp-primary btn-sm">
+                                                <i class="bi bi-play-circle me-1"></i> Execute Unload
+                                            </a>
                                         </td>
                                     </tr>
                                 }
@@ -54,19 +65,19 @@
 
     <!-- Completed Unloads -->
     <div class="col-md-6 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-success text-white fw-bold">
-                <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Completed Unloads</h5>
+        <div class="erp-card h-100 mb-0">
+            <div class="erp-card-header">
+                <span><i class="bi bi-check-circle text-success me-2"></i> Completed Unloads</span>
             </div>
-            <div class="card-body p-0">
+            <div class="erp-card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                    <table class="erp-table">
+                        <thead>
                             <tr>
-                                <th>RST Number</th>
+                                <th class="ps-4">RST Number</th>
                                 <th>Bags</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th class="text-center pe-4">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,20 +86,22 @@
                                 foreach(var unload in completedUnloads)
                                 {
                                     <tr>
-                                        <td class="fw-bold text-success">@unload.RSTNumber</td>
-                                        <td>@unload.NumberOfBags</td>
+                                        <td class="ps-4 fw-bold text-primary">@unload.RSTNumber</td>
+                                        <td><span class="badge-erp badge-erp-info">@unload.NumberOfBags Bags</span></td>
                                         <td>
                                             @if(unload.Status == "Verified")
                                             {
-                                                <span class="badge bg-success">Verified</span>
+                                                <span class="badge-erp badge-erp-success">Verified</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-warning text-dark">Pending Verify</span>
+                                                <span class="badge-erp badge-erp-warning">Pending Verify</span>
                                             }
                                         </td>
-                                        <td>
-                                            <a asp-action="PrintSlip" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success">Print Slip</a>
+                                        <td class="text-center pe-4">
+                                            <a asp-action="PrintSlip" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-printer me-1"></i> Print Slip
+                                            </a>
                                         </td>
                                     </tr>
                                 }

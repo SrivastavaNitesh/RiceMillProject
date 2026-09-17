@@ -3,53 +3,72 @@
     ViewData["Title"] = "Add New Vehicle";
 }
 
-<div class="row justify-content-center mt-4 mb-5">
-    <div class="col-md-8">
-        <div class="card shadow-lg border-0 rounded-lg">
-            <div class="card-header bg-primary text-white py-3" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;">
-                <h4 class="mb-0 fw-bold"><i class="bi bi-truck me-2"></i> @ViewData["Title"]</h4>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-truck-front-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">ADD NEW VEHICLE</h3>
+            <p class="erp-page-subtitle">Register new vehicle number plate and assign default party/driver</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-truck text-primary me-2"></i> Vehicle Registration Details</span>
             </div>
-            <div class="card-body p-4 bg-light">
-                <form asp-action="Create" method="post">
+            <div class="erp-card-body">
+                <form asp-action="Create" method="post" class="row g-3">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                     
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <label asp-for="VehicleNumber" class="form-label fw-bold text-secondary">Vehicle Number Plate</label>
-                            <div class="input-group shadow-sm">
-                                <span class="input-group-text bg-white text-primary"><i class="bi bi-123"></i></span>
-                                <input asp-for="VehicleNumber" class="form-control border-start-0 text-uppercase" required placeholder="e.g. UP32 AB 1234" />
+                    <div class="col-md-12">
+                        <label asp-for="VehicleNumber" class="form-label">Vehicle Number Plate <span class="req-star">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-123"></i></span>
+                            <input asp-for="VehicleNumber" class="form-control text-uppercase" required placeholder="e.g. UP32 AB 1234" />
+                        </div>
+                        <span asp-validation-for="VehicleNumber" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="erp-form-section-title">
+                            <i class="bi bi-link-45deg me-2"></i> Vehicle Mapping Links (Party & Driver)
+                        </div>
+                        <div class="alert alert-info py-2 border-0 small mb-3">
+                            <i class="bi bi-info-circle-fill me-2"></i> Select the default Party and Driver for this vehicle. You can change this later during gate entry.
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Linked Party / Owner</label>
+                                <select name="PartyId" class="form-select" asp-items="ViewBag.Parties">
+                                    <option value="">-- Select Existing Party --</option>
+                                </select>
+                                <small class="text-muted"><a asp-controller="Person" asp-action="Create" target="_blank">Add New Party <i class="bi bi-box-arrow-up-right"></i></a></small>
                             </div>
-                            <span asp-validation-for="VehicleNumber" class="text-danger small"></span>
+                            <div class="col-md-6">
+                                <label class="form-label">Default Driver</label>
+                                <select name="DriverId" class="form-select" asp-items="ViewBag.Drivers">
+                                    <option value="">-- Select Existing Driver --</option>
+                                </select>
+                                <small class="text-muted"><a asp-controller="Person" asp-action="Create" target="_blank">Add New Driver <i class="bi bi-box-arrow-up-right"></i></a></small>
+                            </div>
                         </div>
                     </div>
 
-                    <h5 class="text-primary border-bottom pb-2 mt-2 mb-3">Vehicle Links (Party & Driver)</h5>
-                    <div class="alert alert-info py-2 shadow-sm border-0 small">
-                        <i class="bi bi-info-circle-fill me-2"></i> Select the default Party and Driver for this vehicle. You can change this later if the vehicle is used by someone else.
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary">Linked Party / Owner</label>
-                            <select name="PartyId" class="form-select border-primary shadow-sm" asp-items="ViewBag.Parties">
-                                <option value="">-- Select Existing Party --</option>
-                            </select>
-                            <small class="text-muted"><a asp-controller="Person" asp-action="Create" target="_blank">Add New Party <i class="bi bi-box-arrow-up-right"></i></a></small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary">Default Driver</label>
-                            <select name="DriverId" class="form-select border-primary shadow-sm" asp-items="ViewBag.Drivers">
-                                <option value="">-- Select Existing Driver --</option>
-                            </select>
-                            <small class="text-muted"><a asp-controller="Person" asp-action="Create" target="_blank">Add New Driver <i class="bi bi-box-arrow-up-right"></i></a></small>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between mt-5">
-                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold shadow-sm">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important; border: none;">
-                            <i class="bi bi-save me-2"></i> Register Vehicle
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Register Vehicle
                         </button>
                     </div>
                 </form>

@@ -28,17 +28,17 @@ namespace RiceMillProject.Models
         public DateTime InwardDate { get; set; } = DateTime.Now;
         public string? InwardTime { get; set; } = DateTime.Now.ToString("hh:mm tt");
 
-        [Required(ErrorMessage = "Gate selection is required.")]
-        public int GateId { get; set; }
+        public int GateId { get; set; } = 1;
         public string? GateName { get; set; }
 
         [Required(ErrorMessage = "Inward Type selection is required.")]
-        public int InwardTypeId { get; set; }
+        public int InwardTypeId { get; set; } = 1; // 1 = With RST, 2 = Without RST
         public string? InwardTypeName { get; set; }
-        public bool RSTRequired { get; set; }
+        public bool RSTRequired { get; set; } = true;
 
-        [Required(ErrorMessage = "Party / Supplier selection is required.")]
-        public int PartyId { get; set; }
+        public int? PartyId { get; set; }
+
+        [Required(ErrorMessage = "Party / Supplier name is required.")]
         public string? PartyName { get; set; }
 
         public string? TransporterName { get; set; }
@@ -46,8 +46,7 @@ namespace RiceMillProject.Models
         [Required(ErrorMessage = "Vehicle Number is required.")]
         public string VehicleNo { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Vehicle Type is required.")]
-        public int VehicleTypeId { get; set; }
+        public int VehicleTypeId { get; set; } = 1;
         public string? VehicleTypeName { get; set; }
 
         [Required(ErrorMessage = "Driver Name is required.")]
@@ -59,7 +58,8 @@ namespace RiceMillProject.Models
         public decimal ApproxWeight { get; set; }
         public string? PurposeRemarks { get; set; }
         public DateTime GateInDateTime { get; set; } = DateTime.Now;
-        public string? GateManName { get; set; } = "GateMan1 (System)";
+        public int CreatedBy { get; set; } = 1;
+        public string? GateManName { get; set; } = "Gateman";
         public string StatusName { get; set; } = "Pending";
         public bool IsRSTGenerated { get; set; }
     }

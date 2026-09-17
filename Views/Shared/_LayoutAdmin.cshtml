@@ -8,12 +8,20 @@
 
     <script type="importmap"></script>
 
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+
     <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- DataTables Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 
     <!-- Site CSS -->
     <link rel="stylesheet"
@@ -27,18 +35,21 @@
     <style>
 
         /* =========================================
-                                   BODY
+                                   GLOBAL TYPOGRAPHY & BODY
                            ========================================= */
+        :root {
+            --bs-body-font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif !important;
+        }
 
         html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
+        body, button, input, select, textarea, .form-control, .form-select, .table, .btn, .card, h1, h2, h3, h4, h5, h6 {
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
         }
 
         body {
-            background-color: #f8f9fa;
+            background-color: #f8fafc;
             overflow: hidden;
         }
 
@@ -329,98 +340,95 @@
                      MENU
                      ================================================= -->
 
+                @{
+                    bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "2")
+                                        && !User.IsInRole("Admin") 
+                                        && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
+                }
+
                 <ul class="nav flex-column mb-auto">
 
-
-                    <!-- =================================================
-                         DASHBOARD
-                         ================================================= -->
-
-                    <li class="nav-item">
-
-                        <a asp-controller="Dashboard"
-                           asp-action="Index">
-
-                            <i class="bi bi-speedometer2 me-2"></i>
-
-                            Dashboard
-
-                        </a>
-
-                    </li>
-
-
-                    <!-- =================================================
-                         GATE OPERATIONS
-                         ================================================= -->
-                    @if (User.IsInRole("Admin") || User.IsInRole("Gate Man"))
+                    @if (isGatemanOnly)
                     {
-
-                        <li>
-
-                            <a asp-controller="Gateman"
-                               asp-action="Index">
-
-                                <i class="bi bi-door-open-fill me-2"></i>
-
-                                Gateman Inward / Outward
-
-                            </a>
-
-                        </li>
-
-                        <li>
-
-                            <a asp-controller="GateEntry"
-                               asp-action="Index">
-
+                        <li class="nav-item">
+                            <a asp-controller="Gateman" asp-action="Dashboard">
                                 <i class="bi bi-speedometer2 me-2"></i>
-
-                                Weighbridge RST Operations
-
+                                Gateman Dashboard
                             </a>
-
                         </li>
-
                         <li>
-
-                            <a asp-controller="Visitor"
-                               asp-action="Index">
-
-                                <i class="bi bi-card-heading me-2"></i>
-
-                                Visitor Register & Passes
-
+                            <a asp-controller="Gateman" asp-action="Index">
+                                <i class="bi bi-pencil-square me-2"></i>
+                                New Gate Inward Form
                             </a>
-
                         </li>
-
                         <li>
-
-                            <a asp-controller="TempMaterial"
-                               asp-action="Index">
-
-                                <i class="bi bi-tools me-2"></i>
-
-                                Temp Tools Register
-
+                            <a asp-controller="Gateman" asp-action="Report">
+                                <i class="bi bi-journal-text me-2"></i>
+                                My Inward Register Report
                             </a>
-
+                        </li>
+                    }
+                    else
+                    {
+                        <!-- =================================================
+                             DASHBOARD
+                             ================================================= -->
+                        <li class="nav-item">
+                            <a asp-controller="Dashboard" asp-action="Index">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                Admin Dashboard
+                            </a>
                         </li>
 
-                        <li>
-
-                            <a asp-controller="Incident"
-                               asp-action="Index">
-
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-
-                                Security Exception Log
-
-                            </a>
-
-                        </li>
-
+                        <!-- =================================================
+                             GATE OPERATIONS
+                             ================================================= -->
+                        @if (User.IsInRole("Admin") || User.IsInRole("Gate Man") || User.IsInRole("Gateman"))
+                        {
+                            <li>
+                                <a asp-controller="Gateman" asp-action="Dashboard">
+                                    <i class="bi bi-speedometer2 me-2"></i>
+                                    Gateman Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Gateman" asp-action="Index">
+                                    <i class="bi bi-door-open-fill me-2"></i>
+                                    Gateman Inward / Outward
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Gateman" asp-action="Report">
+                                    <i class="bi bi-journal-text me-2"></i>
+                                    Gateman Inward Report
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="GateEntry" asp-action="Index">
+                                    <i class="bi bi-speedometer2 me-2"></i>
+                                    Weighbridge RST Operations
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Visitor" asp-action="Index">
+                                    <i class="bi bi-card-heading me-2"></i>
+                                    Visitor Register & Passes
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="TempMaterial" asp-action="Index">
+                                    <i class="bi bi-tools me-2"></i>
+                                    Temp Tools Register
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Incident" asp-action="Index">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    Security Exception Log
+                                </a>
+                            </li>
+                        }
                     }
 
 
@@ -615,25 +623,6 @@
                                         </a>
                                     </li>
 
-                                    <li>
-                                        <a asp-controller="Visitor" asp-action="Index">
-                                            <i class="bi bi-card-heading me-2"></i> Visitor Register
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a asp-controller="TempMaterial" asp-action="Index">
-                                            <i class="bi bi-tools me-2"></i> Temp Tools Register
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a asp-controller="Incident" asp-action="Index">
-                                            <i class="bi bi-exclamation-triangle me-2"></i> Security Incidents
-                                        </a>
-                                    </li>
-
-
                                     <!-- =================================================
                                          ADMIN ONLY ITEMS
                                          ================================================= -->
@@ -747,6 +736,14 @@
 
 
                 </ul>
+
+                <!-- STICKY SIDEBAR BOTTOM QUICK SCROLL BAR -->
+                <div class="sidebar-sticky-bottom p-2 mt-auto text-center border-top border-light border-opacity-25">
+                    <button type="button" id="sidebarScrollTopBtn" class="btn btn-sm btn-outline-light w-100 py-1 text-white-50 d-flex align-items-center justify-content-center gap-1">
+                        <i class="bi bi-arrow-up-circle-fill text-warning"></i>
+                        <span>Scroll to Top Menu</span>
+                    </button>
+                </div>
 
 
             </div>
@@ -913,6 +910,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
     <script src="~/js/site.js"
             asp-append-version="true">

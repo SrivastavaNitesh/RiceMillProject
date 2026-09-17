@@ -16,6 +16,16 @@ namespace RiceMillProject.DAL
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? "";
         }
 
+        private static bool HasColumn(SqlDataReader reader, string columnName)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
         public List<UnloadTransaction> GetAllUnloading()
         {
             var list = new List<UnloadTransaction>();
@@ -25,11 +35,13 @@ namespace RiceMillProject.DAL
                     SELECT u.*, 
        s.PersonName as SupervisorName,
        m.PersonName as MethName,
-       b.BagTypeName
+       b.BagTypeName,
+       i.ItemName
 FROM t_UnloadTransaction u
 LEFT JOIN p02_Person s ON u.SupervisorId = s.PersonId
 LEFT JOIN p02_Person m ON u.MethId = m.PersonId
-LEFT JOIN m_BagType b ON u.BagTypeId = b.BagTypeId";
+LEFT JOIN m_BagType b ON u.BagTypeId = b.BagTypeId
+LEFT JOIN m_Item i ON u.ItemId = i.ItemId";
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
@@ -43,16 +55,18 @@ LEFT JOIN m_BagType b ON u.BagTypeId = b.BagTypeId";
                                 UnloadId = Convert.ToInt32(reader["UnloadId"]),
                                 RSTNumber = reader["RSTNumber"].ToString() ?? "",
                                 SupervisorId = reader["SupervisorId"] != DBNull.Value ? Convert.ToInt32(reader["SupervisorId"]) : 0,
-                                GateManId = reader["GateManId"] != DBNull.Value ? Convert.ToInt32(reader["GateManId"]) : 0,
+                                GateManId = HasColumn(reader, "GateManId") && reader["GateManId"] != DBNull.Value ? Convert.ToInt32(reader["GateManId"]) : 0,
                                 MethId = reader["MethId"] != DBNull.Value ? Convert.ToInt32(reader["MethId"]) : 0,
+                                ItemId = HasColumn(reader, "ItemId") && reader["ItemId"] != DBNull.Value ? Convert.ToInt32(reader["ItemId"]) : null,
                                 BagTypeId = reader["BagTypeId"] != DBNull.Value ? Convert.ToInt32(reader["BagTypeId"]) : null,
                                 NumberOfBags = reader["NumberOfBags"] != DBNull.Value ? Convert.ToInt32(reader["NumberOfBags"]) : null,
                                 TotalBagDeductionGrams = reader["TotalBagDeductionGrams"] != DBNull.Value ? Convert.ToDecimal(reader["TotalBagDeductionGrams"]) : null,
                                 UnloadTime = reader["UnloadTime"] != DBNull.Value ? Convert.ToDateTime(reader["UnloadTime"]) : null,
-                                Status = reader["Status"].ToString() ?? "Assigned",
-                                SupervisorName = reader["SupervisorName"].ToString(),
-                                MethName = reader["MethName"].ToString(),
-                                BagTypeName = reader["BagTypeName"].ToString()
+                                Status = HasColumn(reader, "Status") && reader["Status"] != DBNull.Value ? reader["Status"].ToString() ?? "Assigned" : "Assigned",
+                                SupervisorName = reader["SupervisorName"] != DBNull.Value ? reader["SupervisorName"].ToString() : "",
+                                MethName = reader["MethName"] != DBNull.Value ? reader["MethName"].ToString() : "",
+                                BagTypeName = reader["BagTypeName"] != DBNull.Value ? reader["BagTypeName"].ToString() : "",
+                                ItemName = HasColumn(reader, "ItemName") && reader["ItemName"] != DBNull.Value ? reader["ItemName"].ToString() : "Paddy Variety"
                             });
                         }
                     }
@@ -61,7 +75,7 @@ LEFT JOIN m_BagType b ON u.BagTypeId = b.BagTypeId";
             return list;
         }
 
-        public int AssignUnloading(string rstNumber, int supervisorId, int methId)
+        public int AssignUnloading(string rstNumber, int supervisorId, int methId, int? itemId = null)
         {
             int unloadId = 0;
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -72,6 +86,7 @@ LEFT JOIN m_BagType b ON u.BagTypeId = b.BagTypeId";
                     cmd.Parameters.AddWithValue("@RSTNumber", rstNumber);
                     cmd.Parameters.AddWithValue("@SupervisorId", supervisorId);
                     cmd.Parameters.AddWithValue("@MethId", methId);
+                    cmd.Parameters.AddWithValue("@ItemId", (object?)itemId ?? DBNull.Value);
                     
                     con.Open();
                     object? result = cmd.ExecuteScalar();

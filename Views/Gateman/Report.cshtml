@@ -1,0 +1,217 @@
+@model IEnumerable<RiceMillProject.Models.InwardHeader>
+@{
+    ViewData["Title"] = "Gate Inward Register";
+}
+
+<style>
+    /* Professional ERP Report Styling */
+    .erp-report-card {
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+    .erp-report-header {
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+    }
+    .erp-table {
+        font-size: 0.825rem;
+        color: #374151;
+        margin-bottom: 0;
+    }
+    .erp-table thead th {
+        background-color: #f3f4f6 !important;
+        color: #4b5563 !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border-bottom: 2px solid #d1d5db;
+        padding: 0.6rem 0.75rem;
+        white-space: nowrap;
+    }
+    .erp-table tbody td {
+        padding: 0.5rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .erp-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+    .erp-badge {
+        font-size: 0.725rem;
+        font-weight: 600;
+        padding: 0.25em 0.5em;
+        border-radius: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+    .erp-toolbar .btn {
+        font-size: 0.825rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    /* DataTables Overrides */
+    .dataTables_wrapper .dataTables_length select {
+        font-size: 0.825rem;
+        padding: 0.25rem 2rem 0.25rem 0.5rem;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+        font-size: 0.825rem;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+    }
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.825rem;
+        padding-top: 0.75rem;
+    }
+</style>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-end mb-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1" style="letter-spacing:-0.5px;">Gate Inward Register</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0" style="font-size:0.85rem;">
+                <li class="breadcrumb-item"><a href="/Gateman/Dashboard" class="text-decoration-none text-muted">Dashboard</a></li>
+                <li class="breadcrumb-item active text-primary fw-medium" aria-current="page">Inward Report</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="d-flex gap-2 erp-toolbar">
+        <button onclick="window.print()" class="btn btn-light border shadow-sm text-dark">
+            <i class="bi bi-printer"></i> Print
+        </button>
+        <button class="btn btn-success shadow-sm" onclick="exportTableToCSV('Gate_Inward_Register.csv')">
+            <i class="bi bi-file-earmark-excel"></i> Export CSV
+        </button>
+        <a asp-action="Index" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-lg"></i> New Entry
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 erp-report-card">
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table class="table erp-table table-bordered table-striped w-100" id="erpReportTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 50px;">S.N.</th>
+                        <th>Inward No</th>
+                        <th>Gate Entry No</th>
+                        <th>Date & Time</th>
+                        <th>Party / Supplier</th>
+                        <th>Vehicle No</th>
+                        <th>Driver Info</th>
+                        <th>Inward Type</th>
+                        <th>Status</th>
+                        <th>Added By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int sn = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center text-muted fw-medium">@(sn++)</td>
+                                <td class="fw-bold text-primary">@item.InwardNo</td>
+                                <td class="text-muted font-monospace">@(string.IsNullOrWhiteSpace(item.GateEntryNo) ? "-" : item.GateEntryNo)</td>
+                                <td>
+                                    <span class="d-block fw-semibold text-dark">@item.InwardDate.ToString("dd-MMM-yyyy")</span>
+                                    <span class="text-muted" style="font-size:0.75rem;">@item.InwardTime</span>
+                                </td>
+                                <td class="fw-medium text-dark">@(string.IsNullOrWhiteSpace(item.PartyName) ? "-" : item.PartyName)</td>
+                                <td><span class="badge bg-light text-dark border border-secondary text-uppercase" style="font-size:0.75rem;">@item.VehicleNo</span></td>
+                                <td>
+                                    <span class="d-block fw-medium">@item.DriverName</span>
+                                    <span class="text-muted" style="font-size:0.75rem;">@(string.IsNullOrWhiteSpace(item.DriverMobile) ? "-" : item.DriverMobile)</span>
+                                </td>
+                                <td>
+                                    @if (item.RSTRequired)
+                                    {
+                                        <span class="erp-badge bg-primary-subtle text-primary border border-primary-subtle">With RST</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="erp-badge bg-secondary-subtle text-secondary border border-secondary-subtle">Without RST</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.RSTRequired)
+                                    {
+                                        if (item.IsRSTGenerated)
+                                        {
+                                            <span class="erp-badge bg-success-subtle text-success border border-success-subtle">RST Generated</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="erp-badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Pending Weighment</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="erp-badge bg-info-subtle text-info-emphasis border border-info-subtle">Direct Entry</span>
+                                    }
+                                </td>
+                                <td class="text-muted">@item.GateManName</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            if ($('#erpReportTable').length && $.fn.DataTable) {
+                $('#erpReportTable').DataTable({
+                    responsive: true,
+                    pageLength: 25,
+                    lengthMenu: [[15, 25, 50, 100, -1], [15, 25, 50, 100, "All"]],
+                    order: [[0, 'desc']],
+                    language: {
+                        search: "_INPUT_",
+                        searchPlaceholder: "Search records..."
+                    },
+                    dom: "<'row mb-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+                         "<'row'<'col-sm-12'tr>>" +
+                         "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-end'p>>"
+                });
+            }
+        });
+
+        // Simple CSV Export Function
+        function exportTableToCSV(filename) {
+            var csv = [];
+            var rows = document.querySelectorAll("#erpReportTable tr");
+            
+            for (var i = 0; i < rows.length; i++) {
+                var row = [], cols = rows[i].querySelectorAll("td, th");
+                
+                for (var j = 0; j < cols.length; j++) 
+                    row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
+                
+                csv.push(row.join(","));        
+            }
+
+            var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            var downloadLink = document.createElement("a");
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+}
