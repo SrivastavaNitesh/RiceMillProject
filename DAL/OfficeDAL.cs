@@ -48,7 +48,7 @@ namespace RiceMillProject.DAL
             var locations = new List<OfficeLocation>();
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT LocationId, OfficeId, LocationName FROM t_OfficeLocations", con))
+                using (SqlCommand cmd = new SqlCommand("SELECT LocationId, OfficeId, LocationName FROM o_OfficeLocation WHERE IsActive = 1", con))
                 {
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -77,7 +77,8 @@ namespace RiceMillProject.DAL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@OfficeName", office.OfficeName);
-                    cmd.Parameters.AddWithValue("@Location", ""); // Deprecated column
+                    cmd.Parameters.AddWithValue("@Location", office.Location??""); // Deprecated column
+                    cmd.Parameters.AddWithValue("@officetype", "1"); // Deprecated column
                     
                     con.Open();
                     object? result = cmd.ExecuteScalar();

@@ -1,0 +1,22 @@
+@model RiceMillProject.Models.LabReport
+@{ ViewData["Title"] = "Lab report LAB-" + Model.ReportId; }
+<partial name="_Navigation" />
+<style>@@media print { nav, .sidebar, header, footer, .topbar, .d-print-none { display: none !important; } html, body, .main-wrapper, .main-content, .page-content { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; } .main-wrapper, .main-content { display: block !important; } body { background: white !important; } .card { border: 0 !important; box-shadow: none !important; } tr { break-inside: avoid; } }</style>
+<div class="card card-body shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between gap-2"><h2>Lab report LAB-@Model.ReportId</h2>
+        <div class="d-print-none"><button onclick="window.print()" class="btn btn-primary">Print / PDF</button> <a asp-action="Export" asp-route-id="@Model.ReportId" class="btn btn-outline-secondary">Download CSV</a></div>
+    </div>
+    <p><strong>RST:</strong> @Model.RSTNumber<br /><strong>Technician:</strong> @Model.TechnicianName<br /><strong>Tested at:</strong> @Model.TestedAt.ToString("dd MMM yyyy HH:mm:ss")</p>
+    @foreach (var category in Model.Results.GroupBy(r => r.CategoryId))
+    {
+        <h4 class="mt-3">@category.First().CategoryName</h4>
+        @foreach (var item in category.GroupBy(r => r.ItemId))
+        {
+            <h5>@item.First().ItemName</h5>
+            <table class="table table-bordered"><thead><tr><th>Test</th><th>Result</th><th>Unit</th></tr></thead><tbody>
+            @foreach (var result in item) { <tr><td>@result.TestName</td><td style="white-space:pre-wrap">@result.Value</td><td>@result.Unit</td></tr> }
+            </tbody></table>
+        }
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Remarks)) { <p><strong>Remarks:</strong> <span style="white-space:pre-wrap">@Model.Remarks</span></p> }
+</div>

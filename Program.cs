@@ -4,6 +4,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddAuthorization(options => options.AddPolicy("LabAccess", policy =>
+    policy.RequireAuthenticatedUser().RequireAssertion(context =>
+        context.User.HasClaim("PostId", "1") || context.User.HasClaim("PostId", "5"))));
 
 // Add Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -17,6 +17,28 @@
 
                 <form asp-action="ExecuteUnload" method="post">
                     <input type="hidden" asp-for="UnloadId" />
+                    <input type="hidden" asp-for="RSTNumber" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <fieldset class="border rounded p-3 mb-3">
+                        <legend class="float-none w-auto px-2 fs-6 fw-bold">Items actually unloaded (select multiple)</legend>
+                        <p class="text-muted">Only these items and categories will be available to the lab for this RST.</p>
+                        @if (ViewBag.UnloadItems is List<RiceMillProject.Models.LabItemOption> unloadItems)
+                        {
+                            @foreach (var category in unloadItems.GroupBy(i => i.CategoryId))
+                            {
+                                <div class="fw-bold mt-2">@category.First().CategoryName</div>
+                                @foreach (var item in category)
+                                {
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" name="SelectedItemIds" value="@item.ItemId" id="unload-item-@item.ItemId" checked="@Model.SelectedItemIds.Contains(item.ItemId)" />
+                                        <label class="form-check-label" for="unload-item-@item.ItemId">@item.ItemName</label>
+                                    </div>
+                                }
+                            }
+                            @if (unloadItems.Count == 0) { <p class="text-warning">Create item categories and items before submitting unloading.</p> }
+                        }
+                        <span asp-validation-for="SelectedItemIds" class="text-danger"></span>
+                    </fieldset>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -58,7 +80,7 @@
                                     foreach (var worker in ViewBag.Workers)
                                     {
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="SelectedWorkers" value="@worker.PersonId" id="worker_@worker.PersonId">
+                                            <input class="form-check-input" type="checkbox" name="SelectedWorkers" value="@worker.PersonId" id="worker_@worker.PersonId" checked="@(ViewBag.SelectedWorkers is int[] selectedWorkers && selectedWorkers.Contains((int)worker.PersonId))">
                                             <label class="form-check-label" for="worker_@worker.PersonId">
                                                 @worker.PersonName
                                             </label>
@@ -70,8 +92,8 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold text-primary">Shift</label>
                             <select name="Shift" class="form-select" required>
-                                <option value="Day">Day Shift (₹10/bag)</option>
-                                <option value="Night">Night Shift (₹15/bag)</option>
+                                <option value="Day" selected="@(ViewBag.SelectedShift as string != "Night")">Day Shift (10 per worker)</option>
+                                <option value="Night" selected="@(ViewBag.SelectedShift as string == "Night")">Night Shift (15 per worker)</option>
                             </select>
                         </div>
                     </div>

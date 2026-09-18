@@ -1,0 +1,40 @@
+@model RiceMillProject.Models.LabTestMasterPage
+@{ ViewData["Title"] = "Lab test master"; }
+<partial name="_Navigation" />
+<h2>Lab test master</h2>
+<p class="text-muted">Create the tests your laboratory uses, then map them to items.</p>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form asp-action="Tests" method="post" class="card card-body shadow-sm">
+            <h5>@(Model.Form.TestId == 0 ? "Add test" : "Edit test")</h5>
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input asp-for="Form.TestId" type="hidden" />
+            <label asp-for="Form.TestName" class="form-label">Test name</label>
+            <input asp-for="Form.TestName" class="form-control mb-3" maxlength="120" required />
+            <label asp-for="Form.ResultType" class="form-label">Result format</label>
+            <select asp-for="Form.ResultType" class="form-select mb-3"><option value="Number">Number</option><option value="Text">Text / observation</option></select>
+            <label asp-for="Form.Unit" class="form-label">Unit (optional)</label>
+            <input asp-for="Form.Unit" class="form-control mb-3" maxlength="30" placeholder="%, mg/kg, etc." />
+            <label asp-for="Form.Description" class="form-label">Instructions (optional)</label>
+            <textarea asp-for="Form.Description" class="form-control mb-3" maxlength="500"></textarea>
+            <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save test</button><a asp-action="Tests" class="btn btn-outline-secondary">Clear</a></div>
+        </form>
+    </div>
+    <div class="col-lg-8">
+        <div class="table-responsive"><table class="table table-striped align-middle">
+            <thead><tr><th>Test</th><th>Format</th><th>Unit</th><th>Actions</th></tr></thead>
+            <tbody>
+            @if (Model.Tests.Count == 0) { <tr><td colspan="4" class="text-muted">No tests yet. Add your first test using the form.</td></tr> }
+            @foreach (var test in Model.Tests)
+            {
+                <tr><td>@test.TestName<small class="d-block text-muted">@test.Description</small></td><td>@test.ResultType</td><td>@test.Unit</td>
+                <td><a asp-action="Tests" asp-route-id="@test.TestId" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form asp-action="RemoveTest" method="post" class="d-inline" onsubmit="return confirm('Remove this test and its active item mappings? Saved reports will remain available.');">
+                        <input type="hidden" name="id" value="@test.TestId" /><button class="btn btn-sm btn-outline-danger">Remove</button>
+                    </form>
+                </td></tr>
+            }
+            </tbody>
+        </table></div>
+    </div>
+</div>

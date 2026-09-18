@@ -1,0 +1,20 @@
+@model RiceMillProject.Models.LabReportsPage
+@{ ViewData["Title"] = "Lab reports"; }
+<partial name="_Navigation" />
+<h2>Lab reports</h2>
+<form method="get" asp-action="Reports" class="row g-3 align-items-end mb-4">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="col-md-4"><label asp-for="RstNumber" class="form-label">RST number</label><input asp-for="RstNumber" class="form-control" maxlength="50" /></div>
+    <div class="col-md-3"><label asp-for="From" class="form-label">From</label><input asp-for="From" class="form-control" type="date" /></div>
+    <div class="col-md-3"><label asp-for="To" class="form-label">To</label><input asp-for="To" class="form-control" type="date" /></div>
+    <div class="col-md-2"><button class="btn btn-primary">Filter</button> <a asp-action="Reports" class="btn btn-outline-secondary">Clear</a></div>
+</form>
+<div class="table-responsive"><table class="table table-striped align-middle">
+    <thead><tr><th>Report</th><th>RST</th><th>Tested at</th><th>Technician</th><th>Items / results</th><th>Actions</th></tr></thead><tbody>
+    @if (Model.Reports.Count == 0) { <tr><td colspan="6" class="text-center text-muted">No saved reports match these filters.</td></tr> }
+    @foreach (var report in Model.Reports)
+    {
+        <tr><td>LAB-@report.ReportId</td><td>@report.RSTNumber</td><td>@report.TestedAt.ToString("dd MMM yyyy HH:mm")</td><td>@report.TechnicianName</td><td>@report.ItemCount / @report.ResultCount</td>
+            <td><a asp-action="Report" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-primary">View / print</a> <a asp-action="Export" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-secondary">CSV</a></td></tr>
+    }
+    </tbody></table></div>

@@ -11,6 +11,7 @@ namespace RiceMillProject.Controllers
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
+                if (User.HasClaim("PostId", "5")) return RedirectToAction("Index", "Lab");
                 return RedirectToAction("Index", "Dashboard");
             }
             return View();

@@ -1,48 +1,22 @@
-@model IEnumerable<RiceMillProject.Models.GateEntry>
-@{
-    ViewData["Title"] = "Lab Dashboard";
-}
-
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="bi bi-moisture"></i> Lab Dashboard (Pending Quality Checks)
-        </h4>
-    </div>
-    <div class="card-body">
-        <table class="table table-hover table-striped align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>RST Number</th>
-                    <th>Vehicle</th>
-                    <th>Party</th>
-                    <th>Gross Wt.</th>
-                    <th>Status</th>
-                    <th class="text-center">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if(!Model.Any()) {
-                    <tr><td colspan="6" class="text-center text-muted">No pending tests at the moment.</td></tr>
-                }
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="fw-bold">@item.RSTNumber</td>
-                        <td>@item.VehicleNumber</td>
-                        <td>@item.PartyName</td>
-                        <td>@item.GrossWeight kg</td>
-                        <td>
-                            <span class="badge bg-secondary">@item.Status</span>
-                        </td>
-                        <td class="text-center">
-                            <a asp-action="Create" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-warning text-dark fw-bold">
-                                <i class="bi bi-clipboard-check"></i> Enter Lab Report
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+@model List<RiceMillProject.Models.LabRstSummary>
+@{ ViewData["Title"] = "Lab quality checks"; }
+<partial name="_Navigation" />
+<h2>RST quality checks</h2>
+<p class="text-muted">Select an RST to test the items recorded during unloading. Multiple categories and items can be tested together.</p>
+<div class="table-responsive"><table class="table table-striped align-middle">
+    <thead><tr><th>RST number</th><th>Vehicle / party</th><th>Unloaded items</th><th>Test coverage</th><th>Actions</th></tr></thead><tbody>
+    @if (Model.Count == 0)
+    {
+        <tr><td colspan="5" class="text-center py-5 text-muted">No item-wise unloading is ready for testing.<br />Record the actual unloaded items on the unloading form first.</td></tr>
+    }
+    @foreach (var rst in Model)
+    {
+        <tr><td class="fw-bold">@rst.RSTNumber</td><td>@rst.VehicleNumber<small class="d-block text-muted">@rst.PartyName</small></td><td>@rst.ItemCount</td>
+            <td>@rst.CompletedTests / @rst.RequiredTests results recorded
+                @if (rst.UnmappedItems > 0) { <small class="d-block text-warning">@rst.UnmappedItems item(s) need test mapping</small> }
+                else if (rst.RequiredTests > 0 && rst.CompletedTests == rst.RequiredTests) { <span class="badge bg-success">Complete</span> }
+            </td>
+            <td><a asp-action="Create" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-primary">Enter results</a>
+                <a asp-action="Reports" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-outline-secondary">Reports</a></td></tr>
+    }
+    </tbody></table></div>

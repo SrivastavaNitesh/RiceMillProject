@@ -23,11 +23,12 @@
                         <a class="nav-link" asp-controller="Lab" asp-action="Index"><i class="bi bi-moisture me-1"></i> Quality Check Log</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Lab" asp-action="Create"><i class="bi bi-plus-lg me-1"></i> New Sample Test</a>
+                        <a class="nav-link" asp-controller="Lab" asp-action="Tests"><i class="bi bi-plus-lg me-1"></i> Test Master</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="ItemCategory" asp-action="Index"><i class="bi bi-box me-1"></i> Item Categories</a>
+                        <a class="nav-link" asp-controller="Lab" asp-action="Mappings"><i class="bi bi-box me-1"></i> Item Test Mapping</a>
                     </li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Lab" asp-action="Reports">Lab Reports</a></li>
                 </ul>
             </div>
             <div class="d-flex align-items-center gap-3 text-white my-1">
@@ -46,4 +47,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

@@ -7,6 +7,9 @@ namespace RiceMillProject.BAL
 {
     public class UnloadTransactionBAL
     {
+        public List<Person> GetUnloadingPeople() => _unloadDal.GetUnloadingPeople();
+        public void CompleteWithItems(UnloadTransaction unload, int locationId, string shift, int[] workerIds)
+            => _unloadDal.CompleteWithItems(unload, locationId, shift, workerIds);
         private readonly UnloadTransactionDAL _unloadDal;
 
         public UnloadTransactionBAL(IConfiguration configuration)

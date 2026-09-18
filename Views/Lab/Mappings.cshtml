@@ -1,0 +1,60 @@
+@model RiceMillProject.Models.LabMappingPage
+@{ ViewData["Title"] = "Item test mapping"; }
+<partial name="_Navigation" />
+<h2>Item test mapping</h2>
+<p class="text-muted">Add one mapping for each test required by an item. An item can have any number of tests.</p>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form asp-action="Mappings" method="post" class="card card-body shadow-sm">
+            <h5>@(Model.Form.MappingId == 0 ? "Add mapping" : "Edit mapping")</h5>
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input asp-for="Form.MappingId" type="hidden" />
+            <label asp-for="Form.CategoryId" class="form-label">Item category</label>
+            <select asp-for="Form.CategoryId" id="mapping-category" class="form-select mb-3" required>
+                <option value="">Select category</option>
+                @foreach (var category in Model.Items.GroupBy(i => i.CategoryId)) { <option value="@category.Key">@category.First().CategoryName</option> }
+            </select>
+            <label asp-for="Form.ItemId" class="form-label">Item</label>
+            <select asp-for="Form.ItemId" id="mapping-item" class="form-select mb-3" required>
+                <option value="">Select item</option>
+                @foreach (var item in Model.Items) { <option value="@item.ItemId" data-category="@item.CategoryId">@item.ItemName</option> }
+            </select>
+            <label asp-for="Form.TestId" class="form-label">Test</label>
+            <select asp-for="Form.TestId" class="form-select mb-3" required>
+                <option value="">Select test</option>
+                @foreach (var test in Model.Tests) { <option value="@test.TestId">@test.TestName @test.Unit</option> }
+            </select>
+            @if (Model.Tests.Count == 0) { <p class="text-warning">Add tests in the test master first.</p> }
+            <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save mapping</button><a asp-action="Mappings" class="btn btn-outline-secondary">Clear</a></div>
+        </form>
+    </div>
+    <div class="col-lg-8"><div class="table-responsive"><table class="table table-striped align-middle">
+        <thead><tr><th>Category</th><th>Item</th><th>Test</th><th>Actions</th></tr></thead><tbody>
+        @if (Model.Mappings.Count == 0) { <tr><td colspan="4" class="text-muted">No item tests mapped yet.</td></tr> }
+        @foreach (var mapping in Model.Mappings)
+        {
+            <tr><td>@mapping.CategoryName</td><td>@mapping.ItemName</td><td>@mapping.TestName</td><td>
+                <a asp-action="Mappings" asp-route-id="@mapping.MappingId" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form asp-action="RemoveMapping" method="post" class="d-inline" onsubmit="return confirm('Remove this item test mapping? Saved reports will remain available.');">
+                    <input type="hidden" name="id" value="@mapping.MappingId" /><button class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
+            </td></tr>
+        }
+        </tbody></table></div></div>
+</div>
+@section Scripts {
+<script>
+(() => {
+    const category = document.getElementById('mapping-category');
+    const item = document.getElementById('mapping-item');
+    const options = Array.from(item.options).map(o => o.cloneNode(true));
+    function filter() {
+        const current = item.value;
+        item.replaceChildren(...options.filter(o => !o.value || o.dataset.category === category.value).map(o => o.cloneNode(true)));
+        item.value = Array.from(item.options).some(o => o.value === current) ? current : '';
+    }
+    category.addEventListener('change', filter);
+    filter();
+})();
+</script>
+}
