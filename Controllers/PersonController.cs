@@ -101,8 +101,16 @@ namespace RiceMillProject.Controllers
 
             if (ModelState.IsValid)
             {
-                _personBal.AddPerson(person);
-                return RedirectToAction("EmployeeList");
+                int newId = _personBal.AddPerson(person);
+                if (newId > 0)
+                {
+                    TempData["SuccessMessage"] = $"Gateman / Employee '{person.PersonName}' registered successfully!";
+                    return RedirectToAction("EmployeeList");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to register employee. Please try again.";
+                }
             }
             DataTable dt = _BusLayer.GetEmployeePost();
             ViewBag.Post = Allclass.CreateDropdown(dt);

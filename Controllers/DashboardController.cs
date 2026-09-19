@@ -19,6 +19,14 @@ namespace RiceMillProject.Controllers
 
         public IActionResult Index()
         {
+            bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "2")
+                                && !User.IsInRole("Admin") 
+                                && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
+            if (isGatemanOnly)
+            {
+                return RedirectToAction("Dashboard", "Gateman");
+            }
+
             var stats = new DashboardStats();
             
             using (SqlConnection con = new SqlConnection(_connectionString))

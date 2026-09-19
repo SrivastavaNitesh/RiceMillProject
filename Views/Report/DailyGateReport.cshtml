@@ -3,50 +3,61 @@
     ViewData["Title"] = "Daily Gate Entry Report";
 }
 
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold text-premium-blue"><i class="bi bi-file-earmark-text me-2"></i> @ViewData["Title"]</h4>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-file-earmark-text-fill"></i>
+        </div>
         <div>
-            <button onclick="window.print()" class="btn btn-secondary shadow-sm"><i class="bi bi-printer me-2"></i>Print Report</button>
-            <a asp-action="Index" class="btn btn-outline-primary ms-2 shadow-sm">Back</a>
+            <h3 class="erp-page-title">DAILY GATE ENTRY REPORT</h3>
+            <p class="erp-page-subtitle">Summary report of inbound truck movements, weights, and entry timestamps</p>
         </div>
     </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn-erp-secondary">
+            <i class="bi bi-printer me-1"></i> Print Report
+        </button>
+        <a asp-action="Index" class="btn-erp-outline">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
-                    <thead class="bg-premium-blue text-white">
-                        <tr>
-                            <th class="ps-4">RST Number</th>
-                            <th>Vehicle No.</th>
-                            <th>Party</th>
-                            <th>Driver</th>
-                            <th>Gross Weight</th>
-                            <th>Target Location</th>
-                            <th>Entry Time</th>
-                            <th class="no-print">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="ps-4 fw-bold">@item.RSTNumber</td>
-                                <td>@item.VehicleNumber</td>
-                                <td>@item.PartyName</td>
-                                <td>@item.DriverName</td>
-                                <td>@item.GrossWeight kg</td>
-                                <td>@(item.TargetLocationIds != null ? string.Join(", ", item.TargetLocationIds) : "-")</td>
-                                <td>@item.GateEntryTime.ToString("g")</td>
-                                <td class="no-print">
-                                    <a asp-controller="GateEntry" asp-action="Print" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-printer"></i> Challan</a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">RST Number</th>
+                    <th>Vehicle No.</th>
+                    <th>Party</th>
+                    <th>Driver</th>
+                    <th>Gross Weight</th>
+                    <th>Target Location</th>
+                    <th>Entry Time</th>
+                    <th class="no-print pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-primary">@item.RSTNumber</td>
+                        <td><strong class="text-dark">@item.VehicleNumber</strong></td>
+                        <td>@item.PartyName</td>
+                        <td>@item.DriverName</td>
+                        <td><span class="badge-erp badge-erp-info">@item.GrossWeight kg</span></td>
+                        <td>@(item.TargetLocationIds != null ? string.Join(", ", item.TargetLocationIds) : "-")</td>
+                        <td>@item.GateEntryTime.ToString("g")</td>
+                        <td class="no-print pe-4">
+                            <a asp-controller="GateEntry" asp-action="Print" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="bi bi-printer me-1"></i> Challan
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* ==========================================================================
    ENTERPRISE ERP GLOBAL DESIGN SYSTEM CSS
    Module: Rice Mill Management ERP
@@ -21,7 +23,7 @@
     --erp-header-bg: #ffffff;
     
     /* Text & Typography */
-    --erp-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --erp-font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --erp-text-main: #1e293b;
     --erp-text-heading: #0f172a;
     --erp-text-muted: #64748b;
@@ -67,20 +69,28 @@
 /* --------------------------------------------------------------------------
    2. BASE TYPOGRAPHY & RESET
    -------------------------------------------------------------------------- */
+:root {
+    --bs-body-font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+html, body, button, input, select, textarea, .form-control, .form-select, .table, .btn, .card, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+}
+
 html, body {
-    font-family: var(--erp-font-family);
     background-color: var(--erp-bg);
     color: var(--erp-text-main);
     font-size: 14px;
     line-height: 1.5;
     margin: 0;
     padding: 0;
-    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
     color: var(--erp-text-heading);
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
@@ -401,4 +411,128 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--erp-primary-hover) !important;
     border-color: var(--erp-primary-hover) !important;
     color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   9. NAVIGATION ACTIVE STATE STYLING
+   -------------------------------------------------------------------------- */
+.sidebar a.active, .navbar-nav a.active {
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-left: 4px solid #f59e0b !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateX(3px);
+}
+
+.sidebar a.active i, .navbar-nav a.active i {
+    color: #fbbf24 !important;
+}
+
+.master-submenu a.active {
+    border-left: 3px solid #60a5fa !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. ENTERPRISE DATATABLES THEME STYLING
+   -------------------------------------------------------------------------- */
+.dataTables_wrapper {
+    padding: 12px 0;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius-md);
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--erp-primary);
+    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius-md);
+    padding: 4px 8px;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_info {
+    font-size: 0.85rem;
+    color: var(--erp-text-muted);
+    font-weight: 500;
+}
+
+.dataTables_wrapper .pagination .page-item .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    color: var(--erp-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid var(--erp-border-light);
+}
+
+.dataTables_wrapper .pagination .page-item.active .page-link {
+    background-color: var(--erp-primary) !important;
+    border-color: var(--erp-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(30, 60, 114, 0.3);
+}
+
+table.dataTable thead th {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border-bottom: 2px solid var(--erp-primary) !important;
+}
+
+table.dataTable tbody td {
+    padding: 12px 16px !important;
+    font-size: 0.875rem !important;
+    vertical-align: middle !important;
+}
+
+table.dataTable tbody tr:nth-of-type(even) {
+    background-color: #f8fafc !important;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* --------------------------------------------------------------------------
+   11. COMPACT SIDEBAR & STICKY BOTTOM SCROLLBAR
+   -------------------------------------------------------------------------- */
+.master-submenu li a {
+    font-size: 0.85rem !important;
+    padding: 6px 12px !important;
+    margin: 2px 0 !important;
+    border-radius: 4px !important;
+}
+
+.sidebar-sticky-bottom {
+    position: sticky;
+    bottom: 0;
+    background: #162d56;
+    z-index: 100;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
+}
+
+#sidebarScrollTopBtn {
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+#sidebarScrollTopBtn:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
 }

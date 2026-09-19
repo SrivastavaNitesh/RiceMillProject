@@ -1,3 +1,4 @@
+param([int]$UnloadId = 3, [string]$UnloadRst = 'LAB-TEST-C')
 $ErrorActionPreference = 'Stop'
 $baseUrl = 'http://localhost:5033'
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -78,11 +79,11 @@ $rejected = $false
 try { $null = Post-Form '/Lab/Create' $fields } catch { $rejected = [int]$_.Exception.Response.StatusCode -eq 400 }
 Assert $rejected 'Missing antiforgery token rejected'
 
-$unload = Get-Page '/Meth/ExecuteUnload/3'
+$unload = Get-Page ('/Meth/ExecuteUnload/'+$UnloadId)
 Assert ($unload.Content.Contains('Items actually unloaded') -and $unload.Content.Contains('unload-item-3')) 'Unloading form exposes multiple item selection'
-$unloadSave = Post-Form '/Meth/ExecuteUnload' @{ '__RequestVerificationToken'=(Token $unload.Content); UnloadId=3; RSTNumber='LAB-TEST-C'; GateManId=4; BagTypeId=1; NumberOfBags=10; ActualLocationId=1; Shift='Day'; SelectedItemIds=@('1','3'); SelectedWorkers=@('3') }
-Assert ($unloadSave.BaseResponse.ResponseUri.AbsolutePath -match '/Meth/PrintSlip' -and $unloadSave.Content.Contains('LAB-TEST-C')) 'Unloading form saves items and produces slip'
-$afterUnload = Get-Page '/Lab/Create?rstNumber=LAB-TEST-C'
+$unloadSave = Post-Form '/Meth/ExecuteUnload' @{ '__RequestVerificationToken'=(Token $unload.Content); UnloadId=$UnloadId; RSTNumber=$UnloadRst; GateManId=4; BagTypeId=1; NumberOfBags=10; ActualLocationId=1; Shift='Day'; SelectedItemIds=@('1','3'); SelectedWorkers=@('3') }
+Assert ($unloadSave.BaseResponse.ResponseUri.AbsolutePath -match '/Meth/PrintSlip' -and $unloadSave.Content.Contains($UnloadRst)) 'Unloading form saves items and produces slip'
+$afterUnload = Get-Page ('/Lab/Create?rstNumber='+[Uri]::EscapeDataString($UnloadRst))
 $afterData = [regex]::Match($afterUnload.Content, '<script id="lab-entry-data" type="application/json">(.*?)</script>', 'Singleline').Groups[1].Value | ConvertFrom-Json
 Assert (@($afterData.items).Count -eq 2 -and @($afterData.items | Where-Object ItemId -eq 2).Count -eq 0) 'Lab exposes precisely the items saved through unloading form'
 

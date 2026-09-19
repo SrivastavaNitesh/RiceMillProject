@@ -41,6 +41,7 @@ namespace RiceMillProject.Controllers
                     var claims = new[]
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                        new Claim("PersonId", user.PersonId.ToString()),
                         new Claim(ClaimTypes.Name, user.PersonName),
                         new Claim(ClaimTypes.Role, user.Role),
                         new Claim("PostId", user.o10_postid.ToString()),

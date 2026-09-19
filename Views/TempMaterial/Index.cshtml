@@ -3,9 +3,20 @@
     ViewData["Title"] = "Temporary Tools Inward & Outward Register";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold text-dark mb-0"><i class="bi bi-tools me-2 text-warning"></i> Temp Material / Tools Register</h3>
-    <a asp-action="Create" class="btn btn-warning btn-lg shadow fw-bold"><i class="bi bi-plus-lg me-1"></i> New Tool Inward</a>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-tools"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">TEMP TOOLS & MATERIAL REGISTER</h3>
+            <p class="erp-page-subtitle">Track temporary equipment, vendor tools inward, and return gate passes</p>
+        </div>
+    </div>
+    <a asp-action="Create" class="btn-erp-primary">
+        <i class="bi bi-plus-lg me-1"></i> New Tool Inward
+    </a>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -16,73 +27,71 @@
     </div>
 }
 
-<div class="card shadow border-0 rounded-3">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-secondary">
-                    <tr>
-                        <th class="ps-4">Gate Pass / Entry No</th>
-                        <th>Owner / Vendor</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Qty & Unit</th>
-                        <th>Purpose</th>
-                        <th>Inward Time</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="ps-4">
-                                    <strong class="text-primary d-block">@item.GatePassNo</strong>
-                                    <small class="text-muted">@item.EntryNo</small>
-                                </td>
-                                <td><strong class="text-dark">@item.OwnerVendor</strong></td>
-                                <td><span class="badge bg-secondary">@item.ItemCategory</span></td>
-                                <td>@item.ItemDescription</td>
-                                <td><strong>@item.Quantity</strong> @item.Unit</td>
-                                <td><span class="badge bg-warning text-dark">@item.Purpose</span></td>
-                                <td>@item.EntryDateTime.ToString("dd MMM hh:mm tt")</td>
-                                <td>
-                                    @if (item.Status == "In Yard")
-                                    {
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i> In Yard</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-success">Returned (@item.ReturnDateTime?.ToString("dd MMM hh:mm tt"))</span>
-                                    }
-                                </td>
-                                <td class="text-end pe-4">
-                                    @if (item.Status == "In Yard")
-                                    {
-                                        <form asp-action="Return" method="post" class="d-inline">
-                                            <input type="hidden" name="entryNo" value="@item.EntryNo" />
-                                            <button type="submit" class="btn btn-sm btn-outline-success"><i class="bi bi-box-arrow-up-right me-1"></i> Mark Return</button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted small"><i class="bi bi-check-all"></i> Outward Done</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
+<div class="erp-table-container">
+    <div class="table-responsive">
+        <table class="erp-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">Gate Pass / Entry No</th>
+                    <th>Owner / Vendor</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Qty & Unit</th>
+                    <th>Purpose</th>
+                    <th>Inward Time</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
                     {
                         <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">No temporary tool movements logged today. Click 'New Tool Inward' to record.</td>
+                            <td class="ps-4">
+                                <strong class="text-primary d-block">@item.GatePassNo</strong>
+                                <small class="text-muted font-monospace">@item.EntryNo</small>
+                            </td>
+                            <td><strong class="text-dark">@item.OwnerVendor</strong></td>
+                            <td><span class="badge-erp badge-erp-info">@item.ItemCategory</span></td>
+                            <td>@item.ItemDescription</td>
+                            <td><strong>@item.Quantity</strong> @item.Unit</td>
+                            <td><span class="badge-erp badge-erp-warning">@item.Purpose</span></td>
+                            <td>@item.EntryDateTime.ToString("dd MMM hh:mm tt")</td>
+                            <td>
+                                @if (item.Status == "In Yard")
+                                {
+                                    <span class="badge-erp badge-erp-warning"><i class="bi bi-clock-history me-1"></i> In Yard</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-erp badge-erp-success">Returned (@item.ReturnDateTime?.ToString("dd MMM hh:mm tt"))</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                @if (item.Status == "In Yard")
+                                {
+                                    <form asp-action="Return" method="post" class="d-inline">
+                                        <input type="hidden" name="entryNo" value="@item.EntryNo" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success fw-bold"><i class="bi bi-box-arrow-up-right me-1"></i> Mark Return</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small"><i class="bi bi-check-all"></i> Outward Done</span>
+                                }
+                            </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">No temporary tool movements logged today. Click 'New Tool Inward' to record.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

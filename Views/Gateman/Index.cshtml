@@ -1,317 +1,148 @@
 @model IEnumerable<RiceMillProject.Models.InwardHeader>
 @{
-    ViewData["Title"] = "Gate Entry & Inward Register";
+    ViewData["Title"] = "Gateman Inward Entry";
     var newInward = ViewBag.NewInward as RiceMillProject.Models.InwardHeader ?? new RiceMillProject.Models.InwardHeader();
+    bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
 }
 
 @try
 {
 <!-- Page Header -->
-<div class="erp-page-header">
+<div class="erp-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <div class="erp-page-title-group">
         <div class="erp-page-icon">
-            <i class="bi bi-door-open"></i>
+            <i class="bi bi-door-open-fill"></i>
         </div>
         <div>
-            <h3 class="erp-page-title">GATE ENTRY FORM & INWARD REGISTER</h3>
-            <p class="erp-page-subtitle">Vehicle inward registration, auto-numbering sequence, and pending weighment list</p>
+            <h3 class="erp-page-title">GATEMAN INWARD ENTRY</h3>
+            <p class="erp-page-subtitle">Register vehicle entry, supplier party, and inward type</p>
         </div>
     </div>
-    <span class="badge-erp badge-erp-info fs-6">Numbering Hierarchy: Inward No. &rarr; RST No.</span>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2 text-success"></i> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (ViewBag.ErrorMessage != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i> @ViewBag.ErrorMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-
-
-}
-
-<!-- WORKFLOW & NUMBERING HIERARCHY OVERVIEW BANNER -->
-<div class="erp-card bg-white p-3 mb-4 border-start border-4 border-primary shadow-sm">
-    <div class="row align-items-center">
-        <div class="col-md-8">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <span class="badge bg-primary text-white p-2 rounded"><i class="bi bi-1-circle me-1"></i> 1. GATE ENTRY</span>
-                <i class="bi bi-arrow-right text-muted"></i>
-                <span class="badge bg-warning text-dark p-2 rounded"><i class="bi bi-2-circle me-1"></i> 2. WEIGHBRIDGE</span>
-                <i class="bi bi-arrow-right text-muted"></i>
-                <span class="badge bg-info text-dark p-2 rounded"><i class="bi bi-3-circle me-1"></i> 3. SUPERVISOR</span>
-                <i class="bi bi-arrow-right text-muted"></i>
-                <span class="badge bg-success text-white p-2 rounded"><i class="bi bi-4-circle me-1"></i> 4. FURTHER PROCESS</span>
-            </div>
-        </div>
-        <div class="col-md-4 text-md-end border-start ps-4">
-            <small class="text-muted d-block fw-bold">NUMBERING HIERARCHY</small>
-            <span class="fw-bold text-primary">Inward No.</span> &rarr; <span class="fw-bold text-success">RST No.</span>
-            <small class="d-block text-secondary">Ex: INW-2026-000125 &rarr; RST-2026-000458</small>
+    <div class="d-flex align-items-center gap-2">
+        <div class="bg-white border rounded px-3 py-2 text-end shadow-sm">
+            <small class="text-muted d-block fw-bold" style="font-size: 0.75rem;">LIVE SYSTEM DATE & TIME</small>
+            <span class="fw-bold text-primary" id="headerLiveClock">@DateTime.Now.ToString("dd MMM yyyy - hh:mm tt")</span>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <!-- GATE ENTRY FORM (LEFT COLUMN) -->
-    <div class="col-lg-8">
-        <div class="erp-card">
-            <div class="erp-card-header bg-primary text-white">
-                <span><i class="bi bi-pencil-square me-2"></i> GATE ENTRY FORM (Create)</span>
+    <!-- GATE ENTRY FORM (FULL WIDTH) -->
+    <div class="col-12">
+        <div class="erp-card shadow-sm border-0 mb-4">
+            <div class="erp-card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pencil-square me-2"></i> Vehicle Inward Entry Form</span>
             </div>
-            <div class="erp-card-body">
-                <form asp-action="CreateGateEntry" method="post" class="row g-3">
+            <div class="erp-card-body p-4">
+                <form id="gatemanForm" asp-action="CreateGateEntry" method="post" class="row g-3" novalidate>
+                    
+                    <!-- Live Date & Time (Readonly / Non-editable) -->
                     <div class="col-md-6">
-                        <label class="form-label">Gate Entry No.</label>
-                        <input type="text" class="form-control bg-light" placeholder="[ Auto Generate: GE-2026-XXXXXX ]" readonly />
+                        <label class="form-label fw-bold text-dark">
+                            <i class="bi bi-calendar-event me-1 text-primary"></i> Inward Date (Realtime)
+                        </label>
+                        <input type="text" class="form-control bg-light fw-bold text-dark" value="@DateTime.Now.ToString("dd/MM/yyyy")" disabled readonly />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Driver Mobile No.</label>
-                        <input name="DriverMobile" class="form-control" placeholder="9876543210" />
+                        <label class="form-label fw-bold text-dark">
+                            <i class="bi bi-clock me-1 text-primary"></i> Inward Time (Realtime)
+                        </label>
+                        <input type="text" class="form-control bg-light fw-bold text-primary" id="formLiveClock" value="@DateTime.Now.ToString("hh:mm tt")" disabled readonly />
                     </div>
 
+                    <!-- Inward Type Selection (Radio Buttons - Unchecked by Default) -->
                     <div class="col-md-6">
-                        <label class="form-label">Inward No. <span class="req-star">*</span></label>
-                        <input type="text" class="form-control bg-light text-primary fw-bold" placeholder="[ Auto Generate: INW-2026-XXXXXX ]" readonly />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Purpose / Remarks</label>
-                        <input name="PurposeRemarks" class="form-control" placeholder="Paddy Material Inward" />
+                        <label class="form-label fw-bold text-dark">
+                            Inward Type <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex align-items-center gap-3 p-2 bg-light rounded border">
+                            <div class="form-check me-2">
+                                <input class="form-check-input" type="radio" name="InwardTypeId" id="inwardWithRST" value="1" required />
+                                <label class="form-check-label fw-bold text-primary" for="inwardWithRST">
+                                    <i class="bi bi-card-checklist me-1"></i> With RST
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="InwardTypeId" id="inwardWithoutRST" value="2" required />
+                                <label class="form-check-label fw-bold text-secondary" for="inwardWithoutRST">
+                                    <i class="bi bi-box-seam me-1"></i> Without RST
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Inward Date <span class="req-star">*</span></label>
-                        <input type="date" name="InwardDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Inward Time <span class="req-star">*</span></label>
-                        <input type="text" name="InwardTime" class="form-control bg-light" value="@DateTime.Now.ToString("hh:mm tt")" readonly />
-                    </div>
+                    <!-- Party / Supplier (Textbox Field) -->
                     <div class="col-md-6">
-                        <label class="form-label">Challan No.</label>
-                        <input name="ChallanNo" class="form-control" placeholder="CH-5689" />
+                        <label class="form-label fw-bold text-dark">
+                            Party / Supplier Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="PartyName" id="txtPartyName" class="form-control border-primary-subtle" placeholder="Enter Party / Farmer / Supplier Name" required />
                     </div>
 
+                    <!-- Vehicle Number -->
                     <div class="col-md-6">
-                        <label class="form-label">Gate / Gate No. <span class="req-star">*</span></label>
-                        <select name="GateId" asp-items="@(ViewBag.Gates ?? Enumerable.Empty<SelectListItem>())" class="form-select" required>
-                            <option value="">Select Gate</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">No. of Bags (Approx.)</label>
-                        <input type="number" name="ApproxNoOfBags" class="form-control" placeholder="Bags count" />
+                        <label class="form-label fw-bold text-dark">
+                            Vehicle Number <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="VehicleNo" id="txtVehicleNo" class="form-control border-primary-subtle text-uppercase fw-bold" placeholder="e.g. UP65AB1234" required />
                     </div>
 
+                    <!-- Driver Name & Mobile -->
                     <div class="col-md-6">
-                        <label class="form-label">Inward Type <span class="req-star">*</span></label>
-                        <select name="InwardTypeId" asp-items="@(ViewBag.InwardTypes ?? Enumerable.Empty<SelectListItem>())" class="form-select" required>
-                            <option value="">Select Inward Type</option>
-                        </select>
+                        <label class="form-label fw-bold text-dark">
+                            Driver Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="DriverName" id="txtDriverName" class="form-control" placeholder="Enter Driver Name" required />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Estimated Weight (Approx. KG)</label>
-                        <input type="number" step="0.01" name="ApproxWeight" class="form-control" placeholder="Approx KG" />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Party / Supplier <span class="req-star">*</span></label>
-                        <select name="PartyId" asp-items="@(ViewBag.Parties ?? Enumerable.Empty<SelectListItem>())" class="form-select" required>
-                            <option value="">Select Party / Supplier</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Gate In Date & Time</label>
-                        <input type="text" class="form-control bg-light" value="@DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")" readonly />
+                        <label class="form-label fw-bold text-dark">
+                            Driver Mobile Number <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="DriverMobile" id="txtDriverMobile" class="form-control" placeholder="Enter 10-digit mobile number" maxLength="10" required />
+                        <div id="mobileDuplicateWarning" class="text-warning fw-bold small mt-1" style="display:none;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Note: This Driver Mobile Number is already recorded in system.
+                        </div>
                     </div>
 
+                    <!-- Added By (Gateman Selector for Admin / Readonly for Gateman) -->
                     <div class="col-md-6">
-                        <label class="form-label">Transporter Name</label>
-                        <input name="TransporterName" class="form-control" placeholder="Enter Transporter Name" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Gate Man / Created By</label>
-                        <input type="text" class="form-control bg-light" value="@(User?.Identity?.Name ?? "System") (System)" readonly />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Vehicle No. <span class="req-star">*</span></label>
-                        <input name="VehicleNo" class="form-control" placeholder="UP65AB1234" required />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Status</label>
-                        <input type="text" class="form-control bg-light text-success fw-bold" value="Active / Pending" readonly />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Vehicle Type <span class="req-star">*</span></label>
-                        <select name="VehicleTypeId" asp-items="@(ViewBag.VehicleTypes ?? Enumerable.Empty<SelectListItem>())" class="form-select" required>
-                            <option value="">Select Vehicle Type</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Remarks</label>
-                        <input name="PurposeRemarks" class="form-control" placeholder="Enter Remarks (Optional)" />
+                        <label class="form-label fw-bold text-dark">
+                            <i class="bi bi-person-badge me-1 text-primary"></i> Gateman (Added By) <span class="text-danger">*</span>
+                        </label>
+                        @if (isAdmin)
+                        {
+                            <select name="CreatedBy" id="ddlGateman" asp-items="@(ViewBag.Gatemen as SelectList)" class="form-select border-primary-subtle" required>
+                                <option value="">Select Gateman User</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control bg-light fw-bold text-dark" value="@(User?.Identity?.Name ?? "Gateman") (Logged In Gateman)" disabled readonly />
+                            <input type="hidden" name="CreatedBy" value="@newInward.CreatedBy" />
+                        }
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">Driver Name <span class="req-star">*</span></label>
-                        <input name="DriverName" class="form-control" placeholder="Ramesh Kumar" required />
+                    <!-- Purpose / Remarks (Optional) -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold text-muted">Remarks / Material Purpose (Optional)</label>
+                        <input type="text" name="PurposeRemarks" class="form-control" placeholder="Enter any extra details or purpose remarks (Optional)" />
                     </div>
 
-                    <div class="col-12 text-start mt-4 pt-3 border-top d-flex gap-2">
-                        <button type="submit" class="btn-erp-primary px-4 py-2"><i class="bi bi-floppy me-1"></i> SAVE (Generate Inward No.)</button>
-                        <button type="reset" class="btn-erp-secondary px-4 py-2"><i class="bi bi-arrow-counterclockwise me-1"></i> RESET</button>
-                        <button type="button" class="btn-erp-outline px-4 py-2"><i class="bi bi-x-lg me-1"></i> CANCEL</button>
+                    <!-- Form Action Buttons -->
+                    <div class="col-12 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2 shadow-sm">
+                            <i class="bi bi-check-circle-fill me-1"></i> SAVE ENTRY
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary px-4 py-2">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> RESET
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
-    <!-- MASTERS & AUTO GENERATION RULES (RIGHT COLUMN) -->
-    <div class="col-lg-4">
-        <!-- MASTERS SUMMARY CARD -->
-        <div class="erp-card mb-3">
-            <div class="erp-card-header bg-dark text-white">
-                <span><i class="bi bi-boxes me-2"></i> MASTERS SUMMARY</span>
-            </div>
-            <div class="erp-card-body p-3">
-                <div class="mb-3">
-                    <strong class="d-block text-primary small text-uppercase">1. Inward Type Master</strong>
-                    <span class="badge bg-light text-dark border me-1">Paddy Inward (RST: Yes)</span>
-                    <span class="badge bg-light text-dark border">Spare Parts (RST: No)</span>
-                </div>
-                <div class="mb-3">
-                    <strong class="d-block text-primary small text-uppercase">2. Vehicle Type Master</strong>
-                    <span class="badge bg-light text-dark border me-1">Truck</span>
-                    <span class="badge bg-light text-dark border me-1">Tractor</span>
-                    <span class="badge bg-light text-dark border me-1">Trolley</span>
-                    <span class="badge bg-light text-dark border">Mini Truck</span>
-                </div>
-                <div class="mb-3">
-                    <strong class="d-block text-primary small text-uppercase">3. Gate Master</strong>
-                    <span class="badge bg-light text-dark border me-1">Main Gate (GATE-01)</span>
-                    <span class="badge bg-light text-dark border">Side Gate (GATE-02)</span>
-                </div>
-                <div>
-                    <strong class="d-block text-primary small text-uppercase">4. Status Master</strong>
-                    <span class="badge bg-success-subtle text-success me-1">Active</span>
-                    <span class="badge bg-danger-subtle text-danger me-1">Cancelled</span>
-                    <span class="badge bg-warning-subtle text-warning">Pending</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- AUTO GENERATION RULES CARD -->
-        <div class="erp-card mb-3 bg-warning-subtle border-warning">
-            <div class="erp-card-header bg-warning text-dark font-weight-bold">
-                <span><i class="bi bi-magic me-2"></i> AUTO GENERATION RULES</span>
-            </div>
-            <div class="erp-card-body p-3 small text-dark">
-                <p class="mb-1"><strong>1. Gate Entry No. Format:</strong> <code>GE-YYYY-######</code><br /><span class="text-muted">(Example: GE-2026-000125)</span></p>
-                <p class="mb-1"><strong>2. Inward No. Format:</strong> <code>INW-YYYY-######</code><br /><span class="text-muted">(Example: INW-2026-000125)</span></p>
-                <p class="mb-0"><strong>3. RST No. Format:</strong> <code>RST-YYYY-######</code><br /><span class="text-muted">(Generated in Weighbridge after Gross Weight)</span></p>
-            </div>
-        </div>
-
-        <!-- IMPORTANT NOTES CARD -->
-        <div class="erp-card bg-info-subtle border-info">
-            <div class="erp-card-header bg-info text-white">
-                <span><i class="bi bi-info-circle me-2"></i> IMPORTANT NOTES</span>
-            </div>
-            <div class="erp-card-body p-3 small text-dark">
-                <ol class="ps-3 mb-0">
-                    <li>Inward No. Gate Entry save karte hi generate hoga.</li>
-                    <li>Weighbridge form me Inward No. dropdown mandatory hoga.</li>
-                    <li>Dropdown me sirf wahi Inward dikhega jinka <strong>RST Required = Yes</strong> aur RST abhi generate nahi hua hai.</li>
-                    <li>Inward ek baar RST generate hone ke baad dobara Weighbridge list me nahi dikhega.</li>
-                </ol>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- PENDING INWARD LIST (RST REQUIRED) -->
-<div class="erp-card mt-4">
-    <div class="erp-card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-bold text-dark"><i class="bi bi-clock-history text-primary me-2"></i> PENDING INWARD LIST (RST Required)</span>
-        <div class="d-flex align-items-center gap-2">
-            <small class="text-muted">Only Inward Type with RST Required = Yes and not yet RST Generated will be visible in Weighbridge dropdown.</small>
-        </div>
-    </div>
-    <div class="erp-card-body p-0">
-        <div class="table-responsive">
-            <table class="erp-table">
-                <thead>
-                    <tr>
-                        <th class="ps-4">Inward No.</th>
-                        <th>Inward Date</th>
-                        <th>Vehicle No.</th>
-                        <th>Party / Supplier</th>
-                        <th>Inward Type</th>
-                        <th>Gate In Time</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">RST Generated</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="ps-4 fw-bold text-primary">@item.InwardNo</td>
-                                <td>@item.InwardDate.ToString("dd/MM/yyyy")</td>
-                                <td><strong class="text-dark">@item.VehicleNo</strong></td>
-                                <td>@item.PartyName</td>
-                                <td><span class="badge-erp badge-erp-info">@item.InwardTypeName</span></td>
-                                <td>@item.InwardTime</td>
-                                <td>
-                                    @if (item.StatusName == "Pending")
-                                    {
-                                        <span class="badge-erp badge-erp-warning">Pending</span>
-                                    }
-                                    else if (item.StatusName == "Processed")
-                                    {
-                                        <span class="badge-erp badge-erp-success">Processed</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge-erp badge-erp-danger">@item.StatusName</span>
-                                    }
-                                </td>
-                                <td class="text-end pe-4">
-                                    @if (item.IsRSTGenerated)
-                                    {
-                                        <span class="badge-erp badge-erp-success">Yes</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge-erp badge-erp-danger">No</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">No pending inward records. Fill form above to generate.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
 }
 catch (Exception ex)
@@ -321,5 +152,121 @@ catch (Exception ex)
         <pre>@ex.ToString()</pre>
     </div>
 }
+
+<!-- SweetAlert2 Script -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function updateLiveClocks() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const dateString = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        
+        const headerClock = document.getElementById('headerLiveClock');
+        if (headerClock) {
+            headerClock.innerText = dateString + ' - ' + timeString;
+        }
+        const formClock = document.getElementById('formLiveClock');
+        if (formClock) {
+            formClock.value = timeString;
+        }
+    }
+    setInterval(updateLiveClocks, 1000);
+    updateLiveClocks();
+
+    // SweetAlert2 Notifications on Page Load
+    document.addEventListener('DOMContentLoaded', function () {
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                title: 'Success!',
+                text: '@TempData["SuccessMessage"]',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0d6efd'
+            });
+            </text>
+        }
+        @if (TempData["ErrorMessage"] != null || ViewBag.ErrorMessage != null)
+        {
+            <text>
+            Swal.fire({
+                title: 'Error!',
+                text: '@(TempData["ErrorMessage"] ?? ViewBag.ErrorMessage)',
+                icon: 'error',
+                confirmButtonText: 'Close',
+                confirmButtonColor: '#dc3545'
+            });
+            </text>
+        }
+
+        // Driver Mobile Input Validation & AJAX Duplicate Check
+        const txtMobile = document.getElementById('txtDriverMobile');
+        const warningDiv = document.getElementById('mobileDuplicateWarning');
+
+        if (txtMobile) {
+            txtMobile.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            txtMobile.addEventListener('change', function() {
+                const mobile = this.value.trim();
+                if (warningDiv) warningDiv.style.display = 'none';
+
+                if (mobile.length === 10) {
+                    fetch('/Gateman/CheckDriverMobile?mobileNumber=' + encodeURIComponent(mobile))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success && data.isDuplicate) {
+                                if (warningDiv) warningDiv.style.display = 'block';
+                            }
+                        })
+                        .catch(e => console.error(e));
+                }
+            });
+        }
+
+        // Form Validation & SweetAlert Popup on Submit
+        const form = document.getElementById('gatemanForm');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                const isTypeSelected = document.querySelector('input[name="InwardTypeId"]:checked');
+                const partyName = document.getElementById('txtPartyName')?.value.trim();
+                const vehicleNo = document.getElementById('txtVehicleNo')?.value.trim();
+                const driverName = document.getElementById('txtDriverName')?.value.trim();
+                const driverMobile = document.getElementById('txtDriverMobile')?.value.trim();
+                const gatemanDdl = document.getElementById('ddlGateman');
+
+                let missingFields = [];
+
+                if (!isTypeSelected) missingFields.push('Inward Type (With RST / Without RST)');
+                if (!partyName) missingFields.push('Party / Supplier Name');
+                if (!vehicleNo) missingFields.push('Vehicle Number');
+                if (!driverName) missingFields.push('Driver Name');
+                if (!driverMobile) {
+                    missingFields.push('Driver Mobile Number');
+                } else if (!/^\d{10}$/.test(driverMobile)) {
+                    missingFields.push('Driver Mobile Number (Must be a valid 10-digit number)');
+                }
+                if (gatemanDdl && !gatemanDdl.value) missingFields.push('Gateman (Added By)');
+
+                if (missingFields.length > 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Validation Error!',
+                        html: '<div class="text-start"><strong>Kripya sabhi zaroori fields ko fill karein:</strong><ul class="mt-2 text-danger">' + 
+                              missingFields.map(f => '<li>' + f + '</li>').join('') + 
+                              '</ul><small class="text-muted">(Only Remarks is optional)</small></div>',
+                        icon: 'warning',
+                        confirmButtonText: 'Okay, I will fill them',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                    return false;
+                }
+            });
+        }
+    });
+</script>
 
 

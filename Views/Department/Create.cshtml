@@ -3,31 +3,51 @@
     ViewData["Title"] = "Add New Department";
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-7">
-        <div class="card shadow-lg border-0 rounded-lg">
-            <div class="card-header bg-primary text-white py-3">
-                <h4 class="mb-0 fw-bold"><i class="bi bi-diagram-3 me-2"></i> Add Department</h4>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-diagram-3-fill"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">ADD NEW DEPARTMENT</h3>
+            <p class="erp-page-subtitle">Define department details and assign to office branch</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9">
+        <div class="erp-card">
+            <div class="erp-card-header">
+                <span><i class="bi bi-plus-circle text-primary me-2"></i> Department Information</span>
             </div>
-            <div class="card-body p-4 bg-light">
+            <div class="erp-card-body">
                 <form asp-action="Create" method="post" class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Department Code</label>
+                        <label class="form-label">Department Code <span class="req-star">*</span></label>
                         <input asp-for="DepartmentCode" class="form-control" placeholder="e.g. DEP-PRD" required />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Department Name</label>
+                        <label class="form-label">Department Name <span class="req-star">*</span></label>
                         <input asp-for="DepartmentName" class="form-control" placeholder="e.g. Production & Milling" required />
                     </div>
                     <div class="col-md-12">
-                        <label class="form-label fw-bold">Assigned Office Branch</label>
+                        <label class="form-label">Assigned Office Branch <span class="req-star">*</span></label>
                         <select asp-for="OfficeId" asp-items="ViewBag.Offices" class="form-select">
                         </select>
                     </div>
 
-                    <div class="col-12 d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="bi bi-save me-1"></i> Save Department</button>
+                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                        <a asp-action="Index" class="btn-erp-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-erp-primary">
+                            <i class="bi bi-check-circle me-1"></i> Save Department
+                        </button>
                     </div>
                 </form>
             </div>

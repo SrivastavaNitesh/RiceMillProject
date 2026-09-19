@@ -2,51 +2,48 @@
     ViewData["Title"] = "System Reports Dashboard";
 }
 
-<div class="container-fluid mt-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-premium-blue"><i class="bi bi-graph-up-arrow me-2"></i> @ViewData["Title"]</h3>
+<!-- Page Header -->
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div>
+            <h3 class="erp-page-title">SYSTEM REPORTS & ANALYTICS</h3>
+            <p class="erp-page-subtitle">Centralized reporting module for gate entries, unloadings, and operational summaries</p>
+        </div>
     </div>
+</div>
 
-    <div class="row">
-        <!-- Gate Entry Report Card -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded text-primary me-3">
-                            <i class="bi bi-sign-turn-right fs-4"></i>
-                        </div>
-                        <div>
-                            <h5 class="card-title fw-bold mb-0">Daily Gate Entry Report</h5>
-                            <small class="text-muted">Total: @ViewBag.TotalGateEntries Records</small>
-                        </div>
-                    </div>
-                    <p class="card-text text-muted">View a comprehensive list of all inbound trucks, gross weights, and timestamps.</p>
-                </div>
-                <div class="card-footer bg-white border-top-0 pb-3">
-                    <a asp-action="DailyGateReport" class="btn btn-outline-primary w-100 fw-bold">View Report <i class="bi bi-arrow-right ms-1"></i></a>
-                </div>
+<div class="row">
+    <!-- Gate Entry Report Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="erp-card h-100 mb-0">
+            <div class="erp-card-header">
+                <span><i class="bi bi-door-open text-primary me-2"></i> Daily Gate Entry Report</span>
+                <span class="badge-erp badge-erp-info">@ViewBag.TotalGateEntries Records</span>
+            </div>
+            <div class="erp-card-body d-flex flex-column justify-content-between">
+                <p class="text-muted">View a comprehensive list of all inbound trucks, gross weights, drivers, parties, and entry timestamps.</p>
+                <a asp-action="DailyGateReport" class="btn-erp-primary w-100 justify-content-center mt-3">
+                    View Gate Report <i class="bi bi-arrow-right ms-1"></i>
+                </a>
             </div>
         </div>
+    </div>
 
-        <!-- Unloading Report Card -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 p-3 rounded text-success me-3">
-                            <i class="bi bi-truck fs-4"></i>
-                        </div>
-                        <div>
-                            <h5 class="card-title fw-bold mb-0">Unload Summary Report</h5>
-                            <small class="text-muted">Total: @ViewBag.TotalUnloads Records</small>
-                        </div>
-                    </div>
-                    <p class="card-text text-muted">Analyze all truck unloadings, worker assignments (Meth/Supervisor), and bag deductions.</p>
-                </div>
-                <div class="card-footer bg-white border-top-0 pb-3">
-                    <a asp-action="UnloadSummaryReport" class="btn btn-outline-success w-100 fw-bold">View Report <i class="bi bi-arrow-right ms-1"></i></a>
-                </div>
+    <!-- Unloading Report Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="erp-card h-100 mb-0">
+            <div class="erp-card-header">
+                <span><i class="bi bi-truck text-success me-2"></i> Unload Summary Report</span>
+                <span class="badge-erp badge-erp-success">@ViewBag.TotalUnloads Records</span>
+            </div>
+            <div class="erp-card-body d-flex flex-column justify-content-between">
+                <p class="text-muted">Analyze all truck unloadings, worker assignments (Meth/Supervisor), stack locations, and bag deductions.</p>
+                <a asp-action="UnloadSummaryReport" class="btn-erp-primary w-100 justify-content-center mt-3">
+                    View Unload Report <i class="bi bi-arrow-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>

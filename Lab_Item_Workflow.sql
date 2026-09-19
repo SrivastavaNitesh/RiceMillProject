@@ -10,6 +10,9 @@ SET CONCAT_NULL_YIELDS_NULL ON;
 SET NUMERIC_ROUNDABORT OFF;
 GO
 BEGIN TRANSACTION;
+-- Assignment's optional item is a planning hint; actual unloaded items remain in t_UnloadItem.
+IF COL_LENGTH('dbo.t_UnloadTransaction','ItemId') IS NULL
+ALTER TABLE dbo.t_UnloadTransaction ADD ItemId int NULL;
 IF OBJECT_ID('dbo.m_LabTestMaster','U') IS NULL
 CREATE TABLE dbo.m_LabTestMaster (
  TestId int IDENTITY PRIMARY KEY, TestName nvarchar(120) NOT NULL,
@@ -252,5 +255,17 @@ BEGIN
  SELECT p.PersonId,p.PersonName,COALESCE(post.PostName,p.PersonType) AS RoleName
  FROM dbo.P02_Person p LEFT JOIN dbo.o10_post post ON post.PostId=TRY_CONVERT(int,p.PersonType)
  WHERE p.IsActive=1 ORDER BY p.PersonName;
+END;
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_AssignUnloading
+ @RSTNumber nvarchar(50), @SupervisorId int, @MethId int, @ItemId int = NULL
+AS
+BEGIN
+ SET NOCOUNT ON;
+ IF @ItemId IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.m_Item WHERE ItemId=@ItemId AND IsActive=1)
+  THROW 50001,'Select an active assignment item.',1;
+ INSERT dbo.t_UnloadTransaction(RSTNumber,SupervisorId,MethId,ItemId,Status)
+ VALUES(@RSTNumber,@SupervisorId,@MethId,@ItemId,'Assigned');
+ SELECT CONVERT(int,SCOPE_IDENTITY()) AS UnloadId;
 END;
 GO
