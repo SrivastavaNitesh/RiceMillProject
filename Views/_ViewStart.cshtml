@@ -1,6 +1,11 @@
 @{
     var layoutClaim = User.FindFirst("LayoutName")?.Value;
-    if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
+    var isWeightman = User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4";
+    if (isWeightman)
+    {
+        Layout = "_LayoutAdmin";
+    }
+    else if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
     {
         Layout = layoutClaim;
     }

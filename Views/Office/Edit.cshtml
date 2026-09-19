@@ -1,6 +1,6 @@
 @model RiceMillProject.Models.Office
 @{
-    ViewData["Title"] = "Edit Office";
+    ViewData["Title"] = "Edit Company";
 }
 
 <!-- Page Header -->
@@ -10,8 +10,8 @@
             <i class="bi bi-building"></i>
         </div>
         <div>
-            <h3 class="erp-page-title">EDIT OFFICE BRANCH</h3>
-            <p class="erp-page-subtitle">Update office details and active operational status</p>
+            <h3 class="erp-page-title">EDIT COMPANY</h3>
+            <p class="erp-page-subtitle">Update company details and active operational status</p>
         </div>
     </div>
     <a asp-action="Index" class="btn-erp-outline">
@@ -23,14 +23,14 @@
     <div class="col-lg-6 col-md-8">
         <div class="erp-card">
             <div class="erp-card-header">
-                <span><i class="bi bi-pencil-square text-primary me-2"></i> Edit Office Information</span>
+                <span><i class="bi bi-pencil-square text-primary me-2"></i> Edit Company Information</span>
             </div>
             <div class="erp-card-body">
                 <form asp-action="Edit" method="post" class="row g-3">
                     <input type="hidden" asp-for="OfficeId" />
 
                     <div class="col-md-12">
-                        <label asp-for="OfficeName" class="form-label">Office Name <span class="req-star">*</span></label>
+                        <label asp-for="OfficeName" class="form-label">Company Name <span class="req-star">*</span></label>
                         <input asp-for="OfficeName" class="form-control" required />
                         <span asp-validation-for="OfficeName" class="text-danger"></span>
                     </div>
@@ -53,7 +53,7 @@
                             <i class="bi bi-x-circle me-1"></i> Cancel
                         </a>
                         <button type="submit" class="btn-erp-primary">
-                            <i class="bi bi-check-circle me-1"></i> Update Office
+                            <i class="bi bi-check-circle me-1"></i> Update Company
                         </button>
                     </div>
                 </form>

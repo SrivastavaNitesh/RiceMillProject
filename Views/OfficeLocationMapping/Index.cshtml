@@ -1,6 +1,6 @@
 @model IEnumerable<RiceMillProject.Models.OfficeLocationMapping>
 @{
-    ViewData["Title"] = "Office - Location Mapping";
+    ViewData["Title"] = "Company - Location Mapping";
     var newMapping = ViewBag.NewMapping as RiceMillProject.Models.OfficeLocationMapping ?? new RiceMillProject.Models.OfficeLocationMapping { EffectiveFrom = DateTime.Now, IsActive = true, UnloadingAllowed = true };
 }
 
@@ -11,19 +11,11 @@
             <i class="bi bi-link-45deg"></i>
         </div>
         <div>
-            <h3 class="erp-page-title">OFFICE – LOCATION MAPPING</h3>
-            <p class="erp-page-subtitle">Configure allowed unloading locations per office branch</p>
+            <h3 class="erp-page-title">COMPANY – LOCATION MAPPING</h3>
+            <p class="erp-page-subtitle">Configure allowed unloading locations per company</p>
         </div>
     </div>
 </div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2 text-success"></i> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
 
 <div class="row justify-content-center">
     <div class="col-lg-10">
@@ -37,9 +29,9 @@
                     <input type="hidden" name="MappingId" value="@newMapping.MappingId" />
 
                     <div class="col-md-12">
-                        <label class="form-label">Office <span class="req-star">*</span></label>
+                        <label class="form-label">Company <span class="req-star">*</span></label>
                         <select name="OfficeId" asp-items="ViewBag.Offices" class="form-select" required>
-                            <option value="">Select Office</option>
+                            <option value="">Select Company</option>
                         </select>
                     </div>
 
@@ -93,7 +85,7 @@
                         <thead>
                             <tr>
                                 <th class="ps-4">S.No.</th>
-                                <th>Office</th>
+                                <th>Company</th>
                                 <th>Location</th>
                                 <th>Unloading Allowed</th>
                                 <th>Effective From</th>

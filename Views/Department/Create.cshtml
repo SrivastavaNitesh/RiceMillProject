@@ -11,7 +11,7 @@
         </div>
         <div>
             <h3 class="erp-page-title">ADD NEW DEPARTMENT</h3>
-            <p class="erp-page-subtitle">Define department details and assign to office branch</p>
+            <p class="erp-page-subtitle">Define department details and assign to company</p>
         </div>
     </div>
     <a asp-action="Index" class="btn-erp-outline">
@@ -36,7 +36,7 @@
                         <input asp-for="DepartmentName" class="form-control" placeholder="e.g. Production & Milling" required />
                     </div>
                     <div class="col-md-12">
-                        <label class="form-label">Assigned Office Branch <span class="req-star">*</span></label>
+                        <label class="form-label">Assigned Company <span class="req-star">*</span></label>
                         <select asp-for="OfficeId" asp-items="ViewBag.Offices" class="form-select">
                         </select>
                     </div>

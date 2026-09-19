@@ -30,10 +30,33 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="col-md-6">
-                        <label asp-for="PersonType" class="form-label">Employee / Person Role <span class="req-star">*</span></label>
-                        <select asp-for="PersonType" asp-items="ViewBag.Post" class="form-select" id="personTypeSelect" required>
+                        <label asp-for="OfficeId" class="form-label">Company <span class="req-star">*</span></label>
+                        <select asp-for="OfficeId" class="form-select" asp-items="ViewBag.Offices" id="companySelect" required>
+                            <option value="0">Select Company</option>
                         </select>
+                        <span asp-validation-for="OfficeId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="PersonType" class="form-label">Employee Role <span class="req-star">*</span></label>
+                        <select asp-for="PersonType" asp-items="ViewBag.Post" class="form-select" id="personTypeSelect" required></select>
                         <span asp-validation-for="PersonType" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 d-none" id="gateAssignmentSection">
+                        <label asp-for="GateId" class="form-label">Gate Name <span class="req-star">*</span></label>
+                        <select asp-for="GateId" class="form-select" id="gateSelect">
+                            <option value="">Select Gate</option>
+                        </select>
+                        <span asp-validation-for="GateId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6 d-none" id="methAssignmentSection">
+                        <label asp-for="MethdesignatationId" class="form-label">Meth <span class="req-star">*</span></label>
+                        <select asp-for="MethdesignatationId" class="form-select" id="methSelect">
+                            <option value="">Select Meth</option>
+                        </select>
+                        <span asp-validation-for="MethdesignatationId" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-6">
@@ -52,17 +75,6 @@
                             <input asp-for="MobileNumber" class="form-control" placeholder="10-digit mobile number" maxlength="10"/>
                         </div>
                         <span asp-validation-for="MobileNumber" class="text-danger small"></span>
-                    </div>
-
-                    <div class="col-12" id="employeeDetailsSection" style="display: none;">
-                        <h6 class="text-primary border-bottom pb-2 mt-2 mb-3 fw-bold"><i class="bi bi-building me-1"></i> Employee Office Assignment</h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Office Branch <span class="req-star">*</span></label>
-                                <select name="OfficeId" class="form-select" asp-items="ViewBag.Offices">
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
@@ -93,7 +105,7 @@
                 <text>
                 Swal.fire({
                     title: 'Error!',
-                    text: '@TempData["ErrorMessage"]',
+                    text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["ErrorMessage"]?.ToString())),
                     icon: 'error',
                     confirmButtonText: 'Close',
                     confirmButtonColor: '#dc3545'
@@ -101,19 +113,36 @@
                 </text>
             }
 
-            function toggleFields() {
-                var val = $('#personTypeSelect').val();
-                var employeeRoles = ["4", "3", "1","2", "5", "6", "Gateman", "Weightman"];
+            const selectedGateId = '@(Model.GateId?.ToString() ?? "")';
+            const selectedMethId = '@(Model.MethdesignatationId.GetValueOrDefault() > 0 ? Model.MethdesignatationId.ToString() : "")';
 
-                if (employeeRoles.includes(val)) {
-                    $('#employeeDetailsSection').fadeIn();
-                } else {
-                    $('#employeeDetailsSection').fadeOut();
-                }
+            function fillDropdown(url, target, placeholder, selectedValue) {
+                const $target = $(target).empty().append($('<option>', { value: '', text: placeholder }));
+                const companyId = $('#companySelect').val();
+                if (!companyId) return;
+                $.getJSON(url, { officeId: companyId }, function(items) {
+                    items.forEach(item => $target.append($('<option>', { value: item.value, text: item.text })));
+                    if (selectedValue) $target.val(selectedValue);
+                });
             }
 
-            $('#personTypeSelect').change(toggleFields);
-            toggleFields(); // Init on load
+            function toggleRoleAssignment(useSavedValue) {
+                const roleId = $('#personTypeSelect').val();
+                const isGateman = roleId === '1';
+                const isWorker = roleId === '7';
+                $('#gateAssignmentSection').toggleClass('d-none', !isGateman);
+                $('#methAssignmentSection').toggleClass('d-none', !isWorker);
+                $('#gateSelect').prop('required', isGateman);
+                $('#methSelect').prop('required', isWorker);
+                if (isGateman) fillDropdown('@Url.Action("GetGatesByCompany", "Person")', '#gateSelect', 'Select Gate', useSavedValue ? selectedGateId : '');
+                else $('#gateSelect').val('');
+                if (isWorker) fillDropdown('@Url.Action("GetMethByCompany", "Person")', '#methSelect', 'Select Meth', useSavedValue ? selectedMethId : '');
+                else $('#methSelect').val('');
+            }
+
+            $('#personTypeSelect').change(() => toggleRoleAssignment(false));
+            $('#companySelect').change(() => toggleRoleAssignment(false));
+            toggleRoleAssignment(true);
         });
     </script>
 }

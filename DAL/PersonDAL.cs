@@ -182,8 +182,12 @@ namespace RiceMillProject.DAL
                         cmd.Parameters.AddWithValue("@Address", (object?)person.Address ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@PersonType", person.PersonType ?? "");
                         cmd.Parameters.AddWithValue("@O05_officeId", person.OfficeId > 0 ? person.OfficeId : (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@GateId", person.GateId.HasValue && person.GateId > 0 ? person.GateId.Value : (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@o10postid", person.PersonType ?? "");
-                        cmd.Parameters.AddWithValue("@o12_parentid", person.MethdesignatationId > 0 ? person.MethdesignatationId : (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@o12_parentid",
+                            person.MethdesignatationId.GetValueOrDefault() > 0
+                                ? person.MethdesignatationId.GetValueOrDefault()
+                                : (object)DBNull.Value);
                         
                         SqlParameter designationparam = new SqlParameter("@designatationId", SqlDbType.Int);
                         designationparam.Direction = ParameterDirection.Output;
@@ -214,6 +218,25 @@ namespace RiceMillProject.DAL
                             loginCmd.Parameters.AddWithValue("@OfficeId", person.OfficeId > 0 ? person.OfficeId : 1);
                             loginCmd.Parameters.AddWithValue("@o10_postid", person.PersonType ?? "1");
                             loginCmd.ExecuteNonQuery();
+                        }
+
+                        // PostId and UserTypeId are independent masters in this database.
+                        // Align the newly-created login by role name instead of assuming both IDs are equal.
+                        using (SqlCommand roleCmd = new SqlCommand(@"
+                            UPDATE u
+                            SET u.sa10_usertypeid = matched.UserTypeId
+                            FROM sa05_user u
+                            INNER JOIN o10_post post ON post.PostId = u.o10_postid
+                            CROSS APPLY (
+                                SELECT TOP 1 ut.UserTypeId
+                                FROM sa10_usertype ut
+                                WHERE REPLACE(LOWER(LTRIM(RTRIM(ut.UserTypeName))), ' ', '') =
+                                      REPLACE(LOWER(LTRIM(RTRIM(post.PostName))), ' ', '')
+                            ) matched
+                            WHERE u.PersonId = @PersonId;", con, trans))
+                        {
+                            roleCmd.Parameters.Add("@PersonId", SqlDbType.Int).Value = personId;
+                            roleCmd.ExecuteNonQuery();
                         }
                     }
                     trans.Commit();

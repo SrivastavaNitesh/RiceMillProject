@@ -40,6 +40,11 @@ namespace RiceMillProject.BAL
             return _gateDal.GetInwardDetails(inwardNo);
         }
 
+        public System.Data.DataTable GetInwardDetailsById(int inwardId)
+        {
+            return _gateDal.GetInwardDetailsById(inwardId);
+        }
+
         public dynamic GetLinkageByParty(int partyId)
         {
             return _gateDal.GetLinkageByParty(partyId);

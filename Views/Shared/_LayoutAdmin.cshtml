@@ -300,12 +300,23 @@
                     font-size: 1rem;
                 }
         }
-    </style>
+        #globalProcessLoader { position: fixed; inset: 0; z-index: 20000; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, .48); backdrop-filter: blur(2px); }
+        #globalProcessLoader.show { display: flex; }
+        .global-loader-card { min-width: 190px; padding: 24px; text-align: center; border-radius: 14px; background: #fff; box-shadow: 0 20px 45px rgba(15, 23, 42, .25); }
+        .global-loader-card .spinner-border { width: 2.5rem; height: 2.5rem; }
+</style>
 
 </head>
 
 
 <body>
+    <div id="globalProcessLoader" aria-live="polite" aria-label="Processing">
+        <div class="global-loader-card">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="fw-semibold mt-3">Please wait...</div>
+            <div class="small text-muted">Processing your request</div>
+        </div>
+    </div>
 
     <div class="main-wrapper">
 
@@ -341,9 +352,13 @@
                      ================================================= -->
 
                 @{
+                    bool isAdmin = User.IsInRole("Admin");
                     bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "2")
-                                        && !User.IsInRole("Admin") 
+                                        && !isAdmin 
                                         && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
+                    bool isWeightmanOnly = (User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4")
+                                          && !isAdmin
+                                          && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
                 }
 
                 <ul class="nav flex-column mb-auto">
@@ -369,6 +384,21 @@
                             </a>
                         </li>
                     }
+                    else if (isWeightmanOnly)
+                    {
+                        <li class="nav-item">
+                            <a asp-controller="GateEntry" asp-action="Dashboard">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                Weightman Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Gateman" asp-action="Report">
+                                <i class="bi bi-journal-text me-2"></i>
+                                Gateman Inward Report
+                            </a>
+                        </li>
+                    }
                     else
                     {
                         <!-- =================================================
@@ -384,14 +414,17 @@
                         <!-- =================================================
                              GATE OPERATIONS
                              ================================================= -->
-                        @if (User.IsInRole("Admin") || User.IsInRole("Gate Man") || User.IsInRole("Gateman"))
+                        @if (isAdmin || User.IsInRole("Gate Man") || User.IsInRole("Gateman"))
                         {
-                            <li>
-                                <a asp-controller="Gateman" asp-action="Dashboard">
-                                    <i class="bi bi-speedometer2 me-2"></i>
-                                    Gateman Dashboard
-                                </a>
-                            </li>
+                            @if (!isAdmin)
+                            {
+                                <li>
+                                    <a asp-controller="Gateman" asp-action="Dashboard">
+                                        <i class="bi bi-speedometer2 me-2"></i>
+                                        Gateman Dashboard
+                                    </a>
+                                </li>
+                            }
                             <li>
                                 <a asp-controller="Gateman" asp-action="Index">
                                     <i class="bi bi-door-open-fill me-2"></i>
@@ -435,7 +468,7 @@
                     <!-- =================================================
                          SUPERVISOR UNLOADING
                          ================================================= -->
-                    @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                    @if (isAdmin || User.IsInRole("Supervisor"))
                     {
 
                         <li>
@@ -457,7 +490,7 @@
                     <!-- =================================================
                          LAB QUALITY CHECK
                          ================================================= -->
-                    @if (User.IsInRole("Admin")
+                    @if (isAdmin
                                     || User.IsInRole("Employee")
                                     || User.IsInRole("Lab Technician"))
                     {
@@ -566,12 +599,12 @@
 
 
                                     <!-- =================================================
-                                         OFFICES
+                                         COMPANIES
                                          ================================================= -->
 
                                      <li>
                                         <a asp-controller="Office" asp-action="Index">
-                                            <i class="bi bi-building me-2"></i> Offices & Locations
+                                            <i class="bi bi-building me-2"></i> Companies & Locations
                                         </a>
                                     </li>
 
@@ -583,7 +616,7 @@
 
                                     <li>
                                         <a asp-controller="OfficeLocationMapping" asp-action="Index">
-                                            <i class="bi bi-link-45deg me-2"></i> Office - Location Mapping
+                                            <i class="bi bi-link-45deg me-2"></i> Company - Location Mapping
                                         </a>
                                     </li>
 
@@ -730,6 +763,14 @@
 
                             </a>
 
+                        </li>
+
+                        <li>
+                            <a asp-controller="DatabaseMap"
+                               asp-action="Index">
+                                <i class="bi bi-diagram-3 me-2"></i>
+                                Database Mapping
+                            </a>
                         </li>
 
                     }
@@ -913,6 +954,7 @@
 
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="~/js/site.js"
             asp-append-version="true">
@@ -924,6 +966,37 @@
          ========================================================= -->
 
     <script>
+
+        (function () {
+        const globalLoader = document.getElementById('globalProcessLoader');
+        const showGlobalLoader = () => globalLoader?.classList.add('show');
+        const hideGlobalLoader = () => globalLoader?.classList.remove('show');
+
+        window.addEventListener('pageshow', hideGlobalLoader);
+        document.addEventListener('DOMContentLoaded', hideGlobalLoader);
+        document.addEventListener('submit', function (event) {
+            if (!event.defaultPrevented && event.target instanceof HTMLFormElement && event.target.checkValidity()) showGlobalLoader();
+        });
+        document.addEventListener('click', function (event) {
+            const link = event.target.closest('a[href]');
+            if (!link || event.defaultPrevented || link.target === '_blank' || link.hasAttribute('download')) return;
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+            if (link.origin === window.location.origin) showGlobalLoader();
+        });
+        if (window.jQuery) $(document).ajaxStart(showGlobalLoader).ajaxStop(hideGlobalLoader).ajaxError(hideGlobalLoader);
+        const originalFetch = window.fetch;
+        window.fetch = async function (...args) {
+            showGlobalLoader();
+            try { return await originalFetch.apply(this, args); }
+            finally { hideGlobalLoader(); }
+        };
+
+        const successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["SuccessMessage"]?.ToString()));
+        const errorMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["ErrorMessage"]?.ToString()));
+        if (successMessage) Swal.fire({ icon: 'success', title: 'Success', text: successMessage, confirmButtonColor: '#1e3c72' });
+        if (errorMessage) Swal.fire({ icon: 'error', title: 'Error', text: errorMessage, confirmButtonColor: '#dc3545' });
+        })();
 
         function updateClock() {
 

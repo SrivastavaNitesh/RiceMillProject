@@ -20,6 +20,8 @@ namespace RiceMillProject.Models
         internal DataTable GetAlldhermkata() => _objDal.GetAlldhermkata();
 
         internal DataTable GetAllMainoffice() => _objDal.GetAllMainoffice();
+        internal DataTable GetGatesByOffice(int officeId) => _objDal.GetGatesByOffice(officeId);
+        internal DataTable GetMethByOffice(int officeId) => _objDal.GetMethByOffice(officeId);
         internal DataTable GetEmployeePost() => _objDal.GetEmployeePost();
         internal DataTable GetPost() => _objDal.GetPost();
         internal DataTable GetAllMeth() => _objDal.GetAllMeth();

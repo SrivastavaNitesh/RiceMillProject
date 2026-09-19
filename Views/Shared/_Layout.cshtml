@@ -292,12 +292,23 @@
                     font-size: 1rem;
                 }
         }
-    </style>
+        #globalProcessLoader { position: fixed; inset: 0; z-index: 20000; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, .48); backdrop-filter: blur(2px); }
+        #globalProcessLoader.show { display: flex; }
+        .global-loader-card { min-width: 190px; padding: 24px; text-align: center; border-radius: 14px; background: #fff; box-shadow: 0 20px 45px rgba(15, 23, 42, .25); }
+        .global-loader-card .spinner-border { width: 2.5rem; height: 2.5rem; }
+</style>
 
 </head>
 
 
 <body>
+    <div id="globalProcessLoader" aria-live="polite" aria-label="Processing">
+        <div class="global-loader-card">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="fw-semibold mt-3">Please wait...</div>
+            <div class="small text-muted">Processing your request</div>
+        </div>
+    </div>
 
     <div class="main-wrapper">
 
@@ -509,7 +520,7 @@
 
 
                                     <!-- =================================================
-                                         OFFICES
+                                         COMPANIES
                                          ================================================= -->
 
                                     <li>
@@ -519,7 +530,7 @@
 
                                             <i class="bi bi-building me-2"></i>
 
-                                            Offices & Locations
+                                            Companies & Locations
 
                                         </a>
 
@@ -881,6 +892,7 @@
 
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="~/js/site.js"
             asp-append-version="true">
@@ -892,6 +904,34 @@
          ========================================================= -->
 
     <script>
+
+        (function () {
+            const globalLoader = document.getElementById('globalProcessLoader');
+            const showGlobalLoader = () => globalLoader?.classList.add('show');
+            const hideGlobalLoader = () => globalLoader?.classList.remove('show');
+            window.addEventListener('pageshow', hideGlobalLoader);
+            document.addEventListener('DOMContentLoaded', hideGlobalLoader);
+            document.addEventListener('submit', event => {
+                if (!event.defaultPrevented && event.target instanceof HTMLFormElement && event.target.checkValidity()) showGlobalLoader();
+            });
+            document.addEventListener('click', event => {
+                const link = event.target.closest('a[href]');
+                if (!link || event.defaultPrevented || link.target === '_blank' || link.hasAttribute('download')) return;
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('#') && !href.startsWith('javascript:') && link.origin === window.location.origin) showGlobalLoader();
+            });
+            if (window.jQuery) $(document).ajaxStart(showGlobalLoader).ajaxStop(hideGlobalLoader).ajaxError(hideGlobalLoader);
+            const originalFetch = window.fetch;
+            window.fetch = async function (...args) {
+                showGlobalLoader();
+                try { return await originalFetch.apply(this, args); }
+                finally { hideGlobalLoader(); }
+            };
+            const successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["SuccessMessage"]?.ToString()));
+            const errorMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["ErrorMessage"]?.ToString()));
+            if (successMessage) Swal.fire({ icon: 'success', title: 'Success', text: successMessage, confirmButtonColor: '#1e3c72' });
+            if (errorMessage) Swal.fire({ icon: 'error', title: 'Error', text: errorMessage, confirmButtonColor: '#dc3545' });
+        })();
 
         function updateClock() {
 

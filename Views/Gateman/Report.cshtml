@@ -1,6 +1,7 @@
 @model IEnumerable<RiceMillProject.Models.InwardHeader>
 @{
     ViewData["Title"] = "Gate Inward Register";
+    bool isWeightman = User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4";
 }
 
 <style>
@@ -77,7 +78,16 @@
         <h4 class="fw-bold text-dark mb-1" style="letter-spacing:-0.5px;">Gate Inward Register</h4>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0" style="font-size:0.85rem;">
-                <li class="breadcrumb-item"><a href="/Gateman/Dashboard" class="text-decoration-none text-muted">Dashboard</a></li>
+                <li class="breadcrumb-item">
+                    @if (isWeightman)
+                    {
+                        <a asp-controller="GateEntry" asp-action="Dashboard" class="text-decoration-none text-muted">Dashboard</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Gateman" asp-action="Dashboard" class="text-decoration-none text-muted">Dashboard</a>
+                    }
+                </li>
                 <li class="breadcrumb-item active text-primary fw-medium" aria-current="page">Inward Report</li>
             </ol>
         </nav>
@@ -89,9 +99,12 @@
         <button class="btn btn-success shadow-sm" onclick="exportTableToCSV('Gate_Inward_Register.csv')">
             <i class="bi bi-file-earmark-excel"></i> Export CSV
         </button>
-        <a asp-action="Index" class="btn btn-primary shadow-sm">
-            <i class="bi bi-plus-lg"></i> New Entry
-        </a>
+        @if (!isWeightman)
+        {
+            <a asp-action="Index" class="btn btn-primary shadow-sm">
+                <i class="bi bi-plus-lg"></i> New Entry
+            </a>
+        }
     </div>
 </div>
 
@@ -111,6 +124,7 @@
                         <th>Inward Type</th>
                         <th>Status</th>
                         <th>Added By</th>
+                        @if (isWeightman) { <th>Action</th> }
                     </tr>
                 </thead>
                 <tbody>
@@ -161,6 +175,25 @@
                                     }
                                 </td>
                                 <td class="text-muted">@item.GateManName</td>
+                                @if (isWeightman)
+                                {
+                                    <td class="text-nowrap">
+                                        @if (item.RSTRequired && !item.IsRSTGenerated)
+                                        {
+                                            <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">
+                                                <i class="bi bi-speedometer2 me-1"></i> Take Weighment
+                                            </a>
+                                        }
+                                        else if (item.IsRSTGenerated)
+                                        {
+                                            <span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Completed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not required</span>
+                                        }
+                                    </td>
+                                }
                             </tr>
                         }
                     }

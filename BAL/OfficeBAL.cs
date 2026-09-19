@@ -24,6 +24,11 @@ namespace RiceMillProject.BAL
             return _officeDal.GetAllLocations();
         }
 
+        public List<OfficeType> GetActiveOfficeTypes()
+        {
+            return _officeDal.GetActiveOfficeTypes();
+        }
+
         public int AddOffice(Office office)
         {
             return _officeDal.InsertOffice(office);

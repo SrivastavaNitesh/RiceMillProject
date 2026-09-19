@@ -68,6 +68,26 @@ namespace RiceMillProject.DAL
             return locations;
         }
 
+        public List<OfficeType> GetActiveOfficeTypes()
+        {
+            var officeTypes = new List<OfficeType>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("SELECT O04_OfficeTypeid, Officetype FROM O04_OfficeType WHERE IsAcitve = 1 ORDER BY Officetype", con))
+            {
+                con.Open();
+                using SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    officeTypes.Add(new OfficeType
+                    {
+                        OfficeTypeId = Convert.ToInt32(reader["O04_OfficeTypeid"]),
+                        OfficeTypeName = reader["Officetype"]?.ToString() ?? string.Empty
+                    });
+                }
+            }
+            return officeTypes;
+        }
+
         public int InsertOffice(Office office)
         {
             int officeId = 0;
@@ -78,7 +98,7 @@ namespace RiceMillProject.DAL
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@OfficeName", office.OfficeName);
                     cmd.Parameters.AddWithValue("@Location", office.Location??""); // Deprecated column
-                    cmd.Parameters.AddWithValue("@officetype", "1"); // Deprecated column
+                    cmd.Parameters.Add("@officetype", SqlDbType.Int).Value = office.OfficeTypeId;
                     
                     con.Open();
                     object? result = cmd.ExecuteScalar();

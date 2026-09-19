@@ -11,7 +11,7 @@
         </div>
         <div>
             <h3 class="erp-page-title">ADD NEW GATE CONTROL</h3>
-            <p class="erp-page-subtitle">Configure gate code, location area, and entry/exit permissions</p>
+            <p class="erp-page-subtitle">Configure company gate, location area, and entry/exit permissions</p>
         </div>
     </div>
     <a asp-action="Index" class="btn-erp-outline">
@@ -27,13 +27,17 @@
             </div>
             <div class="erp-card-body">
                 <form asp-action="Create" method="post" class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Gate Code <span class="req-star">*</span></label>
-                        <input asp-for="GateCode" class="form-control font-monospace" placeholder="e.g. GATE-01" required />
+                    <div class="col-md-12">
+                        <label class="form-label">Company Name <span class="req-star">*</span></label>
+                        <select asp-for="OfficeId" asp-items="ViewBag.Offices" class="form-select" required>
+                            <option value="">Select Company</option>
+                        </select>
+                        <span asp-validation-for="OfficeId" class="text-danger small"></span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <label class="form-label">Gate Name <span class="req-star">*</span></label>
                         <input asp-for="GateName" class="form-control" placeholder="e.g. Main Gate 1" required />
+                        <span asp-validation-for="GateName" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Gate Type <span class="req-star">*</span></label>
@@ -44,15 +48,11 @@
                             <option value="Gate-1">Gate-1</option>
                             <option value="Gate-2">Gate-2</option>
                         </select>
+                        <span asp-validation-for="GateType" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Location / Area</label>
                         <input asp-for="LocationArea" class="form-control" placeholder="e.g. East Mill Entrance" />
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Department Served</label>
-                        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
-                        </select>
                     </div>
                     <div class="col-md-6">
                         <div class="form-check form-switch mt-2">

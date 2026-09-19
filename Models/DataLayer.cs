@@ -131,6 +131,42 @@ namespace RiceMillProject.Models
             }
         }
 
+        internal DataTable GetGatesByOffice(int officeId)
+        {
+            DataTable dt = new DataTable();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT GateId AS Value, GateName AS Text
+                FROM dbo.m_GateMaster
+                WHERE IsActive = 1 AND OfficeId = @OfficeId
+                ORDER BY GateName", con);
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
+            using SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            return dt;
+        }
+
+        internal DataTable GetMethByOffice(int officeId)
+        {
+            DataTable dt = new DataTable();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT DISTINCT p.PersonId AS Value, p.PersonName AS Text
+                FROM dbo.p02_Person p
+                INNER JOIN dbo.P11_PersonDesignatation pd
+                    ON pd.P02_PersonId = p.PersonId AND pd.IsActive = 1
+                INNER JOIN dbo.O12_Designatation d
+                    ON d.DesignationId = pd.O12_DesignationId AND d.IsActive = 1
+                WHERE p.IsActive = 1
+                  AND (d.O10_PostId = 6 OR p.PersonType = '6' OR LOWER(LTRIM(RTRIM(p.PersonType))) = 'meth')
+                  AND d.O05_Office_Id = @OfficeId
+                ORDER BY p.PersonName", con);
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
+            using SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            return dt;
+        }
+
         internal DataTable GetEmployeePost()
         {
             try
@@ -256,6 +292,7 @@ namespace RiceMillProject.Models
                     new SqlParameter("@Action", action),
                     new SqlParameter("@GateId", gate?.GateId ?? (object)DBNull.Value),
                     new SqlParameter("@GateCode", gate?.GateCode ?? (object)DBNull.Value),
+                    new SqlParameter("@OfficeId", gate?.OfficeId > 0 ? gate.OfficeId : (object)DBNull.Value),
                     new SqlParameter("@GateName", gate?.GateName ?? (object)DBNull.Value),
                     new SqlParameter("@GateType", gate?.GateType ?? (object)DBNull.Value),
                     new SqlParameter("@LocationArea", gate?.LocationArea ?? (object)DBNull.Value),
