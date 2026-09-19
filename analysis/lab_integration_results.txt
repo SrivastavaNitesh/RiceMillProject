@@ -1,0 +1,31 @@
+TestId     
+-----------
+          1
+TestId     
+-----------
+          2
+PASS: multi-category unloaded items saved, zero foreign keys
+PASS: unloading replay rejected without duplicate workers
+PASS: cross-category mapping rejected
+PASS: duplicate mapping rejected
+PASS: item belonging only to another RST rejected
+PASS: missing mapped result rejected
+PASS: numeric result validation
+PASS: duplicate test result rejected
+PASS: non-lab user rejected
+ReportId   
+-----------
+          1
+ReportId   
+-----------
+          1
+PASS: multiple categories/items in one report, repeat token creates no duplicate
+TestId     
+-----------
+          1
+PASS: test edit/remove preserves historical reports and deactivates mappings
+PASS: mapping edit/remove
+TestId     
+-----------
+          3
+ALL INTEGRATION ASSERTIONS PASSED

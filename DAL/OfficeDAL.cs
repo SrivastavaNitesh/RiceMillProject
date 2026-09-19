@@ -48,13 +48,7 @@ namespace RiceMillProject.DAL
             var locations = new List<OfficeLocation>();
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                string query = @"
-                    SELECT l.LocationId, ISNULL(m.OfficeId, 1) AS OfficeId, l.LocationName 
-                    FROM m_LocationMaster l
-                    LEFT JOIN t_OfficeLocationMapping m ON l.LocationId = m.LocationId
-                    WHERE l.IsActive = 1";
-
-                using (SqlCommand cmd = new SqlCommand(query, con))
+                using (SqlCommand cmd = new SqlCommand("SELECT LocationId, OfficeId, LocationName FROM o_OfficeLocation WHERE IsActive = 1", con))
                 {
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -83,7 +77,8 @@ namespace RiceMillProject.DAL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@OfficeName", office.OfficeName);
-                    cmd.Parameters.AddWithValue("@Location", ""); // Deprecated column
+                    cmd.Parameters.AddWithValue("@Location", office.Location??""); // Deprecated column
+                    cmd.Parameters.AddWithValue("@officetype", "1"); // Deprecated column
                     
                     con.Open();
                     object? result = cmd.ExecuteScalar();

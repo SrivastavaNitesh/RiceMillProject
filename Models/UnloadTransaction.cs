@@ -5,6 +5,8 @@ namespace RiceMillProject.Models
     public class UnloadTransaction
     {
         public int UnloadId { get; set; }
+        [System.ComponentModel.DataAnnotations.MinLength(1, ErrorMessage = "Select the items actually unloaded.")]
+        public int[] SelectedItemIds { get; set; } = [];
         public string RSTNumber { get; set; } = string.Empty;
         public int OfficeId { get; set; }
         public int[]? SelectedLocationIds { get; set; }

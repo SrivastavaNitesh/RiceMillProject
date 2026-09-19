@@ -1,4 +1,12 @@
 @{
-    Layout = "_LayoutAdmin";
+    var layoutClaim = User.FindFirst("LayoutName")?.Value;
+    if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
+    {
+        Layout = layoutClaim;
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
 }
 

@@ -75,6 +75,36 @@ LEFT JOIN m_Item i ON u.ItemId = i.ItemId";
             return list;
         }
 
+        public List<Person> GetUnloadingPeople()
+        {
+            var people = new List<Person>();
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_UnloadPeople", con) { CommandType = CommandType.StoredProcedure };
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read()) people.Add(new Person
+            {
+                PersonId = Convert.ToInt32(reader["PersonId"]), PersonName = reader["PersonName"].ToString() ?? "",
+                PersonType = reader["RoleName"].ToString() ?? ""
+            });
+            return people;
+        }
+
+        public void CompleteWithItems(UnloadTransaction unload, int locationId, string shift, int[] workerIds)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_CompleteUnloadWithItems", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unload.UnloadId;
+            cmd.Parameters.Add("@GateManId", SqlDbType.Int).Value = unload.GateManId;
+            cmd.Parameters.Add("@BagTypeId", SqlDbType.Int).Value = unload.BagTypeId!.Value;
+            cmd.Parameters.Add("@NumberOfBags", SqlDbType.Int).Value = unload.NumberOfBags!.Value;
+            cmd.Parameters.Add("@LocationId", SqlDbType.Int).Value = locationId;
+            cmd.Parameters.Add("@Shift", SqlDbType.VarChar, 10).Value = shift;
+            cmd.Parameters.Add("@ItemIds", SqlDbType.NVarChar, -1).Value = System.Text.Json.JsonSerializer.Serialize(unload.SelectedItemIds);
+            cmd.Parameters.Add("@WorkerIds", SqlDbType.NVarChar, -1).Value = System.Text.Json.JsonSerializer.Serialize(workerIds);
+            con.Open();
+            cmd.ExecuteNonQuery();
+        }
         public int AssignUnloading(string rstNumber, int supervisorId, int methId, int? itemId = null)
         {
             int unloadId = 0;

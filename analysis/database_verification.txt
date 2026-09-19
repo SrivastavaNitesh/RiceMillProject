@@ -1,0 +1,306 @@
+COUNTS
+39 79 0 0 0 0 0
+MISSING_OBJECTS
+dbo.p1_person NULL
+dbo.p1_persondesignatation NULL
+dbo.t_OfficeLocations NULL
+dbo.sp_GetPersonsByType NULL
+COUNTER_SEEDS
+GLOBAL NULL
+INWARD NULL
+OUTWARD NULL
+RST NULL
+STATUS_MASTER
+1 GADI_IN Gadi In
+2 WEIGHT_DONE Weight Done
+3 UNLOAD_ASSIGNED Unload Assigned
+4 UNLOADED Unloaded
+5 UNLOAD_VERIFIED Unload Verified
+6 TESTED Quality Tested
+7 EXITED Exited
+8 SETTLED Settled
+9 OUTWARD_PENDING Outward Pending Approval
+10 OUTWARD_APPROVED Outward Approved
+11 OUTWARD_REVERTED Outward Reverted
+LIVE_PARAMETERS
+sp_alterdiagram @diagramname sysname 256 0
+sp_alterdiagram @owner_id int 4 0
+sp_alterdiagram @version int 4 0
+sp_alterdiagram @definition varbinary -1 0
+sp_ApproveOutwardChallan @ChallanNo nvarchar 100 0
+sp_ApproveOutwardChallan @GateManId int 4 0
+sp_ApproveOutwardChallan @OutwardNo nvarchar 100 1
+sp_AssignUnloading @RSTNumber nvarchar 100 0
+sp_AssignUnloading @SupervisorId int 4 0
+sp_AssignUnloading @MethId int 4 0
+sp_CompleteGateExit @RSTNumber nvarchar 100 0
+sp_CompleteGateExit @TareWeight decimal 9 0
+sp_creatediagram @diagramname sysname 256 0
+sp_creatediagram @owner_id int 4 0
+sp_creatediagram @version int 4 0
+sp_creatediagram @definition varbinary -1 0
+sp_CreateGateEntry @RSTNumber nvarchar 100 0
+sp_CreateGateEntry @VehicleId int 4 0
+sp_CreateGateEntry @PartyId int 4 0
+sp_CreateGateEntry @DriverId int 4 0
+sp_CreateGateEntry @GrossWeight decimal 9 0
+sp_CreateGatemanInward @VehicleNumber nvarchar 100 0
+sp_CreateGatemanInward @DriverName nvarchar 200 0
+sp_CreateGatemanInward @GateManId int 4 0
+sp_CreateGatemanInward @ItemId int 4 0
+sp_CreateGatemanInward @Quantity decimal 9 0
+sp_CreateGatemanInward @Unit nvarchar 40 0
+sp_CreateGatemanInward @InwardNo nvarchar 100 1
+sp_CreateSecurityIncident @GateId int 4 0
+sp_CreateSecurityIncident @IncidentType nvarchar 200 0
+sp_CreateSecurityIncident @RelatedEntryNo nvarchar 200 0
+sp_CreateSecurityIncident @Description nvarchar -1 0
+sp_CreateSecurityIncident @ActionTaken nvarchar -1 0
+sp_CreateSecurityIncident @ReportedToPersonId int 4 0
+sp_CreateSecurityIncident @Severity nvarchar 100 0
+sp_CreateSecurityIncident @CreatedBy int 4 0
+sp_CreateTempMaterialEntry @GateId int 4 0
+sp_CreateTempMaterialEntry @OwnerVendor nvarchar 400 0
+sp_CreateTempMaterialEntry @VehicleNo nvarchar 100 0
+sp_CreateTempMaterialEntry @ItemCategory nvarchar 200 0
+sp_CreateTempMaterialEntry @ItemDescription nvarchar -1 0
+sp_CreateTempMaterialEntry @Quantity decimal 9 0
+sp_CreateTempMaterialEntry @Unit nvarchar 40 0
+sp_CreateTempMaterialEntry @SerialAssetNo nvarchar 200 0
+sp_CreateTempMaterialEntry @Purpose nvarchar 200 0
+sp_CreateTempMaterialEntry @DepartmentId int 4 0
+sp_CreateTempMaterialEntry @ExpectedReturnDate datetime 8 0
+sp_CreateTempMaterialEntry @Remarks nvarchar -1 0
+sp_CreateTempMaterialEntry @CreatedBy int 4 0
+sp_CreateUserLogin @PersonId int 4 0
+sp_CreateUserLogin @MobileNumber nvarchar 40 0
+sp_CreateUserLogin @DesignationId int 4 0
+sp_CreateUserLogin @PersonName nvarchar 400 0
+sp_CreateUserLogin @OfficeId int 4 0
+sp_CreateUserLogin @o10_postid int 4 0
+sp_CreateUserLogin @DepartmentId int 4 0
+sp_CreateVisitorEntry @GateId int 4 0
+sp_CreateVisitorEntry @VisitorName nvarchar 400 0
+sp_CreateVisitorEntry @MobileNo nvarchar 40 0
+sp_CreateVisitorEntry @CompanyOrg nvarchar 400 0
+sp_CreateVisitorEntry @PurposeOfVisit nvarchar 200 0
+sp_CreateVisitorEntry @PersonToMeetId int 4 0
+sp_CreateVisitorEntry @PersonToMeetName nvarchar 400 0
+sp_CreateVisitorEntry @DepartmentId int 4 0
+sp_CreateVisitorEntry @VisitorIDType nvarchar 100 0
+sp_CreateVisitorEntry @IDReference nvarchar 200 0
+sp_CreateVisitorEntry @VehicleNo nvarchar 100 0
+sp_CreateVisitorEntry @Remarks nvarchar -1 0
+sp_CreateVisitorEntry @CreatedBy int 4 0
+sp_dropdiagram @diagramname sysname 256 0
+sp_dropdiagram @owner_id int 4 0
+sp_ExitVisitor @VisitorNo nvarchar 100 0
+Sp_GetAllDhermKataorLocations @officeid int 4 0
+Sp_GetAllDhermKataorLocations @O04_childOfficeTypeId int 4 0
+Sp_GetAlloffice @officeid int 4 0
+Sp_GetAlloffice @officetype int 4 0
+sp_GetAllPersons @Mode varchar 20 0
+sp_GetAllPersons @officeid int 4 0
+sp_GetChallanDetailsForOutward @ChallanNo nvarchar 100 0
+sp_GetNextSerialNumber @CounterType nvarchar 100 0
+sp_GetNextSerialNumber @NextNo int 4 1
+sp_GetOfficeLocations @OfficeId int 4 0
+sp_GetPartiesAndDriversByVehicle @VehicleId int 4 0
+sp_GetPersonLocations @PersonId int 4 0
+sp_GetSettlementDetails @RSTNumber nvarchar 100 0
+sp_GetWorkersByMeth @MethPersonId int 4 0
+sp_helpdiagramdefinition @diagramname sysname 256 0
+sp_helpdiagramdefinition @owner_id int 4 0
+sp_helpdiagrams @diagramname sysname 256 0
+sp_helpdiagrams @owner_id int 4 0
+sp_InsertBagType @BagTypeName nvarchar 100 0
+sp_InsertBagType @DeductionWeightGrams int 4 0
+sp_InsertDesignation @DesignationName nvarchar 200 0
+sp_InsertGateEntryLocation @RSTNumber nvarchar 100 0
+sp_InsertGateEntryLocation @LocationId int 4 0
+sp_InsertItem @ItemName nvarchar 200 0
+sp_InsertItem @CategoryId int 4 0
+sp_InsertItemCategory @CategoryName nvarchar 200 0
+sp_InsertOffice @OfficeName nvarchar 200 0
+sp_InsertOffice @Location nvarchar 400 0
+sp_InsertOffice @officetype int 4 0
+sp_InsertOfficeLocation @OfficeId int 4 0
+sp_InsertOfficeLocation @LocationName nvarchar 400 0
+sp_InsertPerson @PersonName nvarchar 400 0
+sp_InsertPerson @MobileNumber nvarchar 40 0
+sp_InsertPerson @Address nvarchar 1000 0
+sp_InsertPerson @PersonType nvarchar 100 0
+sp_InsertPersonLocation @PersonId int 4 0
+sp_InsertPersonLocation @LocationId int 4 0
+sp_InsertPost @PostName nvarchar 200 0
+Sp_InsertRelationBetweenOffice @O05_ParentOfficeId int 4 0
+Sp_InsertRelationBetweenOffice @O05_childOfficeId int 4 0
+Sp_InsertRelationBetweenOffice @O04_ParentOfficeTypeId int 4 0
+Sp_InsertRelationBetweenOffice @O04_childOfficeTypeId int 4 0
+sp_InsertUnloadLocation @UnloadId int 4 0
+sp_InsertUnloadLocation @LocationId int 4 0
+sp_InsertVehicle @VehicleNumber nvarchar 100 0
+sp_InsertVehicleMapping @VehicleId int 4 0
+sp_InsertVehicleMapping @PartyId int 4 0
+sp_InsertVehicleMapping @DriverId int 4 0
+sp_ManageDepartmentMaster @Action nvarchar 40 0
+sp_ManageDepartmentMaster @DepartmentId int 4 0
+sp_ManageDepartmentMaster @DepartmentCode nvarchar 100 0
+sp_ManageDepartmentMaster @DepartmentName nvarchar 200 0
+sp_ManageDepartmentMaster @OfficeId int 4 0
+sp_ManageDepartmentMaster @ResponsibleOfficerId int 4 0
+sp_ManageDepartmentMaster @IsActive bit 1 0
+sp_ManageGateInwardEntry @Action varchar 20 0
+sp_ManageGateInwardEntry @InwardId int 4 0
+sp_ManageGateInwardEntry @GateId int 4 0
+sp_ManageGateInwardEntry @InwardTypeId int 4 0
+sp_ManageGateInwardEntry @PartyId int 4 0
+sp_ManageGateInwardEntry @TransporterName nvarchar 300 0
+sp_ManageGateInwardEntry @VehicleNo nvarchar 100 0
+sp_ManageGateInwardEntry @VehicleTypeId int 4 0
+sp_ManageGateInwardEntry @DriverName nvarchar 300 0
+sp_ManageGateInwardEntry @DriverMobile nvarchar 30 0
+sp_ManageGateInwardEntry @ChallanNo nvarchar 200 0
+sp_ManageGateInwardEntry @ApproxNoOfBags int 4 0
+sp_ManageGateInwardEntry @ApproxWeight decimal 9 0
+sp_ManageGateInwardEntry @PurposeRemarks nvarchar 500 0
+sp_ManageGateInwardEntry @CreatedBy int 4 0
+sp_ManageGateMaster @Action nvarchar 40 0
+sp_ManageGateMaster @GateId int 4 0
+sp_ManageGateMaster @GateCode nvarchar 100 0
+sp_ManageGateMaster @GateName nvarchar 200 0
+sp_ManageGateMaster @GateType nvarchar 100 0
+sp_ManageGateMaster @LocationArea nvarchar 400 0
+sp_ManageGateMaster @DepartmentId int 4 0
+sp_ManageGateMaster @InwardAllowed bit 1 0
+sp_ManageGateMaster @OutwardAllowed bit 1 0
+sp_ManageGateMaster @IsActive bit 1 0
+sp_ManageLocationMaster @Action varchar 20 0
+sp_ManageLocationMaster @LocationId int 4 0
+sp_ManageLocationMaster @LocationCode nvarchar 40 1
+sp_ManageLocationMaster @LocationName nvarchar 200 0
+sp_ManageLocationMaster @LocationType nvarchar 100 0
+sp_ManageLocationMaster @Capacity decimal 9 0
+sp_ManageLocationMaster @CapacityUnit nvarchar 20 0
+sp_ManageLocationMaster @Description nvarchar 500 0
+sp_ManageLocationMaster @Address nvarchar 500 0
+sp_ManageLocationMaster @Remarks nvarchar 500 0
+sp_ManageLocationMaster @IsActive bit 1 0
+sp_ManageLocationMaster @CreatedBy int 4 0
+sp_ManageOfficeLocationMapping @Action varchar 20 0
+sp_ManageOfficeLocationMapping @MappingId int 4 0
+sp_ManageOfficeLocationMapping @OfficeId int 4 0
+sp_ManageOfficeLocationMapping @LocationId int 4 0
+sp_ManageOfficeLocationMapping @UnloadingAllowed bit 1 0
+sp_ManageOfficeLocationMapping @EffectiveFrom date 3 0
+sp_ManageOfficeLocationMapping @IsActive bit 1 0
+sp_ManageOfficeLocationMapping @CreatedBy int 4 0
+sp_renamediagram @diagramname sysname 256 0
+sp_renamediagram @owner_id int 4 0
+sp_renamediagram @new_diagramname sysname 256 0
+sp_ReturnTempMaterial @EntryNo nvarchar 100 0
+sp_ReturnTempMaterial @Remarks nvarchar -1 0
+sp_SaveLabQualityCheck @RSTNumber nvarchar 100 0
+sp_SaveLabQualityCheck @MoisturePct decimal 5 0
+sp_SaveLabQualityCheck @DustPct decimal 5 0
+sp_SaveLabQualityCheck @PayiaPct decimal 5 0
+sp_SaveLabQualityCheck @GrainQualityPct decimal 5 0
+sp_SaveLabQualityCheck @TotalDeductionPct decimal 5 0
+sp_SaveLabQualityCheck @TestedBy int 4 0
+sp_SavePersondetails @PersonName nvarchar 400 0
+sp_SavePersondetails @MobileNumber nvarchar 40 0
+sp_SavePersondetails @Address nvarchar 1000 0
+sp_SavePersondetails @PersonType nvarchar 100 0
+sp_SavePersondetails @O05_officeId int 4 0
+sp_SavePersondetails @o10postid int 4 0
+sp_SavePersondetails @o12_parentid int 4 0
+sp_SavePersondetails @PartyCategory int 4 0
+sp_SavePersondetails @FirmName nvarchar 400 0
+sp_SavePersondetails @FirmDesignation nvarchar 200 0
+sp_SavePersondetails @designatationId int 4 1
+sp_SaveUnloading @RSTNumber nvarchar 100 0
+sp_SaveUnloading @LocationId int 4 0
+sp_SaveUnloading @SupervisorId int 4 0
+sp_SaveUnloading @MethId int 4 0
+sp_SaveUnloading @BagTypeId int 4 0
+sp_SaveUnloading @NumberOfBags int 4 0
+sp_SaveWorkerAllocation @UnloadId int 4 0
+sp_SaveWorkerAllocation @WorkerId int 4 0
+sp_SaveWorkerAllocation @PalledariAmount decimal 9 0
+sp_SubmitUnloading @UnloadId int 4 0
+sp_SubmitUnloading @GateManId int 4 0
+sp_SubmitUnloading @BagTypeId int 4 0
+sp_SubmitUnloading @NumberOfBags int 4 0
+sp_UpdateBagType @BagTypeId int 4 0
+sp_UpdateBagType @BagTypeName nvarchar 100 0
+sp_UpdateBagType @DeductionWeightGrams int 4 0
+sp_UpdateBagType @IsActive bit 1 0
+sp_UpdateDesignation @DesignationId int 4 0
+sp_UpdateDesignation @DesignationName nvarchar 200 0
+sp_UpdateDesignation @IsActive bit 1 0
+sp_UpdateItem @ItemId int 4 0
+sp_UpdateItem @ItemName nvarchar 200 0
+sp_UpdateItem @CategoryId int 4 0
+sp_UpdateItem @IsActive bit 1 0
+sp_UpdateItemCategory @CategoryId int 4 0
+sp_UpdateItemCategory @CategoryName nvarchar 200 0
+sp_UpdateItemCategory @IsActive bit 1 0
+sp_UpdateOffice @OfficeId int 4 0
+sp_UpdateOffice @OfficeName nvarchar 200 0
+sp_UpdateOffice @Location nvarchar 400 0
+sp_UpdateOffice @IsActive bit 1 0
+sp_UpdatePerson @PersonId int 4 0
+sp_UpdatePerson @PersonName nvarchar 400 0
+sp_UpdatePerson @MobileNumber nvarchar 40 0
+sp_UpdatePerson @Address nvarchar 1000 0
+sp_UpdatePerson @PersonType nvarchar 100 0
+sp_UpdatePerson @IsActive bit 1 0
+sp_UpdatePost @PostId int 4 0
+sp_UpdatePost @PostName nvarchar 200 0
+sp_UpdatePost @IsActive bit 1 0
+sp_UpdateVehicle @VehicleId int 4 0
+sp_UpdateVehicle @VehicleNumber nvarchar 100 0
+sp_UpdateVehicle @IsActive bit 1 0
+sp_ValidateUser @Username nvarchar 200 0
+sp_ValidateUser @Password nvarchar 512 0
+sp_VerifyUnloading @UnloadId int 4 0
+sp_VerifyUnloading @TotalBagDeductionGrams decimal 9 0
+GATE_RESULT_COLUMNS
+1 RSTNumber nvarchar(50) NULL NULL
+2 GrossWeight decimal(18,2) NULL NULL
+3 TareWeight decimal(18,2) NULL NULL
+4 NetWeight decimal(18,2) NULL NULL
+5 GateEntryTime datetime NULL NULL
+6 GateExitTime datetime NULL NULL
+7 Status nvarchar(50) NULL NULL
+8 VehicleNumber nvarchar(50) NULL NULL
+9 PartyName nvarchar(200) NULL NULL
+10 DriverName nvarchar(200) NULL NULL
+INWARD_SELECT_CHECK
+208 Invalid object name 'p1_person'.
+WORKER_SELECT_CHECK
+208 Invalid object name 'p1_persondesignatation'.
+LOCATION_SELECT_CHECK
+208 Invalid object name 'dbo.t_OfficeLocations'.
+DATA_QUALITY_COUNTS
+Users without person 0
+Users without user type 0
+Users with role text differing from user type 0
+Offices without OfficeType 1
+Person-designation without person 0
+Person-designation without designation 0
+Duplicate username groups 0
+Duplicate vehicle-number groups 0
+UNRESOLVED_STATIC_DEPENDENCIES
+sp_ApproveOutwardChallan NULL sp_GetNextSerialNumber
+sp_CreateGatemanInward NULL sp_GetNextSerialNumber
+sp_CreateSecurityIncident NULL sp_GetNextSerialNumber
+sp_CreateTempMaterialEntry NULL sp_GetNextSerialNumber
+sp_CreateUserLogin NULL p1_persondesignatation
+sp_CreateVisitorEntry NULL sp_GetNextSerialNumber
+sp_GetWorkersByMeth NULL p1_persondesignatation
+sp_InsertOffice NULL sp_GetNextSerialNumber
+sp_ManageGateInwardEntry NULL p1_person
+sp_ReturnTempMaterial NULL sp_GetNextSerialNumber
+sp_SavePersondetails NULL p1_persondesignatation
+sp_upgraddiagrams dbo dtproperties

@@ -1,0 +1,11 @@
+﻿PASS: Only unloaded categories
+PASS: No unrelated default items
+PASS: Paddy category shows two unloaded items
+PASS: Item selection displays its two mapped tests
+PASS: Existing values survive another category/item selection
+PASS: Multiple category/item tests appear together
+PASS: Multiple selection submits all IDs
+PASS: Results bind to correct item/test
+PASS: Removing category removes its item selection/results
+PASS: Reselection preserves entered values
+PASS: Complete mapped selections enable save

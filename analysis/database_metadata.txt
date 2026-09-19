@@ -1,0 +1,2381 @@
+TABLE_COLUMNS
+m_BagType 1 BagTypeId int 4 10 0 0 1 NULL
+m_BagType 2 BagTypeName nvarchar 100 0 0 0 0 NULL
+m_BagType 3 DeductionWeightGrams int 4 10 0 0 0 NULL
+m_BagType 4 IsActive bit 1 1 0 1 0 ((1))
+m_Challan 1 ChallanId int 4 10 0 0 1 NULL
+m_Challan 2 ChallanNo nvarchar 100 0 0 0 0 NULL
+m_Challan 3 DepartmentName nvarchar 200 0 0 0 0 NULL
+m_Challan 4 GeneratorPersonId int 4 10 0 0 0 NULL
+m_Challan 5 GeneratorPostId int 4 10 0 0 0 NULL
+m_Challan 6 ChallanDate datetime 8 23 3 1 0 (getdate())
+m_Challan 7 StatusId int 4 10 0 1 0 ((9))
+m_ChallanItem 1 ChallanItemId int 4 10 0 0 1 NULL
+m_ChallanItem 2 ChallanId int 4 10 0 0 0 NULL
+m_ChallanItem 3 ItemId int 4 10 0 0 0 NULL
+m_ChallanItem 4 Quantity decimal 9 18 2 0 0 NULL
+m_ChallanItem 5 Unit nvarchar 40 0 0 0 0 NULL
+m_DepartmentMaster 1 DepartmentId int 4 10 0 0 1 NULL
+m_DepartmentMaster 2 DepartmentCode nvarchar 100 0 0 0 0 NULL
+m_DepartmentMaster 3 DepartmentName nvarchar 200 0 0 0 0 NULL
+m_DepartmentMaster 4 OfficeId int 4 10 0 1 0 NULL
+m_DepartmentMaster 5 ResponsibleOfficerId int 4 10 0 1 0 NULL
+m_DepartmentMaster 6 IsActive bit 1 1 0 1 0 ((1))
+m_DepartmentMaster 7 CreatedDate datetime 8 23 3 1 0 (getdate())
+m_GateMaster 1 GateId int 4 10 0 0 1 NULL
+m_GateMaster 2 GateCode nvarchar 100 0 0 0 0 NULL
+m_GateMaster 3 GateName nvarchar 200 0 0 0 0 NULL
+m_GateMaster 4 GateType nvarchar 100 0 0 0 0 NULL
+m_GateMaster 5 LocationArea nvarchar 400 0 0 1 0 NULL
+m_GateMaster 6 DepartmentId int 4 10 0 1 0 NULL
+m_GateMaster 7 InwardAllowed bit 1 1 0 1 0 ((1))
+m_GateMaster 8 OutwardAllowed bit 1 1 0 1 0 ((1))
+m_GateMaster 9 IsActive bit 1 1 0 1 0 ((1))
+m_GateMaster 10 CreatedDate datetime 8 23 3 1 0 (getdate())
+m_InwardTypeMaster 1 InwardTypeId int 4 10 0 0 1 NULL
+m_InwardTypeMaster 2 InwardTypeName nvarchar 200 0 0 0 0 NULL
+m_InwardTypeMaster 3 RSTRequired bit 1 1 0 0 0 ((1))
+m_InwardTypeMaster 4 IsActive bit 1 1 0 0 0 ((1))
+m_InwardTypeMaster 5 CreatedBy int 4 10 0 1 0 NULL
+m_InwardTypeMaster 6 CreatedDate datetime 8 23 3 1 0 (getdate())
+m_InwardTypeMaster 7 ModifiedBy int 4 10 0 1 0 NULL
+m_InwardTypeMaster 8 ModifiedDate datetime 8 23 3 1 0 NULL
+m_Item 1 ItemId int 4 10 0 0 1 NULL
+m_Item 2 ItemName nvarchar 200 0 0 0 0 NULL
+m_Item 3 CategoryId int 4 10 0 0 0 NULL
+m_Item 4 Unit nvarchar 40 0 0 1 0 ('Kg')
+m_Item 5 IsActive bit 1 1 0 1 0 ((1))
+m_ItemCategory 1 CategoryId int 4 10 0 0 1 NULL
+m_ItemCategory 2 CategoryName nvarchar 200 0 0 0 0 NULL
+m_ItemCategory 3 IsActive bit 1 1 0 1 0 ((1))
+m_LocationMaster 1 LocationId int 4 10 0 0 1 NULL
+m_LocationMaster 2 LocationCode nvarchar 40 0 0 0 0 NULL
+m_LocationMaster 3 LocationName nvarchar 200 0 0 0 0 NULL
+m_LocationMaster 4 LocationType nvarchar 100 0 0 0 0 NULL
+m_LocationMaster 5 Capacity decimal 9 18 2 1 0 ((0))
+m_LocationMaster 6 CapacityUnit nvarchar 20 0 0 1 0 NULL
+m_LocationMaster 7 Description nvarchar 500 0 0 1 0 NULL
+m_LocationMaster 8 Address nvarchar 500 0 0 1 0 NULL
+m_LocationMaster 9 Remarks nvarchar 500 0 0 1 0 NULL
+m_LocationMaster 10 IsActive bit 1 1 0 0 0 ((1))
+m_LocationMaster 11 CreatedBy int 4 10 0 1 0 NULL
+m_LocationMaster 12 CreatedDate datetime 8 23 3 1 0 (getdate())
+m_LocationMaster 13 ModifiedBy int 4 10 0 1 0 NULL
+m_LocationMaster 14 ModifiedDate datetime 8 23 3 1 0 NULL
+m_StatusMaster 1 StatusId int 4 10 0 0 0 NULL
+m_StatusMaster 2 StatusCode nvarchar 100 0 0 0 0 NULL
+m_StatusMaster 3 StatusName nvarchar 200 0 0 0 0 NULL
+m_StatusMaster 4 IsActive bit 1 1 0 1 0 ((1))
+m_Vehicle 1 VehicleId int 4 10 0 0 1 NULL
+m_Vehicle 2 VehicleNumber nvarchar 100 0 0 0 0 NULL
+m_Vehicle 3 IsActive bit 1 1 0 1 0 ((1))
+m_VehicleMapping 1 MappingId int 4 10 0 0 1 NULL
+m_VehicleMapping 2 VehicleId int 4 10 0 0 0 NULL
+m_VehicleMapping 3 PartyId int 4 10 0 0 0 NULL
+m_VehicleMapping 4 DriverId int 4 10 0 0 0 NULL
+m_VehicleMapping 5 IsActive bit 1 1 0 1 0 ((1))
+m_VehicleTypeMaster 1 VehicleTypeId int 4 10 0 0 1 NULL
+m_VehicleTypeMaster 2 VehicleTypeName nvarchar 200 0 0 0 0 NULL
+m_VehicleTypeMaster 3 IsActive bit 1 1 0 0 0 ((1))
+m_VehicleTypeMaster 4 CreatedBy int 4 10 0 1 0 NULL
+m_VehicleTypeMaster 5 CreatedDate datetime 8 23 3 1 0 (getdate())
+m_VehicleTypeMaster 6 ModifiedBy int 4 10 0 1 0 NULL
+m_VehicleTypeMaster 7 ModifiedDate datetime 8 23 3 1 0 NULL
+o_designatationreletation 1 RelationId int 4 10 0 0 1 NULL
+o_designatationreletation 2 o12_parentid int 4 10 0 0 0 NULL
+o_designatationreletation 3 o12_childid int 4 10 0 0 0 NULL
+o_designatationreletation 4 parent_postid int 4 10 0 1 0 NULL
+o_designatationreletation 5 child_postid int 4 10 0 1 0 NULL
+o_designatationreletation 6 IsActive bit 1 1 0 1 0 ((1))
+o_OfficeLocation 1 LocationId int 4 10 0 0 1 NULL
+o_OfficeLocation 2 OfficeId int 4 10 0 0 0 NULL
+o_OfficeLocation 3 LocationName nvarchar 400 0 0 0 0 NULL
+o_OfficeLocation 4 IsActive bit 1 1 0 1 0 ((1))
+O_Officerelation 1 Officerelation_id int 4 10 0 0 1 NULL
+O_Officerelation 2 O05_ParentOfficeId int 4 10 0 1 0 NULL
+O_Officerelation 3 O05_childOfficeId int 4 10 0 1 0 NULL
+O_Officerelation 4 O04_ParentOfficeTypeId int 4 10 0 1 0 NULL
+O_Officerelation 5 O04_childOfficeTypeId int 4 10 0 1 0 NULL
+O_Officerelation 6 OfficerelationIsActive bit 1 1 0 1 0 ((1))
+O04_OfficeType 1 O04_OfficeTypeid int 4 10 0 0 1 NULL
+O04_OfficeType 2 Officetype nvarchar 1000 0 0 1 0 NULL
+O04_OfficeType 3 IsAcitve bit 1 1 0 1 0 ((1))
+o05_office 1 OfficeId int 4 10 0 0 1 NULL
+o05_office 2 OfficeName nvarchar 200 0 0 0 0 NULL
+o05_office 3 Location nvarchar 400 0 0 1 0 NULL
+o05_office 4 IsActive bit 1 1 0 1 0 NULL
+o05_office 5 OfficeCode nvarchar 100 0 0 1 0 NULL
+o05_office 6 DhermkataCode nvarchar 100 0 0 1 0 NULL
+o05_office 7 OfficeType int 4 10 0 1 0 NULL
+o10_post 1 PostId int 4 10 0 0 1 NULL
+o10_post 2 PostName nvarchar 200 0 0 0 0 NULL
+o10_post 3 IsActive bit 1 1 0 1 0 ((1))
+o10_post 4 o10_postid int 4 10 0 1 0 NULL
+o10_post 5 o10_postname nvarchar 200 0 0 1 0 NULL
+O12_Designatation 1 DesignationId int 4 10 0 0 1 NULL
+O12_Designatation 2 DesignationName nvarchar 200 0 0 0 0 NULL
+O12_Designatation 3 IsActive bit 1 1 0 1 0 ((1))
+O12_Designatation 4 mDepartmentId int 4 10 0 1 0 NULL
+O12_Designatation 5 DesignatationMobile bigint 8 19 0 1 0 NULL
+O12_Designatation 6 O05_Office_Id int 4 10 0 1 0 NULL
+O12_Designatation 7 O10_PostId int 4 10 0 1 0 NULL
+O12_Designatation 8 P02_AddedBy int 4 10 0 1 0 NULL
+O12_Designatation 9 O12_AddedBy int 4 10 0 1 0 NULL
+O12_Designatation 10 AddedOn datetime 8 23 3 1 0 NULL
+O12_Designatation 11 UpdatedOn datetime 8 23 3 1 0 NULL
+O12_Designatation 12 UpdatedBy int 4 10 0 1 0 NULL
+P_PersonLocation 1 MappingId int 4 10 0 0 1 NULL
+P_PersonLocation 2 PersonId int 4 10 0 0 0 NULL
+P_PersonLocation 3 LocationId int 4 10 0 0 0 NULL
+P_PersonLocation 4 IsActive bit 1 1 0 1 0 ((1))
+P02_Person 1 PersonId int 4 10 0 0 1 NULL
+P02_Person 2 PersonName nvarchar 400 0 0 0 0 NULL
+P02_Person 3 MobileNumber nvarchar 40 0 0 1 0 NULL
+P02_Person 4 Address nvarchar 1000 0 0 1 0 NULL
+P02_Person 5 PartyCategory int 4 10 0 1 0 ((1))
+P02_Person 6 FirmName nvarchar 400 0 0 1 0 NULL
+P02_Person 7 FirmDesignation nvarchar 200 0 0 1 0 NULL
+P02_Person 8 PersonType nvarchar 100 0 0 1 0 NULL
+P02_Person 9 IsActive bit 1 1 0 1 0 ((1))
+P02_Person 10 DepartmentId int 4 10 0 1 0 NULL
+P11_PersonDesignatation 1 PersonDesignationId int 4 10 0 0 1 NULL
+P11_PersonDesignatation 2 P02_PersonId int 4 10 0 0 0 NULL
+P11_PersonDesignatation 3 O12_DesignationId int 4 10 0 0 0 NULL
+P11_PersonDesignatation 4 EffectiveFrom datetime 8 23 3 1 0 NULL
+P11_PersonDesignatation 5 EffectiveTill datetime 8 23 3 1 0 NULL
+P11_PersonDesignatation 6 Addedon datetime 8 23 3 1 0 NULL
+P11_PersonDesignatation 7 IsActive bit 1 1 0 1 0 NULL
+P11_PersonDesignatation 8 EmployeeCode nvarchar 100 0 0 1 0 NULL
+sa05_user 1 UserId int 4 10 0 0 1 NULL
+sa05_user 2 Username nvarchar 200 0 0 0 0 NULL
+sa05_user 3 PasswordHash nvarchar 512 0 0 0 0 NULL
+sa05_user 4 PersonId int 4 10 0 0 0 NULL
+sa05_user 5 o10_postid int 4 10 0 0 0 NULL
+sa05_user 6 sa10_usertypeid int 4 10 0 0 0 NULL
+sa05_user 7 OfficeId int 4 10 0 1 0 NULL
+sa05_user 8 IsActive bit 1 1 0 1 0 ((1))
+sa05_user 9 DepartmentId int 4 10 0 1 0 NULL
+sa10_usertype 1 UserTypeId int 4 10 0 0 0 NULL
+sa10_usertype 2 UserTypeName nvarchar 200 0 0 0 0 NULL
+sa10_usertype 3 LayoutName nvarchar 200 0 0 0 0 NULL
+sa10_usertype 4 IsActive bit 1 1 0 1 0 ((1))
+sysdiagrams 1 name sysname 256 0 0 0 0 NULL
+sysdiagrams 2 principal_id int 4 10 0 0 0 NULL
+sysdiagrams 3 diagram_id int 4 10 0 0 1 NULL
+sysdiagrams 4 version int 4 10 0 1 0 NULL
+sysdiagrams 5 definition varbinary -1 0 0 1 0 NULL
+t_GateEntry 1 RSTNumber nvarchar 100 0 0 0 0 NULL
+t_GateEntry 2 InwardNo nvarchar 100 0 0 1 0 NULL
+t_GateEntry 3 VehicleId int 4 10 0 0 0 NULL
+t_GateEntry 4 PartyId int 4 10 0 0 0 NULL
+t_GateEntry 5 DriverId int 4 10 0 0 0 NULL
+t_GateEntry 6 GrossWeight decimal 9 18 2 0 0 NULL
+t_GateEntry 7 TareWeight decimal 9 18 2 1 0 NULL
+t_GateEntry 8 NetWeight decimal 9 18 2 1 0 NULL
+t_GateEntry 9 TargetOfficeId int 4 10 0 1 0 NULL
+t_GateEntry 10 GateEntryTime datetime 8 23 3 1 0 (getdate())
+t_GateEntry 11 GateExitTime datetime 8 23 3 1 0 NULL
+t_GateEntry 12 StatusId int 4 10 0 1 0 ((1))
+t_GateEntry 13 Status nvarchar 100 0 0 1 0 ('Entered')
+t_GateEntry 14 TargetLocationId int 4 10 0 1 0 NULL
+t_GateEntryLocations 1 RSTNumber nvarchar 100 0 0 0 0 NULL
+t_GateEntryLocations 2 LocationId int 4 10 0 0 0 NULL
+t_GateInwardOutward 1 GateEntryId int 4 10 0 0 1 NULL
+t_GateInwardOutward 2 GlobalSerialNo int 4 10 0 0 0 NULL
+t_GateInwardOutward 3 EntryType nvarchar 20 0 0 0 0 NULL
+t_GateInwardOutward 4 InwardNo nvarchar 100 0 0 1 0 NULL
+t_GateInwardOutward 5 OutwardNo nvarchar 100 0 0 1 0 NULL
+t_GateInwardOutward 6 VehicleNumber nvarchar 100 0 0 1 0 NULL
+t_GateInwardOutward 7 DriverName nvarchar 200 0 0 1 0 NULL
+t_GateInwardOutward 8 ChallanNo nvarchar 100 0 0 1 0 NULL
+t_GateInwardOutward 9 ItemId int 4 10 0 1 0 NULL
+t_GateInwardOutward 10 Quantity decimal 9 18 2 1 0 NULL
+t_GateInwardOutward 11 Unit nvarchar 40 0 0 1 0 NULL
+t_GateInwardOutward 12 DepartmentName nvarchar 200 0 0 1 0 NULL
+t_GateInwardOutward 13 GeneratorPostName nvarchar 200 0 0 1 0 NULL
+t_GateInwardOutward 14 GeneratorPersonName nvarchar 200 0 0 1 0 NULL
+t_GateInwardOutward 15 StatusId int 4 10 0 0 0 NULL
+t_GateInwardOutward 16 GateManId int 4 10 0 0 0 NULL
+t_GateInwardOutward 17 CreatedDate datetime 8 23 3 1 0 (getdate())
+t_InwardHeader 1 InwardId int 4 10 0 0 1 NULL
+t_InwardHeader 2 GateEntryNo nvarchar 100 0 0 0 0 NULL
+t_InwardHeader 3 InwardNo nvarchar 100 0 0 0 0 NULL
+t_InwardHeader 4 InwardDate date 3 10 0 0 0 (getdate())
+t_InwardHeader 5 InwardTime nvarchar 40 0 0 0 0 NULL
+t_InwardHeader 6 GateId int 4 10 0 0 0 NULL
+t_InwardHeader 7 InwardTypeId int 4 10 0 0 0 NULL
+t_InwardHeader 8 PartyId int 4 10 0 0 0 NULL
+t_InwardHeader 9 TransporterName nvarchar 300 0 0 1 0 NULL
+t_InwardHeader 10 VehicleNo nvarchar 100 0 0 0 0 NULL
+t_InwardHeader 11 VehicleTypeId int 4 10 0 0 0 NULL
+t_InwardHeader 12 DriverName nvarchar 300 0 0 0 0 NULL
+t_InwardHeader 13 DriverMobile nvarchar 30 0 0 1 0 NULL
+t_InwardHeader 14 ChallanNo nvarchar 200 0 0 1 0 NULL
+t_InwardHeader 15 ApproxNoOfBags int 4 10 0 1 0 ((0))
+t_InwardHeader 16 ApproxWeight decimal 9 18 2 1 0 ((0))
+t_InwardHeader 17 PurposeRemarks nvarchar 500 0 0 1 0 NULL
+t_InwardHeader 18 GateInDateTime datetime 8 23 3 0 0 (getdate())
+t_InwardHeader 19 CreatedBy int 4 10 0 1 0 NULL
+t_InwardHeader 20 CreatedDate datetime 8 23 3 0 0 (getdate())
+t_InwardHeader 21 StatusId int 4 10 0 0 0 ((1))
+t_InwardHeader 22 IsRSTGenerated bit 1 1 0 0 0 ((0))
+t_LabQualityCheck 1 LabCheckId int 4 10 0 0 1 NULL
+t_LabQualityCheck 2 RSTNumber nvarchar 100 0 0 0 0 NULL
+t_LabQualityCheck 3 MoisturePct decimal 5 5 2 0 0 NULL
+t_LabQualityCheck 4 DustPct decimal 5 5 2 0 0 NULL
+t_LabQualityCheck 5 PayiaPct decimal 5 5 2 0 0 NULL
+t_LabQualityCheck 6 GrainQualityPct decimal 5 5 2 0 0 NULL
+t_LabQualityCheck 7 TotalDeductionPct decimal 5 5 2 0 0 NULL
+t_LabQualityCheck 8 TestedBy int 4 10 0 0 0 NULL
+t_LabQualityCheck 9 TestTime datetime 8 23 3 1 0 (getdate())
+t_OfficeLocationMapping 1 MappingId int 4 10 0 0 1 NULL
+t_OfficeLocationMapping 2 OfficeId int 4 10 0 0 0 NULL
+t_OfficeLocationMapping 3 LocationId int 4 10 0 0 0 NULL
+t_OfficeLocationMapping 4 UnloadingAllowed bit 1 1 0 0 0 ((1))
+t_OfficeLocationMapping 5 EffectiveFrom date 3 10 0 1 0 (getdate())
+t_OfficeLocationMapping 6 IsActive bit 1 1 0 0 0 ((1))
+t_OfficeLocationMapping 7 CreatedBy int 4 10 0 1 0 NULL
+t_OfficeLocationMapping 8 CreatedDate datetime 8 23 3 1 0 (getdate())
+t_OfficeLocationMapping 9 ModifiedBy int 4 10 0 1 0 NULL
+t_OfficeLocationMapping 10 ModifiedDate datetime 8 23 3 1 0 NULL
+t_SecurityIncident 1 IncidentId int 4 10 0 0 1 NULL
+t_SecurityIncident 2 IncidentNo nvarchar 100 0 0 0 0 NULL
+t_SecurityIncident 3 GateId int 4 10 0 0 0 NULL
+t_SecurityIncident 4 IncidentDateTime datetime 8 23 3 1 0 (getdate())
+t_SecurityIncident 5 IncidentType nvarchar 200 0 0 0 0 NULL
+t_SecurityIncident 6 RelatedEntryNo nvarchar 200 0 0 1 0 NULL
+t_SecurityIncident 7 Description nvarchar -1 0 0 0 0 NULL
+t_SecurityIncident 8 ActionTaken nvarchar -1 0 0 1 0 NULL
+t_SecurityIncident 9 ReportedToPersonId int 4 10 0 1 0 NULL
+t_SecurityIncident 10 Severity nvarchar 100 0 0 1 0 ('Medium')
+t_SecurityIncident 11 Status nvarchar 100 0 0 1 0 ('Open')
+t_SecurityIncident 12 ResolvedBy int 4 10 0 1 0 NULL
+t_SecurityIncident 13 ResolutionDate datetime 8 23 3 1 0 NULL
+t_SecurityIncident 14 CreatedBy int 4 10 0 0 0 NULL
+t_SerialCounters 1 CounterType nvarchar 100 0 0 0 0 NULL
+t_SerialCounters 2 LastNo int 4 10 0 0 0 ((0))
+t_TempMaterialRegister 1 TempMaterialId int 4 10 0 0 1 NULL
+t_TempMaterialRegister 2 EntryNo nvarchar 100 0 0 0 0 NULL
+t_TempMaterialRegister 3 OutwardNo nvarchar 100 0 0 1 0 NULL
+t_TempMaterialRegister 4 GateId int 4 10 0 0 0 NULL
+t_TempMaterialRegister 5 EntryDateTime datetime 8 23 3 1 0 (getdate())
+t_TempMaterialRegister 6 OwnerVendor nvarchar 400 0 0 0 0 NULL
+t_TempMaterialRegister 7 VehicleNo nvarchar 100 0 0 1 0 NULL
+t_TempMaterialRegister 8 ItemCategory nvarchar 200 0 0 0 0 NULL
+t_TempMaterialRegister 9 ItemDescription nvarchar -1 0 0 0 0 NULL
+t_TempMaterialRegister 10 Quantity decimal 9 18 2 0 0 NULL
+t_TempMaterialRegister 11 Unit nvarchar 40 0 0 0 0 NULL
+t_TempMaterialRegister 12 SerialAssetNo nvarchar 200 0 0 1 0 NULL
+t_TempMaterialRegister 13 Purpose nvarchar 200 0 0 0 0 NULL
+t_TempMaterialRegister 14 DepartmentId int 4 10 0 1 0 NULL
+t_TempMaterialRegister 15 ExpectedReturnDate datetime 8 23 3 1 0 NULL
+t_TempMaterialRegister 16 ReturnDateTime datetime 8 23 3 1 0 NULL
+t_TempMaterialRegister 17 GatePassNo nvarchar 100 0 0 1 0 NULL
+t_TempMaterialRegister 18 SecurityVerification nvarchar 100 0 0 1 0 ('Checked')
+t_TempMaterialRegister 19 Status nvarchar 100 0 0 1 0 ('In Yard')
+t_TempMaterialRegister 20 Remarks nvarchar -1 0 0 1 0 NULL
+t_TempMaterialRegister 21 CreatedBy int 4 10 0 0 0 NULL
+t_TempMaterialRegister 22 CreatedDate datetime 8 23 3 1 0 (getdate())
+t_UnloadLocation 1 UnloadLocationId int 4 10 0 0 1 NULL
+t_UnloadLocation 2 UnloadId int 4 10 0 0 0 NULL
+t_UnloadLocation 3 LocationId int 4 10 0 0 0 NULL
+t_UnloadLocation 4 IsActive bit 1 1 0 1 0 ((1))
+t_UnloadTransaction 1 UnloadId int 4 10 0 0 1 NULL
+t_UnloadTransaction 2 RSTNumber nvarchar 100 0 0 0 0 NULL
+t_UnloadTransaction 3 LocationId int 4 10 0 0 0 NULL
+t_UnloadTransaction 4 SupervisorId int 4 10 0 0 0 NULL
+t_UnloadTransaction 5 MethId int 4 10 0 0 0 NULL
+t_UnloadTransaction 6 BagTypeId int 4 10 0 1 0 NULL
+t_UnloadTransaction 7 NumberOfBags int 4 10 0 1 0 NULL
+t_UnloadTransaction 8 TotalBagDeductionGrams decimal 9 18 2 1 0 NULL
+t_UnloadTransaction 9 UnloadTime datetime 8 23 3 1 0 (getdate())
+t_UnloadTransaction 10 GateManId int 4 10 0 1 0 NULL
+t_UnloadTransaction 11 Status nvarchar 40 0 0 1 0 ('Assigned')
+t_VisitorRegister 1 VisitorId int 4 10 0 0 1 NULL
+t_VisitorRegister 2 VisitorNo nvarchar 100 0 0 0 0 NULL
+t_VisitorRegister 3 GateId int 4 10 0 0 0 NULL
+t_VisitorRegister 4 VisitDateTime datetime 8 23 3 1 0 (getdate())
+t_VisitorRegister 5 VisitorName nvarchar 400 0 0 0 0 NULL
+t_VisitorRegister 6 MobileNo nvarchar 40 0 0 0 0 NULL
+t_VisitorRegister 7 CompanyOrg nvarchar 400 0 0 1 0 NULL
+t_VisitorRegister 8 PurposeOfVisit nvarchar 200 0 0 0 0 NULL
+t_VisitorRegister 9 PersonToMeetId int 4 10 0 1 0 NULL
+t_VisitorRegister 10 PersonToMeetName nvarchar 400 0 0 1 0 NULL
+t_VisitorRegister 11 DepartmentId int 4 10 0 1 0 NULL
+t_VisitorRegister 12 VisitorIDType nvarchar 100 0 0 1 0 NULL
+t_VisitorRegister 13 IDReference nvarchar 200 0 0 1 0 NULL
+t_VisitorRegister 14 VehicleNo nvarchar 100 0 0 1 0 NULL
+t_VisitorRegister 15 VisitorPassNo nvarchar 100 0 0 1 0 NULL
+t_VisitorRegister 16 ExitDateTime datetime 8 23 3 1 0 NULL
+t_VisitorRegister 17 PassStatus nvarchar 100 0 0 1 0 ('Active')
+t_VisitorRegister 18 Remarks nvarchar -1 0 0 1 0 NULL
+t_VisitorRegister 19 CreatedBy int 4 10 0 0 0 NULL
+t_VisitorRegister 20 CreatedDate datetime 8 23 3 1 0 (getdate())
+t_WorkerAllocation 1 AllocationId int 4 10 0 0 1 NULL
+t_WorkerAllocation 2 UnloadId int 4 10 0 0 0 NULL
+t_WorkerAllocation 3 WorkerId int 4 10 0 0 0 NULL
+t_WorkerAllocation 4 PalledariAmount decimal 9 18 2 0 0 NULL
+t_WorkerAllocation 5 AllocationTime datetime 8 23 3 1 0 (getdate())
+FOREIGN_KEYS
+INDEXES
+m_BagType PK__m_BagTyp__39DEB1C57781C341 1 1 NULL BagTypeId 1 0
+m_Challan PK__m_Challa__BFB04324F0A00D98 1 1 NULL ChallanId 1 0
+m_Challan UQ__m_Challa__BFB7BB8AD83EF84F 1 0 NULL ChallanNo 1 0
+m_ChallanItem PK__m_Challa__108A6F180C2EB66E 1 1 NULL ChallanItemId 1 0
+m_DepartmentMaster PK__m_Depart__B2079BEDDB8B8B8F 1 1 NULL DepartmentId 1 0
+m_DepartmentMaster UQ__m_Depart__6EA8896D04BB181E 1 0 NULL DepartmentCode 1 0
+m_GateMaster PK__m_GateMa__9582C650410A958A 1 1 NULL GateId 1 0
+m_GateMaster UQ__m_GateMa__F2B95F786A7E8DA4 1 0 NULL GateCode 1 0
+m_InwardTypeMaster PK__m_Inward__20C72B75567AD98C 1 1 NULL InwardTypeId 1 0
+m_Item PK__m_Item__727E838B48F82FF8 1 1 NULL ItemId 1 0
+m_ItemCategory PK__m_ItemCa__19093A0B27D6CE67 1 1 NULL CategoryId 1 0
+m_LocationMaster PK__m_Locati__E7FEA497C0D1987D 1 1 NULL LocationId 1 0
+m_LocationMaster UQ__m_Locati__DDB144D5B414413A 1 0 NULL LocationCode 1 0
+m_StatusMaster PK__m_Status__C8EE2063599879CA 1 1 NULL StatusId 1 0
+m_Vehicle PK__m_Vehicl__476B54925768D191 1 1 NULL VehicleId 1 0
+m_VehicleMapping PK__m_Vehicl__8B57819D6E3635EB 1 1 NULL MappingId 1 0
+m_VehicleTypeMaster PK__m_Vehicl__9F449643ECDC22AF 1 1 NULL VehicleTypeId 1 0
+o_designatationreletation PK__o_design__E2DA16B5815FE09B 1 1 NULL RelationId 1 0
+o_OfficeLocation PK__o_Office__E7FEA4970D0BDAA2 1 1 NULL LocationId 1 0
+O_Officerelation PK__O_Office__30C2BEB32CACC4BD 1 1 NULL Officerelation_id 1 0
+O04_OfficeType PK__O04_Offi__ABD35B467DAB31C2 1 1 NULL O04_OfficeTypeid 1 0
+o05_office PK__o05_offi__4B61932F87D7769C 1 1 NULL OfficeId 1 0
+o10_post PK__o10_post__AA126018C02C149D 1 1 NULL PostId 1 0
+O12_Designatation PK__o12_desi__BABD60DE1618C924 1 1 NULL DesignationId 1 0
+P_PersonLocation PK__p_Person__8B57819DE6331029 1 1 NULL MappingId 1 0
+P02_Person PK__p02_Pers__AA2FFBE509FB7106 1 1 NULL PersonId 1 0
+sa05_user PK__sa05_use__1788CC4CEF8DF834 1 1 NULL UserId 1 0
+sa10_usertype PK__sa10_use__40D2D816C553A7F4 1 1 NULL UserTypeId 1 0
+sysdiagrams PK__sysdiagr__C2B05B61019B78EB 1 1 NULL diagram_id 1 0
+sysdiagrams UK_principal_name 1 0 NULL principal_id 1 0
+sysdiagrams UK_principal_name 1 0 NULL name 2 0
+t_GateEntry PK__t_GateEn__0E4103111F8F9535 1 1 NULL RSTNumber 1 0
+t_GateInwardOutward PK__t_GateIn__249A3EAB55260029 1 1 NULL GateEntryId 1 0
+t_InwardHeader PK__t_Inward__1C62826883D77A37 1 1 NULL InwardId 1 0
+t_InwardHeader UQ__t_Inward__1C63D79EF4AA6997 1 0 NULL InwardNo 1 0
+t_LabQualityCheck PK__t_LabQua__27C732939C66D2F0 1 1 NULL LabCheckId 1 0
+t_OfficeLocationMapping PK__t_Office__8B57819D9D5C2995 1 1 NULL MappingId 1 0
+t_OfficeLocationMapping UQ_OfficeLocation 1 0 NULL OfficeId 1 0
+t_OfficeLocationMapping UQ_OfficeLocation 1 0 NULL LocationId 2 0
+t_SecurityIncident PK__t_Securi__3D8053B2B792BEA2 1 1 NULL IncidentId 1 0
+t_SecurityIncident UQ__t_Securi__3D807A28A1C5E181 1 0 NULL IncidentNo 1 0
+t_SerialCounters PK__t_Serial__350901122F78BD33 1 1 NULL CounterType 1 0
+t_TempMaterialRegister PK__t_TempMa__6A3847E8A1099413 1 1 NULL TempMaterialId 1 0
+t_TempMaterialRegister UQ__t_TempMa__F57A9DFC9F8C81B0 1 0 NULL EntryNo 1 0
+t_UnloadLocation PK__t_Unload__CCF4C947B67DA960 1 1 NULL UnloadLocationId 1 0
+t_UnloadTransaction PK__t_Unload__4EC28C858B7BCCDD 1 1 NULL UnloadId 1 0
+t_VisitorRegister PK__t_Visito__B121AF88F33A6A96 1 1 NULL VisitorId 1 0
+t_VisitorRegister UQ__t_Visito__B12196B2210E58DA 1 0 NULL VisitorNo 1 0
+t_WorkerAllocation PK__t_Worker__B3C6D64BEDB7692F 1 1 NULL AllocationId 1 0
+CHECKS
+ROW_COUNTS_APPROXIMATE
+m_BagType 2
+m_Challan 0
+m_ChallanItem 0
+m_DepartmentMaster 8
+m_GateMaster 3
+m_InwardTypeMaster 5
+m_Item 4
+m_ItemCategory 3
+m_LocationMaster 6
+m_StatusMaster 11
+m_Vehicle 2
+m_VehicleMapping 0
+m_VehicleTypeMaster 5
+o_designatationreletation 0
+o_OfficeLocation 1
+O_Officerelation 1
+O04_OfficeType 3
+o05_office 2
+o10_post 9
+O12_Designatation 1
+P_PersonLocation 1
+P02_Person 1
+P11_PersonDesignatation 1
+sa05_user 1
+sa10_usertype 9
+sysdiagrams 0
+t_GateEntry 0
+t_GateEntryLocations 0
+t_GateInwardOutward 0
+t_InwardHeader 0
+t_LabQualityCheck 0
+t_OfficeLocationMapping 0
+t_SecurityIncident 0
+t_SerialCounters 0
+t_TempMaterialRegister 0
+t_UnloadLocation 0
+t_UnloadTransaction 0
+t_VisitorRegister 0
+t_WorkerAllocation 0
+PROCEDURES
+-- PROCEDURE: [dbo].[sp_alterdiagram]
+
+	CREATE PROCEDURE dbo.sp_alterdiagram
+	(
+		@diagramname 	sysname,
+		@owner_id	int	= null,
+		@version 	int,
+		@definition 	varbinary(max)
+	)
+	WITH EXECUTE AS 'dbo'
+	AS
+	BEGIN
+		set nocount on
+	
+		declare @theId 			int
+		declare @retval 		int
+		declare @IsDbo 			int
+		
+		declare @UIDFound 		int
+		declare @DiagId			int
+		declare @ShouldChangeUID	int
+	
+		if(@diagramname is null)
+		begin
+			RAISERROR ('Invalid ARG', 16, 1)
+			return -1
+		end
+	
+		execute as caller;
+		select @theId = DATABASE_PRINCIPAL_ID();	 
+		select @IsDbo = IS_MEMBER(N'db_owner'); 
+		if(@owner_id is null)
+			select @owner_id = @theId;
+		revert;
+	
+		select @ShouldChangeUID = 0
+		select @DiagId = diagram_id, @UIDFound = principal_id from dbo.sysdiagrams where principal_id = @owner_id and name = @diagramname 
+		
+		if(@DiagId IS NULL or (@IsDbo = 0 and @theId <> @UIDFound))
+		begin
+			RAISERROR ('Diagram does not exist or you do not have permission.', 16, 1);
+			return -3
+		end
+	
+		if(@IsDbo <> 0)
+		begin
+			if(@UIDFound is null or USER_NAME(@UIDFound) is null) -- invalid principal_id
+			begin
+				select @ShouldChangeUID = 1 ;
+			end
+		end
+
+		-- update dds data			
+		update dbo.sysdiagrams set definition = @definition where diagram_id = @DiagId ;
+
+		-- change owner
+		if(@ShouldChangeUID = 1)
+			update dbo.sysdiagrams set principal_id = @theId where diagram_id = @DiagId ;
+
+		-- update dds version
+		if(@version is not null)
+			update dbo.sysdiagrams set version = @version where diagram_id = @DiagId ;
+
+		return 0
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_ApproveOutwardChallan]
+
+-- SP: Approve Outward Gateman Entry
+CREATE   PROCEDURE sp_ApproveOutwardChallan
+    @ChallanNo NVARCHAR(50),
+    @GateManId INT,
+    @OutwardNo NVARCHAR(50) OUTPUT
+AS
+BEGIN
+    DECLARE @ChallanId INT, @Dept NVARCHAR(100), @GenPerson NVARCHAR(100), @GenPost NVARCHAR(100);
+    DECLARE @ItemId INT, @Qty DECIMAL(18,2), @Unit NVARCHAR(20);
+    DECLARE @GlobalNo INT, @OutwardSeq INT;
+
+    SELECT TOP 1 
+        @ChallanId = c.ChallanId,
+        @Dept = c.DepartmentName,
+        @GenPerson = p.PersonName,
+        @GenPost = post.PostName,
+        @ItemId = ci.ItemId,
+        @Qty = ci.Quantity,
+        @Unit = ci.Unit
+    FROM m_Challan c
+    INNER JOIN p02_Person p ON c.GeneratorPersonId = p.PersonId
+    INNER JOIN o10_post post ON c.GeneratorPostId = post.PostId
+    INNER JOIN m_ChallanItem ci ON c.ChallanId = ci.ChallanId
+    WHERE c.ChallanNo = @ChallanNo;
+
+    IF @ChallanId IS NOT NULL
+    BEGIN
+        EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+        EXEC sp_GetNextSerialNumber 'OUTWARD', @OutwardSeq OUTPUT;
+        
+        SET @OutwardNo = 'OUT-' + CAST(@OutwardSeq AS NVARCHAR(20));
+
+        INSERT INTO t_GateInwardOutward (
+            GlobalSerialNo, EntryType, OutwardNo, ChallanNo, ItemId, Quantity, Unit,
+            DepartmentName, GeneratorPostName, GeneratorPersonName, StatusId, GateManId
+        )
+        VALUES (
+            @GlobalNo, 'OUTWARD', @OutwardNo, @ChallanNo, @ItemId, @Qty, @Unit,
+            @Dept, @GenPost, @GenPerson, 10, @GateManId -- 10: Outward Approved
+        );
+
+        UPDATE m_Challan SET StatusId = 10 WHERE ChallanId = @ChallanId;
+
+        SELECT @OutwardNo AS GeneratedOutwardNo;
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_AssignUnloading]
+
+-- 5. Create SP for Supervisor Assignment
+CREATE   PROCEDURE sp_AssignUnloading
+    @RSTNumber NVARCHAR(50),
+    @SupervisorId INT,
+    @MethId INT
+AS
+BEGIN
+    DECLARE @UnloadId INT;
+    
+    INSERT INTO t_UnloadTransaction (RSTNumber, SupervisorId, MethId, Status)
+    VALUES (@RSTNumber, @SupervisorId, @MethId, 'Assigned');
+    
+    SET @UnloadId = SCOPE_IDENTITY();
+    SELECT @UnloadId AS UnloadId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_CompleteGateExit]
+
+CREATE   PROCEDURE sp_CompleteGateExit
+    @RSTNumber NVARCHAR(50),
+    @TareWeight DECIMAL(18,2)
+AS
+BEGIN
+    UPDATE t_GateEntry
+    SET TareWeight = @TareWeight,
+        NetWeight = GrossWeight - @TareWeight,
+        GateExitTime = GETDATE(),
+        Status = 'Exited'
+    WHERE RSTNumber = @RSTNumber;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_creatediagram]
+
+	CREATE PROCEDURE dbo.sp_creatediagram
+	(
+		@diagramname 	sysname,
+		@owner_id		int	= null, 	
+		@version 		int,
+		@definition 	varbinary(max)
+	)
+	WITH EXECUTE AS 'dbo'
+	AS
+	BEGIN
+		set nocount on
+	
+		declare @theId int
+		declare @retval int
+		declare @IsDbo	int
+		declare @userName sysname
+		if(@version is null or @diagramname is null)
+		begin
+			RAISERROR (N'E_INVALIDARG', 16, 1);
+			return -1
+		end
+	
+		execute as caller;
+		select @theId = DATABASE_PRINCIPAL_ID(); 
+		select @IsDbo = IS_MEMBER(N'db_owner');
+		revert; 
+		
+		if @owner_id is null
+		begin
+			select @owner_id = @theId;
+		end
+		else
+		begin
+			if @theId <> @owner_id
+			begin
+				if @IsDbo = 0
+				begin
+					RAISERROR (N'E_INVALIDARG', 16, 1);
+					return -1
+				end
+				select @theId = @owner_id
+			end
+		end
+		-- next 2 line only for test, will be removed after define name unique
+		if EXISTS(select diagram_id from dbo.sysdiagrams where principal_id = @theId and name = @diagramname)
+		begin
+			RAISERROR ('The name is already used.', 16, 1);
+			return -2
+		end
+	
+		insert into dbo.sysdiagrams(name, principal_id , version, definition)
+				VALUES(@diagramname, @theId, @version, @definition) ;
+		
+		select @retval = @@IDENTITY 
+		return @retval
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_CreateGateEntry]
+
+-- 2. Stored Procedures for Gate Entry
+CREATE   PROCEDURE sp_CreateGateEntry
+    @RSTNumber NVARCHAR(50),
+    @VehicleId INT,
+    @PartyId INT,
+    @DriverId INT,
+    @GrossWeight DECIMAL(18,2)
+AS
+BEGIN
+    INSERT INTO t_GateEntry (RSTNumber, VehicleId, PartyId, DriverId, GrossWeight, Status)
+    VALUES (@RSTNumber, @VehicleId, @PartyId, @DriverId, @GrossWeight, 'Entered');
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_CreateGatemanInward]
+
+-- SP: Save Gateman Inward Entry
+CREATE   PROCEDURE sp_CreateGatemanInward
+    @VehicleNumber NVARCHAR(50),
+    @DriverName NVARCHAR(100),
+    @GateManId INT,
+    @ItemId INT = NULL,
+    @Quantity DECIMAL(18,2) = NULL,
+    @Unit NVARCHAR(20) = NULL,
+    @InwardNo NVARCHAR(50) OUTPUT
+AS
+BEGIN
+    DECLARE @GlobalNo INT, @InwardSeq INT;
+    EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+    EXEC sp_GetNextSerialNumber 'INWARD', @InwardSeq OUTPUT;
+    
+    SET @InwardNo = 'INW-' + CAST(@InwardSeq AS NVARCHAR(20));
+
+    INSERT INTO t_GateInwardOutward (
+        GlobalSerialNo, EntryType, InwardNo, VehicleNumber, DriverName, 
+        ItemId, Quantity, Unit, StatusId, GateManId
+    )
+    VALUES (
+        @GlobalNo, 'INWARD', @InwardNo, @VehicleNumber, @DriverName, 
+        @ItemId, @Quantity, @Unit, 1, @GateManId -- 1: Gadi In
+    );
+
+    SELECT @InwardNo AS GeneratedInwardNo;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_CreateSecurityIncident]
+
+-- SP: Security Incident Logging
+CREATE   PROCEDURE sp_CreateSecurityIncident
+    @GateId INT,
+    @IncidentType NVARCHAR(100),
+    @RelatedEntryNo NVARCHAR(100),
+    @Description NVARCHAR(MAX),
+    @ActionTaken NVARCHAR(MAX),
+    @ReportedToPersonId INT,
+    @Severity NVARCHAR(50),
+    @CreatedBy INT
+AS
+BEGIN
+    DECLARE @GlobalNo INT, @IncidentNo NVARCHAR(50);
+    EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+    
+    SET @IncidentNo = 'INC-' + CAST(@GlobalNo AS NVARCHAR(20));
+
+    INSERT INTO t_SecurityIncident (
+        IncidentNo, GateId, IncidentType, RelatedEntryNo, Description,
+        ActionTaken, ReportedToPersonId, Severity, Status, CreatedBy
+    )
+    VALUES (
+        @IncidentNo, @GateId, @IncidentType, @RelatedEntryNo, @Description,
+        @ActionTaken, @ReportedToPersonId, @Severity, 'Open', @CreatedBy
+    );
+
+    SELECT @IncidentNo AS IncidentNo;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_CreateTempMaterialEntry]
+
+-- SP: Create Temp Material Entry (Tools / Equipment Repair Inward)
+CREATE   PROCEDURE sp_CreateTempMaterialEntry
+    @GateId INT,
+    @OwnerVendor NVARCHAR(200),
+    @VehicleNo NVARCHAR(50),
+    @ItemCategory NVARCHAR(100),
+    @ItemDescription NVARCHAR(MAX),
+    @Quantity DECIMAL(18,2),
+    @Unit NVARCHAR(20),
+    @SerialAssetNo NVARCHAR(100),
+    @Purpose NVARCHAR(100),
+    @DepartmentId INT,
+    @ExpectedReturnDate DATETIME,
+    @Remarks NVARCHAR(MAX),
+    @CreatedBy INT
+AS
+BEGIN
+    DECLARE @GlobalNo INT, @EntryNo NVARCHAR(50), @GatePassNo NVARCHAR(50);
+    EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+    
+    SET @EntryNo = 'TMPIN-' + CAST(@GlobalNo AS NVARCHAR(20));
+    SET @GatePassNo = 'GP-' + CAST(@GlobalNo AS NVARCHAR(20));
+
+    INSERT INTO t_TempMaterialRegister (
+        EntryNo, GateId, OwnerVendor, VehicleNo, ItemCategory, ItemDescription,
+        Quantity, Unit, SerialAssetNo, Purpose, DepartmentId, ExpectedReturnDate,
+        GatePassNo, Status, Remarks, CreatedBy
+    )
+    VALUES (
+        @EntryNo, @GateId, @OwnerVendor, @VehicleNo, @ItemCategory, @ItemDescription,
+        @Quantity, @Unit, @SerialAssetNo, @Purpose, @DepartmentId, @ExpectedReturnDate,
+        @GatePassNo, 'In Yard', @Remarks, @CreatedBy
+    );
+
+    SELECT @EntryNo AS EntryNo, @GatePassNo AS GatePassNo;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_CreateUserLogin]
+
+-- 5. Update SP to Create User Login (Including DepartmentId)
+CREATE   PROCEDURE sp_CreateUserLogin
+    @PersonId INT,
+    @MobileNumber NVARCHAR(20),
+    @DesignationId INT,
+    @PersonName NVARCHAR(200),
+    @OfficeId INT,
+    @o10_postid INT,
+    @DepartmentId INT = NULL
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM sa05_user WHERE PersonId = @PersonId)
+    BEGIN
+        DECLARE @Username NVARCHAR(100) = @MobileNumber;
+        IF (@Username IS NULL OR @Username = '')
+            SET @Username = REPLACE(@PersonName, ' ', '') + CAST(@PersonId AS NVARCHAR(10));
+
+        -- sa10_usertypeid is ALWAYS SAME AS o10_postid
+        INSERT INTO sa05_user (Username, PasswordHash, PersonId, o10_postid, sa10_usertypeid, OfficeId, DepartmentId)
+        VALUES (@Username, '1111', @PersonId, @o10_postid, @o10_postid, @OfficeId, @DepartmentId);
+
+        DECLARE @EmpCode NVARCHAR(50) = 'EMP-' + CAST(@PersonId AS NVARCHAR(10));
+
+        IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'P11_PersonDesignatation')
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM P11_PersonDesignatation WHERE P02_PersonId = @PersonId)
+            BEGIN
+                INSERT INTO P11_PersonDesignatation (P02_PersonId, O12_DesignationId, EmployeeCode)
+                VALUES (@PersonId, @DesignationId, @EmpCode);
+            END
+        END
+
+        IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'p1_persondesignatation')
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM p1_persondesignatation WHERE PersonId = @PersonId)
+            BEGIN
+                INSERT INTO p1_persondesignatation (PersonId, DesignationId, EmployeeCode)
+                VALUES (@PersonId, @DesignationId, @EmpCode);
+            END
+        END
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_CreateVisitorEntry]
+
+-- SP: Create Visitor Registration & Pass
+CREATE   PROCEDURE sp_CreateVisitorEntry
+    @GateId INT,
+    @VisitorName NVARCHAR(200),
+    @MobileNo NVARCHAR(20),
+    @CompanyOrg NVARCHAR(200),
+    @PurposeOfVisit NVARCHAR(100),
+    @PersonToMeetId INT,
+    @PersonToMeetName NVARCHAR(200),
+    @DepartmentId INT,
+    @VisitorIDType NVARCHAR(50),
+    @IDReference NVARCHAR(100),
+    @VehicleNo NVARCHAR(50),
+    @Remarks NVARCHAR(MAX),
+    @CreatedBy INT
+AS
+BEGIN
+    DECLARE @GlobalNo INT, @VisitorNo NVARCHAR(50), @VisitorPassNo NVARCHAR(50);
+    EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+    
+    SET @VisitorNo = 'VIS-' + CAST(@GlobalNo AS NVARCHAR(20));
+    SET @VisitorPassNo = 'PASS-' + CAST(@GlobalNo AS NVARCHAR(20));
+
+    INSERT INTO t_VisitorRegister (
+        VisitorNo, GateId, VisitorName, MobileNo, CompanyOrg, PurposeOfVisit,
+        PersonToMeetId, PersonToMeetName, DepartmentId, VisitorIDType, IDReference,
+        VehicleNo, VisitorPassNo, PassStatus, Remarks, CreatedBy
+    )
+    VALUES (
+        @VisitorNo, @GateId, @VisitorName, @MobileNo, @CompanyOrg, @PurposeOfVisit,
+        @PersonToMeetId, @PersonToMeetName, @DepartmentId, @VisitorIDType, @IDReference,
+        @VehicleNo, @VisitorPassNo, 'Active', @Remarks, @CreatedBy
+    );
+
+    SELECT @VisitorNo AS VisitorNo, @VisitorPassNo AS VisitorPassNo;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_dropdiagram]
+
+	CREATE PROCEDURE dbo.sp_dropdiagram
+	(
+		@diagramname 	sysname,
+		@owner_id	int	= null
+	)
+	WITH EXECUTE AS 'dbo'
+	AS
+	BEGIN
+		set nocount on
+		declare @theId 			int
+		declare @IsDbo 			int
+		
+		declare @UIDFound 		int
+		declare @DiagId			int
+	
+		if(@diagramname is null)
+		begin
+			RAISERROR ('Invalid value', 16, 1);
+			return -1
+		end
+	
+		EXECUTE AS CALLER;
+		select @theId = DATABASE_PRINCIPAL_ID();
+		select @IsDbo = IS_MEMBER(N'db_owner'); 
+		if(@owner_id is null)
+			select @owner_id = @theId;
+		REVERT; 
+		
+		select @DiagId = diagram_id, @UIDFound = principal_id from dbo.sysdiagrams where principal_id = @owner_id and name = @diagramname 
+		if(@DiagId IS NULL or (@IsDbo = 0 and @UIDFound <> @theId))
+		begin
+			RAISERROR ('Diagram does not exist or you do not have permission.', 16, 1)
+			return -3
+		end
+	
+		delete from dbo.sysdiagrams where diagram_id = @DiagId;
+	
+		return 0;
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_ExitVisitor]
+
+-- SP: Exit Visitor
+CREATE   PROCEDURE sp_ExitVisitor
+    @VisitorNo NVARCHAR(50)
+AS
+BEGIN
+    UPDATE t_VisitorRegister
+    SET ExitDateTime = GETDATE(), PassStatus = 'Exited'
+    WHERE VisitorNo = @VisitorNo AND PassStatus = 'Active';
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetActiveInwardEntriesForDropdown]
+
+-- SP: Get All Pending Inward Entries for Weighbridge Dropdown
+CREATE   PROCEDURE sp_GetActiveInwardEntriesForDropdown
+AS
+BEGIN
+    SELECT InwardNo, InwardNo + ' (' + ISNULL(VehicleNumber, 'N/A') + ')' AS DisplayText
+    FROM t_GateInwardOutward
+    WHERE EntryType = 'INWARD' AND StatusId = 1 -- Gadi In
+    ORDER BY GateEntryId DESC;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllBagTypes]
+
+CREATE   PROCEDURE sp_GetAllBagTypes
+AS
+BEGIN
+    SELECT BagTypeId, BagTypeName, DeductionWeightGrams, IsActive 
+    FROM m_BagType 
+    WHERE IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllDesignations]
+
+CREATE   PROCEDURE sp_GetAllDesignations
+AS
+BEGIN
+    SELECT DesignationId, DesignationName, IsActive 
+    FROM o12_designatation 
+    WHERE IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[Sp_GetAllDhermKataorLocations]
+
+
+
+
+
+CREATE procedure Sp_GetAllDhermKataorLocations
+@officeid int =0,
+@O04_childOfficeTypeId int=3
+as
+begin
+Select Mainofficeid,MainofficeName,childofficeid,childofficeName,IsActive from  
+(
+Select Mainofficeid=OfficeId,MainofficeName=OfficeName from o05_office where IsActive=1 
+and 1 =case when @officeid=0 then 1 else case when OfficeId=@officeid then 1 else 0 end end 
+and officetype=1
+)Mainoffice
+inner join 
+(
+  Select childofficeid=OfficeId,childofficeName=OfficeName,O05_ParentOfficeId,IsActive from O_Officerelation
+  inner join o05_office on OfficeId=O05_childOfficeId
+  where OfficerelationIsActive=1 and O04_childOfficeTypeId=@O04_childOfficeTypeId
+)childoffice on childoffice.O05_ParentOfficeId=Mainoffice.Mainofficeid
+end
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllGateEntries]
+
+CREATE   PROCEDURE sp_GetAllGateEntries
+AS
+BEGIN
+    SELECT g.RSTNumber, g.GrossWeight, g.TareWeight, g.NetWeight, g.GateEntryTime, g.GateExitTime, g.Status,
+           v.VehicleNumber, p.PersonName AS PartyName, d.PersonName AS DriverName
+    FROM t_GateEntry g
+    LEFT JOIN m_Vehicle v ON g.VehicleId = v.VehicleId
+    LEFT JOIN p02_Person p ON g.PartyId = p.PersonId
+    LEFT JOIN p02_Person d ON g.DriverId = d.PersonId
+    ORDER BY g.GateEntryTime DESC;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllItemCategories]
+
+CREATE   PROCEDURE sp_GetAllItemCategories
+AS
+BEGIN
+    SELECT CategoryId, CategoryName, IsActive 
+    FROM m_ItemCategory 
+    WHERE IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllItems]
+
+CREATE   PROCEDURE sp_GetAllItems
+AS
+BEGIN
+    SELECT i.ItemId, i.ItemName, i.CategoryId, c.CategoryName, i.IsActive 
+    FROM m_Item i
+    INNER JOIN m_ItemCategory c ON i.CategoryId = c.CategoryId
+    WHERE i.IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[Sp_GetAlloffice]
+Create proc Sp_GetAlloffice
+@officeid int =0,
+@officetype int=1
+
+as
+begin
+
+Select OfficeId,OfficeName from o05_office where IsActive=1 and OfficeType=@officetype
+end
+GO
+-- PROCEDURE: [dbo].[sp_GetAllOffices]
+
+CREATE   PROCEDURE [dbo].[sp_GetAllOffices]
+AS
+BEGIN
+    SELECT OfficeId, OfficeName, Location, IsActive 
+    FROM o05_office 
+    WHERE IsActive = 1 and OfficeType=1 
+END
+
+GO
+-- PROCEDURE: [dbo].[Sp_GetAllPersonFordublicacyMobileNumber]
+
+
+
+create procedure Sp_GetAllPersonFordublicacyMobileNumber
+as
+begin
+
+SELECT PersonId, PersonName, MobileNumber, PersonType, IsActive 
+    FROM p02_Person 
+	end
+GO
+-- PROCEDURE: [dbo].[sp_GetAllPersons]
+/****** Object:  StoredProcedure [dbo].[sp_GetAllPersons]    Script Date: 8/15/2026 3:29:52 PM ******/
+
+
+CREATE   PROCEDURE [dbo].[sp_GetAllPersons]
+@Mode varchar(20)='emp',
+@officeid int =0
+--@o12Id int
+AS
+BEGIN
+    SELECT PersonId, PersonName, MobileNumber, Address=Isnull(Address,''), PersonType=PostName, p02_Person.IsActive 
+    FROM p02_Person
+	inner join P11_PersonDesignatation p11 on p11.P02_PersonId=PersonId and p11.IsActive=1
+	inner join O12_Designatation o12 on O12_DesignationId=DesignationId and o12.IsActive=1
+	inner join o10_post on PostId=o12.O10_Postid
+	left join o_designatationreletation rd on o12.DesignationId=rd.o12_childid
+
+    WHERE p02_Person.IsActive = 1 
+	and 1=case when @Mode='emp' then (case when o12.O10_PostId in (1,2,3,4,5,6) then 1 else 0 end)  when 
+	@Mode='oth' then (case when o12.O10_PostId in (7,8,9) then 1 else 0 end)else 0 end
+END
+
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllPosts]
+
+CREATE   PROCEDURE sp_GetAllPosts
+AS
+BEGIN
+    SELECT PostId, PostName, IsActive 
+    FROM o10_post 
+    WHERE IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllSecurityIncidents]
+
+-- SP: Get All Security Incidents
+CREATE   PROCEDURE sp_GetAllSecurityIncidents
+AS
+BEGIN
+    SELECT i.*, g.GateName, p.PersonName AS ReportedToPersonName
+    FROM t_SecurityIncident i
+    INNER JOIN m_GateMaster g ON i.GateId = g.GateId
+    LEFT JOIN p02_Person p ON i.ReportedToPersonId = p.PersonId
+    ORDER BY i.IncidentId DESC;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllTempMaterials]
+
+-- SP: Get All Temp Material Items
+CREATE   PROCEDURE sp_GetAllTempMaterials
+AS
+BEGIN
+    SELECT tm.*, g.GateName, d.DepartmentName
+    FROM t_TempMaterialRegister tm
+    INNER JOIN m_GateMaster g ON tm.GateId = g.GateId
+    LEFT JOIN m_DepartmentMaster d ON tm.DepartmentId = d.DepartmentId
+    ORDER BY tm.TempMaterialId DESC;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllVehicles]
+
+CREATE   PROCEDURE sp_GetAllVehicles
+AS
+BEGIN
+    SELECT VehicleId, VehicleNumber, IsActive 
+    FROM m_Vehicle 
+    WHERE IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetAllVisitors]
+
+-- SP: Get All Visitors
+CREATE   PROCEDURE sp_GetAllVisitors
+AS
+BEGIN
+    SELECT v.*, g.GateName, d.DepartmentName
+    FROM t_VisitorRegister v
+    INNER JOIN m_GateMaster g ON v.GateId = g.GateId
+    LEFT JOIN m_DepartmentMaster d ON v.DepartmentId = d.DepartmentId
+    ORDER BY v.VisitorId DESC;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetChallanDetailsForOutward]
+
+-- SP: Get Challan Details for Outward Gateman Entry
+CREATE   PROCEDURE sp_GetChallanDetailsForOutward
+    @ChallanNo NVARCHAR(50)
+AS
+BEGIN
+    SELECT 
+        c.ChallanId,
+        c.ChallanNo,
+        c.DepartmentName,
+        p.PersonName AS GeneratorName,
+        post.PostName AS GeneratorPost,
+        ci.ItemId,
+        i.ItemName,
+        ci.Quantity,
+        ci.Unit,
+        c.StatusId,
+        sm.StatusName
+    FROM m_Challan c
+    INNER JOIN p02_Person p ON c.GeneratorPersonId = p.PersonId
+    INNER JOIN o10_post post ON c.GeneratorPostId = post.PostId
+    INNER JOIN m_ChallanItem ci ON c.ChallanId = ci.ChallanId
+    INNER JOIN m_Item i ON ci.ItemId = i.ItemId
+    INNER JOIN m_StatusMaster sm ON c.StatusId = sm.StatusId
+    WHERE c.ChallanNo = @ChallanNo;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetDashboardStats]
+
+-- SP: Dashboard Stats (Using StatusId from m_StatusMaster)
+CREATE   PROCEDURE sp_GetDashboardStats
+AS
+BEGIN
+    DECLARE @TotalEntered INT = 0;
+    DECLARE @PendingUnload INT = 0;
+    DECLARE @PendingLab INT = 0;
+    DECLARE @PendingSettlement INT = 0;
+    
+    -- Trucks inside (StatusId = 1 : Gadi In)
+    SELECT @TotalEntered = COUNT(*) FROM t_GateEntry WHERE StatusId = 1;
+    
+    -- Trucks pending unload (StatusId = 1)
+    SELECT @PendingUnload = COUNT(*) FROM t_GateEntry WHERE StatusId = 1;
+    
+    -- Trucks pending Lab (StatusId IN (4, 7) meaning Unloaded or Exited)
+    SELECT @PendingLab = COUNT(*) FROM t_GateEntry WHERE StatusId IN (4, 7) AND RSTNumber NOT IN (SELECT RSTNumber FROM t_LabQualityCheck);
+    
+    -- Trucks pending settlement (StatusId = 7)
+    SELECT @PendingSettlement = COUNT(*) FROM t_GateEntry WHERE StatusId = 7;
+    
+    SELECT 
+        @TotalEntered AS TotalEntered,
+        @PendingUnload AS PendingUnload,
+        @PendingLab AS PendingLab,
+        @PendingSettlement AS PendingSettlement;
+END
+
+GO
+-- PROCEDURE: [dbo].[Sp_GetemployeePost]
+
+create Procedure Sp_GetemployeePost
+as
+begin
+select PostId,PostName from o10_post where IsActive=1 and PostId in (1,2,3,5,6)
+end
+GO
+-- PROCEDURE: [dbo].[Sp_GetMeth]
+
+create Procedure Sp_GetMeth
+as
+begin
+
+
+Select DesignationId,PersonName from O12_Designatation o12
+inner join P11_PersonDesignatation p11 on p11.O12_DesignationId=DesignationId
+inner join p02_Person on PersonId=P02_PersonId where p02_Person.IsActive=1 and o12.O10_PostId=6
+
+end
+GO
+-- PROCEDURE: [dbo].[sp_GetNextSerialNumber]
+
+-- SP: Generate Serial Numbers
+CREATE   PROCEDURE sp_GetNextSerialNumber
+    @CounterType NVARCHAR(50),
+    @NextNo INT OUTPUT
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    UPDATE t_SerialCounters SET LastNo = LastNo + 1 WHERE CounterType = @CounterType;
+    SELECT @NextNo = LastNo FROM t_SerialCounters WHERE CounterType = @CounterType;
+    COMMIT TRANSACTION;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetOfficeLocations]
+
+CREATE   PROCEDURE sp_GetOfficeLocations
+    @OfficeId INT
+AS
+BEGIN
+    SELECT LocationId, OfficeId, LocationName, IsActive 
+    FROM o_OfficeLocation 
+    WHERE OfficeId = @OfficeId AND IsActive = 1
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetPartiesAndDriversByVehicle]
+
+-- 5. Stored Procedure to Get Party and Driver by Vehicle
+CREATE   PROCEDURE sp_GetPartiesAndDriversByVehicle
+    @VehicleId INT
+AS
+BEGIN
+    SELECT 
+        vm.MappingId,
+        p.PersonId AS PartyId,
+        p.PersonName AS PartyName,
+        d.PersonId AS DriverId,
+        d.PersonName AS DriverName,
+        d.MobileNumber AS DriverMobile
+    FROM m_VehicleMapping vm
+    INNER JOIN p02_Person p ON vm.PartyId = p.PersonId
+    INNER JOIN p02_Person d ON vm.DriverId = d.PersonId
+    WHERE vm.VehicleId = @VehicleId AND vm.IsActive = 1
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetPersonLocations]
+
+CREATE   PROCEDURE sp_GetPersonLocations
+    @PersonId INT
+AS
+BEGIN
+    SELECT pl.MappingId, pl.PersonId, pl.LocationId, ol.LocationName
+    FROM p_PersonLocation pl
+    INNER JOIN o_OfficeLocation ol ON pl.LocationId = ol.LocationId
+    WHERE pl.PersonId = @PersonId AND pl.IsActive = 1
+END
+
+GO
+-- PROCEDURE: [dbo].[Sp_GetPost]
+
+create Procedure Sp_GetPost
+as
+begin
+select PostId,PostName from o10_post where IsActive=1 and PostId in (7,8,9)
+end
+GO
+-- PROCEDURE: [dbo].[sp_GetSettlementDetails]
+
+-- Stored Procedure to generate Bill / Settlement
+CREATE   PROCEDURE sp_GetSettlementDetails
+    @RSTNumber NVARCHAR(50)
+AS
+BEGIN
+    -- This SP calculates the final bill details for a given RST
+    SELECT 
+        g.RSTNumber,
+        p.PersonName AS PartyName,
+        v.VehicleNumber,
+        g.GrossWeight,
+        g.TareWeight,
+        g.NetWeight,
+        ISNULL((SELECT SUM(TotalBagDeductionGrams) / 1000.0 FROM t_UnloadTransaction WHERE RSTNumber = g.RSTNumber), 0) AS TotalBagDeductionKG,
+        ISNULL((SELECT SUM(PalledariAmount) FROM t_WorkerAllocation wa INNER JOIN t_UnloadTransaction u ON wa.UnloadId = u.UnloadId WHERE u.RSTNumber = g.RSTNumber), 0) AS TotalPalledariCharges,
+        ISNULL(l.TotalDeductionPct, 0) AS LabDeductionPct,
+        g.Status
+    FROM t_GateEntry g
+    LEFT JOIN p02_Person p ON g.PartyId = p.PersonId
+    LEFT JOIN m_Vehicle v ON g.VehicleId = v.VehicleId
+    LEFT JOIN t_LabQualityCheck l ON g.RSTNumber = l.RSTNumber
+    WHERE g.RSTNumber = @RSTNumber;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_GetWorkersByMeth]
+
+-- SP: Get Workers By Meth ID (o_designatationreletation)
+CREATE   PROCEDURE sp_GetWorkersByMeth
+    @MethPersonId INT
+AS
+BEGIN
+    -- Get designation of Meth
+    DECLARE @MethDesigId INT;
+    SELECT TOP 1 @MethDesigId = DesignationId FROM p1_persondesignatation WHERE PersonId = @MethPersonId AND IsActive = 1;
+
+    SELECT p.PersonId, p.PersonName 
+    FROM p02_Person p
+    INNER JOIN p1_persondesignatation pd ON p.PersonId = pd.PersonId
+    INNER JOIN o_designatationreletation dr ON pd.DesignationId = dr.o12_childid
+    WHERE dr.o12_parentid = @MethDesigId AND p.IsActive = 1 AND dr.IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_helpdiagramdefinition]
+
+	CREATE PROCEDURE dbo.sp_helpdiagramdefinition
+	(
+		@diagramname 	sysname,
+		@owner_id	int	= null 		
+	)
+	WITH EXECUTE AS N'dbo'
+	AS
+	BEGIN
+		set nocount on
+
+		declare @theId 		int
+		declare @IsDbo 		int
+		declare @DiagId		int
+		declare @UIDFound	int
+	
+		if(@diagramname is null)
+		begin
+			RAISERROR (N'E_INVALIDARG', 16, 1);
+			return -1
+		end
+	
+		execute as caller;
+		select @theId = DATABASE_PRINCIPAL_ID();
+		select @IsDbo = IS_MEMBER(N'db_owner');
+		if(@owner_id is null)
+			select @owner_id = @theId;
+		revert; 
+	
+		select @DiagId = diagram_id, @UIDFound = principal_id from dbo.sysdiagrams where principal_id = @owner_id and name = @diagramname;
+		if(@DiagId IS NULL or (@IsDbo = 0 and @UIDFound <> @theId ))
+		begin
+			RAISERROR ('Diagram does not exist or you do not have permission.', 16, 1);
+			return -3
+		end
+
+		select version, definition FROM dbo.sysdiagrams where diagram_id = @DiagId ; 
+		return 0
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_helpdiagrams]
+
+	CREATE PROCEDURE dbo.sp_helpdiagrams
+	(
+		@diagramname sysname = NULL,
+		@owner_id int = NULL
+	)
+	WITH EXECUTE AS N'dbo'
+	AS
+	BEGIN
+		DECLARE @user sysname
+		DECLARE @dboLogin bit
+		EXECUTE AS CALLER;
+			SET @user = USER_NAME();
+			SET @dboLogin = CONVERT(bit,IS_MEMBER('db_owner'));
+		REVERT;
+		SELECT
+			[Database] = DB_NAME(),
+			[Name] = name,
+			[ID] = diagram_id,
+			[Owner] = USER_NAME(principal_id),
+			[OwnerID] = principal_id
+		FROM
+			sysdiagrams
+		WHERE
+			(@dboLogin = 1 OR USER_NAME(principal_id) = @user) AND
+			(@diagramname IS NULL OR name = @diagramname) AND
+			(@owner_id IS NULL OR principal_id = @owner_id)
+		ORDER BY
+			4, 5, 1
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_InsertBagType]
+
+-- Stored Procedures for m_BagType
+CREATE   PROCEDURE sp_InsertBagType
+    @BagTypeName NVARCHAR(50),
+    @DeductionWeightGrams INT
+AS
+BEGIN
+    INSERT INTO m_BagType (BagTypeName, DeductionWeightGrams) VALUES (@BagTypeName, @DeductionWeightGrams);
+    SELECT SCOPE_IDENTITY() AS BagTypeId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertDesignation]
+
+-- Stored Procedures for o12_designatation
+CREATE   PROCEDURE sp_InsertDesignation
+    @DesignationName NVARCHAR(100)
+AS
+BEGIN
+    INSERT INTO o12_designatation (DesignationName) VALUES (@DesignationName);
+    SELECT SCOPE_IDENTITY() AS DesignationId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertGateEntryLocation]
+
+-- 4. Create SP for GateEntryLocations
+CREATE   PROCEDURE sp_InsertGateEntryLocation
+    @RSTNumber NVARCHAR(50),
+    @LocationId INT
+AS
+BEGIN
+    INSERT INTO t_GateEntryLocations (RSTNumber, LocationId)
+    VALUES (@RSTNumber, @LocationId);
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertItem]
+
+-- Stored Procedures for m_Item
+CREATE   PROCEDURE sp_InsertItem
+    @ItemName NVARCHAR(100),
+    @CategoryId INT
+AS
+BEGIN
+    INSERT INTO m_Item (ItemName, CategoryId) VALUES (@ItemName, @CategoryId);
+    SELECT SCOPE_IDENTITY() AS ItemId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertItemCategory]
+
+-- Stored Procedures for m_ItemCategory
+CREATE   PROCEDURE sp_InsertItemCategory
+    @CategoryName NVARCHAR(100)
+AS
+BEGIN
+    INSERT INTO m_ItemCategory (CategoryName) VALUES (@CategoryName);
+    SELECT SCOPE_IDENTITY() AS CategoryId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertOffice]
+
+-- 3. Update SP for Office Creation to generate OfficeCode & DhermkataCode
+CREATE   PROCEDURE sp_InsertOffice
+    @OfficeName NVARCHAR(100),
+    @Location NVARCHAR(200) = NULL,
+    @officetype INT = 1
+AS
+BEGIN
+    DECLARE @GlobalNo INT, @GeneratedCode NVARCHAR(50);
+    EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+
+    IF (@officetype = 3) -- Dharamkata / Location
+    BEGIN
+        SET @GeneratedCode = 'DK-' + CAST(@GlobalNo AS NVARCHAR(20));
+        INSERT INTO o05_office (OfficeName, Location, DhermkataCode, IsActive)
+        VALUES (@OfficeName, @Location, @GeneratedCode, 1);
+    END
+    ELSE
+    BEGIN
+        SET @GeneratedCode = 'OFF-' + CAST(@GlobalNo AS NVARCHAR(20));
+        INSERT INTO o05_office (OfficeName, Location, OfficeCode, IsActive)
+        VALUES (@OfficeName, @Location, @GeneratedCode, 1);
+    END
+
+    SELECT SCOPE_IDENTITY() AS OfficeId, @GeneratedCode AS GeneratedCode;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertOfficeLocation]
+
+-- 5. Create Stored Procedures for Office Locations
+CREATE   PROCEDURE sp_InsertOfficeLocation
+    @OfficeId INT,
+    @LocationName NVARCHAR(200)
+AS
+BEGIN
+    INSERT INTO o_OfficeLocation (OfficeId, LocationName)
+    VALUES (@OfficeId, @LocationName)
+    SELECT SCOPE_IDENTITY();
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertPerson]
+
+-- 4. Stored Procedures for p02_Person
+CREATE   PROCEDURE sp_InsertPerson
+    @PersonName NVARCHAR(200),
+    @MobileNumber NVARCHAR(20),
+    @Address NVARCHAR(500),
+    @PersonType NVARCHAR(50)
+AS
+BEGIN
+    INSERT INTO p02_Person (PersonName, MobileNumber, Address, PersonType)
+    VALUES (@PersonName, @MobileNumber, @Address, @PersonType)
+    SELECT SCOPE_IDENTITY() AS PersonId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertPersonLocation]
+
+-- 6. Create Stored Procedures for Person Locations
+CREATE   PROCEDURE sp_InsertPersonLocation
+    @PersonId INT,
+    @LocationId INT
+AS
+BEGIN
+    INSERT INTO p_PersonLocation (PersonId, LocationId)
+    VALUES (@PersonId, @LocationId)
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertPost]
+
+-- Stored Procedures for o10_post
+CREATE   PROCEDURE sp_InsertPost
+    @PostName NVARCHAR(100)
+AS
+BEGIN
+    INSERT INTO o10_post (PostName) VALUES (@PostName);
+    SELECT SCOPE_IDENTITY() AS PostId;
+END
+
+GO
+-- PROCEDURE: [dbo].[Sp_InsertRelationBetweenOffice]
+CREATE Procedure [dbo].[Sp_InsertRelationBetweenOffice]
+@O05_ParentOfficeId int,
+@O05_childOfficeId int,
+@O04_ParentOfficeTypeId int,
+@O04_childOfficeTypeId int
+as
+begin
+INSERT INTO [dbo].[O_Officerelation]
+           (
+		    [O05_ParentOfficeId]
+           ,[O05_childOfficeId]
+           ,[O04_ParentOfficeTypeId]
+           ,[O04_childOfficeTypeId]
+           )
+     VALUES
+           (
+		    @O05_ParentOfficeId
+           ,@O05_childOfficeId
+           ,@O04_ParentOfficeTypeId
+           ,@O04_childOfficeTypeId
+           )
+		   Select SCOPE_IDENTITY();
+end
+
+
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertUnloadLocation]
+
+-- 8. Create SP for Unload Locations
+CREATE   PROCEDURE sp_InsertUnloadLocation
+    @UnloadId INT,
+    @LocationId INT
+AS
+BEGIN
+    INSERT INTO t_UnloadLocation (UnloadId, LocationId)
+    VALUES (@UnloadId, @LocationId)
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertVehicle]
+
+-- Stored Procedures for m_Vehicle
+CREATE   PROCEDURE sp_InsertVehicle
+    @VehicleNumber NVARCHAR(50)
+AS
+BEGIN
+    INSERT INTO m_Vehicle (VehicleNumber) VALUES (@VehicleNumber);
+    SELECT SCOPE_IDENTITY() AS VehicleId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_InsertVehicleMapping]
+
+-- 2. Stored Procedure to Insert Vehicle Mapping
+CREATE   PROCEDURE sp_InsertVehicleMapping
+    @VehicleId INT,
+    @PartyId INT,
+    @DriverId INT
+AS
+BEGIN
+    -- Deactivate old mappings for this vehicle to keep 1 active at a time, or allow multiple active
+    -- The user said "multiple linking ho sakte hai", so we just insert a new active one.
+    INSERT INTO m_VehicleMapping (VehicleId, PartyId, DriverId)
+    VALUES (@VehicleId, @PartyId, @DriverId)
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_ManageDepartmentMaster]
+
+-- SP: Department Master CRUD
+CREATE   PROCEDURE sp_ManageDepartmentMaster
+    @Action NVARCHAR(20), -- 'GETALL', 'INSERT', 'UPDATE', 'DELETE'
+    @DepartmentId INT = NULL,
+    @DepartmentCode NVARCHAR(50) = NULL,
+    @DepartmentName NVARCHAR(100) = NULL,
+    @OfficeId INT = NULL,
+    @ResponsibleOfficerId INT = NULL,
+    @IsActive BIT = 1
+AS
+BEGIN
+    IF @Action = 'GETALL'
+    BEGIN
+        SELECT d.*, o.OfficeName, p.PersonName AS ResponsibleOfficerName
+        FROM m_DepartmentMaster d
+        LEFT JOIN o05_office o ON d.OfficeId = o.OfficeId
+        LEFT JOIN p02_Person p ON d.ResponsibleOfficerId = p.PersonId
+        WHERE d.IsActive = 1
+        ORDER BY d.DepartmentId DESC;
+    END
+    ELSE IF @Action = 'INSERT'
+    BEGIN
+        INSERT INTO m_DepartmentMaster (DepartmentCode, DepartmentName, OfficeId, ResponsibleOfficerId, IsActive)
+        VALUES (@DepartmentCode, @DepartmentName, @OfficeId, @ResponsibleOfficerId, 1);
+        SELECT SCOPE_IDENTITY() AS DepartmentId;
+    END
+    ELSE IF @Action = 'UPDATE'
+    BEGIN
+        UPDATE m_DepartmentMaster
+        SET DepartmentCode = @DepartmentCode, DepartmentName = @DepartmentName, 
+            OfficeId = @OfficeId, ResponsibleOfficerId = @ResponsibleOfficerId, IsActive = @IsActive
+        WHERE DepartmentId = @DepartmentId;
+    END
+    ELSE IF @Action = 'DELETE'
+    BEGIN
+        UPDATE m_DepartmentMaster SET IsActive = 0 WHERE DepartmentId = @DepartmentId;
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_ManageGateInwardEntry]
+
+-- ============================================================================
+-- 5. STORED PROCEDURE: MANAGE GATE INWARD ENTRY
+-- ============================================================================
+CREATE   PROCEDURE sp_ManageGateInwardEntry
+    @Action VARCHAR(20),
+    @InwardId INT = NULL,
+    @GateId INT = NULL,
+    @InwardTypeId INT = NULL,
+    @PartyId INT = NULL,
+    @TransporterName NVARCHAR(150) = NULL,
+    @VehicleNo NVARCHAR(50) = NULL,
+    @VehicleTypeId INT = NULL,
+    @DriverName NVARCHAR(150) = NULL,
+    @DriverMobile NVARCHAR(15) = NULL,
+    @ChallanNo NVARCHAR(100) = NULL,
+    @ApproxNoOfBags INT = 0,
+    @ApproxWeight DECIMAL(18,2) = 0,
+    @PurposeRemarks NVARCHAR(250) = NULL,
+    @CreatedBy INT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @Action = 'INSERT'
+    BEGIN
+        DECLARE @Year VARCHAR(4) = CAST(YEAR(GETDATE()) AS VARCHAR(4));
+        DECLARE @NextSeq INT;
+        SELECT @NextSeq = ISNULL(MAX(InwardId), 0) + 1 FROM t_InwardHeader;
+        
+        DECLARE @GateEntryNo NVARCHAR(50) = 'GE-' + @Year + '-' + RIGHT('000000' + CAST(@NextSeq AS VARCHAR(10)), 6);
+        DECLARE @InwardNo NVARCHAR(50) = 'INW-' + @Year + '-' + RIGHT('000000' + CAST(@NextSeq AS VARCHAR(10)), 6);
+        DECLARE @InwardTime NVARCHAR(20) = FORMAT(GETDATE(), 'hh:mm tt');
+
+        INSERT INTO t_InwardHeader (
+            GateEntryNo, InwardNo, InwardDate, InwardTime, GateId, InwardTypeId,
+            PartyId, TransporterName, VehicleNo, VehicleTypeId, DriverName, DriverMobile,
+            ChallanNo, ApproxNoOfBags, ApproxWeight, PurposeRemarks, GateInDateTime,
+            CreatedBy, CreatedDate, StatusId, IsRSTGenerated
+        )
+        VALUES (
+            @GateEntryNo, @InwardNo, CAST(GETDATE() AS DATE), @InwardTime, @GateId, @InwardTypeId,
+            @PartyId, @TransporterName, @VehicleNo, @VehicleTypeId, @DriverName, @DriverMobile,
+            @ChallanNo, @ApproxNoOfBags, @ApproxWeight, @PurposeRemarks, GETDATE(),
+            @CreatedBy, GETDATE(), 3, -- 3 = Pending
+            0
+        );
+
+        SELECT SCOPE_IDENTITY() AS InwardId, @InwardNo AS InwardNo, @GateEntryNo AS GateEntryNo;
+    END
+    ELSE IF @Action = 'SELECT_ALL'
+    BEGIN
+        SELECT 
+            h.InwardId,
+            h.GateEntryNo,
+            h.InwardNo,
+            h.InwardDate,
+            h.InwardTime,
+            g.GateName,
+            it.InwardTypeName,
+            it.RSTRequired,
+            p.PersonName AS PartyName,
+            h.TransporterName,
+            h.VehicleNo,
+            vt.VehicleTypeName,
+            h.DriverName,
+            h.DriverMobile,
+            h.ChallanNo,
+            h.ApproxNoOfBags,
+            h.ApproxWeight,
+            h.PurposeRemarks,
+            h.GateInDateTime,
+            s.StatusName,
+            h.IsRSTGenerated
+        FROM t_InwardHeader h
+        INNER JOIN m_GateMaster g ON h.GateId = g.GateId
+        INNER JOIN m_InwardTypeMaster it ON h.InwardTypeId = it.InwardTypeId
+        INNER JOIN p1_person p ON h.PartyId = p.p1_personid
+        INNER JOIN m_VehicleTypeMaster vt ON h.VehicleTypeId = vt.VehicleTypeId
+        INNER JOIN m_StatusMaster s ON h.StatusId = s.StatusId
+        ORDER BY h.InwardId DESC;
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_ManageGateMaster]
+
+-- 6. Core Stored Procedures for Masters & PDF Operations
+
+-- SP: Gate Master CRUD
+CREATE   PROCEDURE sp_ManageGateMaster
+    @Action NVARCHAR(20), -- 'GETALL', 'INSERT', 'UPDATE', 'DELETE'
+    @GateId INT = NULL,
+    @GateCode NVARCHAR(50) = NULL,
+    @GateName NVARCHAR(100) = NULL,
+    @GateType NVARCHAR(50) = NULL,
+    @LocationArea NVARCHAR(200) = NULL,
+    @DepartmentId INT = NULL,
+    @InwardAllowed BIT = 1,
+    @OutwardAllowed BIT = 1,
+    @IsActive BIT = 1
+AS
+BEGIN
+    IF @Action = 'GETALL'
+    BEGIN
+        SELECT g.*, d.DepartmentName 
+        FROM m_GateMaster g
+        LEFT JOIN m_DepartmentMaster d ON g.DepartmentId = d.DepartmentId
+        WHERE g.IsActive = 1
+        ORDER BY g.GateId DESC;
+    END
+    ELSE IF @Action = 'INSERT'
+    BEGIN
+        INSERT INTO m_GateMaster (GateCode, GateName, GateType, LocationArea, DepartmentId, InwardAllowed, OutwardAllowed, IsActive)
+        VALUES (@GateCode, @GateName, @GateType, @LocationArea, @DepartmentId, @InwardAllowed, @OutwardAllowed, 1);
+        SELECT SCOPE_IDENTITY() AS GateId;
+    END
+    ELSE IF @Action = 'UPDATE'
+    BEGIN
+        UPDATE m_GateMaster
+        SET GateCode = @GateCode, GateName = @GateName, GateType = @GateType, 
+            LocationArea = @LocationArea, DepartmentId = @DepartmentId, 
+            InwardAllowed = @InwardAllowed, OutwardAllowed = @OutwardAllowed, IsActive = @IsActive
+        WHERE GateId = @GateId;
+    END
+    ELSE IF @Action = 'DELETE'
+    BEGIN
+        UPDATE m_GateMaster SET IsActive = 0 WHERE GateId = @GateId;
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_ManageLocationMaster]
+
+-- ============================================================================
+-- 3. STORED PROCEDURE: MANAGE LOCATION MASTER
+-- ============================================================================
+CREATE   PROCEDURE sp_ManageLocationMaster
+    @Action VARCHAR(20),
+    @LocationId INT = NULL,
+    @LocationCode NVARCHAR(20) = NULL OUTPUT,
+    @LocationName NVARCHAR(100) = NULL,
+    @LocationType NVARCHAR(50) = NULL,
+    @Capacity DECIMAL(18,2) = NULL,
+    @CapacityUnit NVARCHAR(10) = NULL,
+    @Description NVARCHAR(250) = NULL,
+    @Address NVARCHAR(250) = NULL,
+    @Remarks NVARCHAR(250) = NULL,
+    @IsActive BIT = 1,
+    @CreatedBy INT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @Action = 'INSERT'
+    BEGIN
+        -- Generate Auto Location Code (LOC-001, LOC-002...)
+        DECLARE @NextId INT;
+        SELECT @NextId = ISNULL(MAX(LocationId), 0) + 1 FROM m_LocationMaster;
+        SET @LocationCode = 'LOC-' + RIGHT('000' + CAST(@NextId AS VARCHAR(10)), 3);
+
+        INSERT INTO m_LocationMaster (
+            LocationCode, LocationName, LocationType, Capacity, CapacityUnit,
+            Description, Address, Remarks, IsActive, CreatedBy, CreatedDate
+        )
+        VALUES (
+            @LocationCode, @LocationName, @LocationType, ISNULL(@Capacity, 0), @CapacityUnit,
+            @Description, @Address, @Remarks, ISNULL(@IsActive, 1), @CreatedBy, GETDATE()
+        );
+
+        SELECT SCOPE_IDENTITY() AS LocationId, @LocationCode AS LocationCode;
+    END
+    ELSE IF @Action = 'UPDATE'
+    BEGIN
+        UPDATE m_LocationMaster
+        SET LocationName = @LocationName,
+            LocationType = @LocationType,
+            Capacity = ISNULL(@Capacity, 0),
+            CapacityUnit = @CapacityUnit,
+            Description = @Description,
+            Address = @Address,
+            Remarks = @Remarks,
+            IsActive = @IsActive,
+            ModifiedBy = @CreatedBy,
+            ModifiedDate = GETDATE()
+        WHERE LocationId = @LocationId;
+    END
+    ELSE IF @Action = 'SELECT_ALL'
+    BEGIN
+        SELECT * FROM m_LocationMaster ORDER BY LocationId DESC;
+    END
+    ELSE IF @Action = 'SELECT_BY_ID'
+    BEGIN
+        SELECT * FROM m_LocationMaster WHERE LocationId = @LocationId;
+    END
+    ELSE IF @Action = 'DELETE'
+    BEGIN
+        UPDATE m_LocationMaster SET IsActive = 0 WHERE LocationId = @LocationId;
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_ManageOfficeLocationMapping]
+
+-- ============================================================================
+-- STORED PROCEDURE: MANAGE OFFICE LOCATION MAPPING
+-- ============================================================================
+CREATE   PROCEDURE sp_ManageOfficeLocationMapping
+    @Action VARCHAR(20),
+    @MappingId INT = NULL,
+    @OfficeId INT = NULL,
+    @LocationId INT = NULL,
+    @UnloadingAllowed BIT = 1,
+    @EffectiveFrom DATE = NULL,
+    @IsActive BIT = 1,
+    @CreatedBy INT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @Action = 'INSERT'
+    BEGIN
+        IF EXISTS (SELECT 1 FROM t_OfficeLocationMapping WHERE OfficeId = @OfficeId AND LocationId = @LocationId)
+        BEGIN
+            UPDATE t_OfficeLocationMapping
+            SET UnloadingAllowed = @UnloadingAllowed,
+                EffectiveFrom = ISNULL(@EffectiveFrom, GETDATE()),
+                IsActive = ISNULL(@IsActive, 1),
+                ModifiedBy = @CreatedBy,
+                ModifiedDate = GETDATE()
+            WHERE OfficeId = @OfficeId AND LocationId = @LocationId;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO t_OfficeLocationMapping (
+                OfficeId, LocationId, UnloadingAllowed, EffectiveFrom, IsActive, CreatedBy, CreatedDate
+            )
+            VALUES (
+                @OfficeId, @LocationId, @UnloadingAllowed, ISNULL(@EffectiveFrom, GETDATE()), ISNULL(@IsActive, 1), @CreatedBy, GETDATE()
+            );
+        END
+    END
+    ELSE IF @Action = 'UPDATE'
+    BEGIN
+        UPDATE t_OfficeLocationMapping
+        SET OfficeId = @OfficeId,
+            LocationId = @LocationId,
+            UnloadingAllowed = @UnloadingAllowed,
+            EffectiveFrom = @EffectiveFrom,
+            IsActive = @IsActive,
+            ModifiedBy = @CreatedBy,
+            ModifiedDate = GETDATE()
+        WHERE MappingId = @MappingId;
+    END
+    ELSE IF @Action = 'SELECT_ALL'
+    BEGIN
+        SELECT 
+            m.MappingId,
+            m.OfficeId,
+            o.PostName AS OfficeName,
+            m.LocationId,
+            l.LocationName,
+            l.LocationCode,
+            m.UnloadingAllowed,
+            m.EffectiveFrom,
+            m.IsActive
+        FROM t_OfficeLocationMapping m
+        INNER JOIN o10_post o ON m.OfficeId = o.PostId
+        INNER JOIN m_LocationMaster l ON m.LocationId = l.LocationId
+        ORDER BY m.MappingId DESC;
+    END
+    ELSE IF @Action = 'DELETE'
+    BEGIN
+        DELETE FROM t_OfficeLocationMapping WHERE MappingId = @MappingId;
+    END
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_renamediagram]
+
+	CREATE PROCEDURE dbo.sp_renamediagram
+	(
+		@diagramname 		sysname,
+		@owner_id		int	= null,
+		@new_diagramname	sysname
+	
+	)
+	WITH EXECUTE AS 'dbo'
+	AS
+	BEGIN
+		set nocount on
+		declare @theId 			int
+		declare @IsDbo 			int
+		
+		declare @UIDFound 		int
+		declare @DiagId			int
+		declare @DiagIdTarg		int
+		declare @u_name			sysname
+		if((@diagramname is null) or (@new_diagramname is null))
+		begin
+			RAISERROR ('Invalid value', 16, 1);
+			return -1
+		end
+	
+		EXECUTE AS CALLER;
+		select @theId = DATABASE_PRINCIPAL_ID();
+		select @IsDbo = IS_MEMBER(N'db_owner'); 
+		if(@owner_id is null)
+			select @owner_id = @theId;
+		REVERT;
+	
+		select @u_name = USER_NAME(@owner_id)
+	
+		select @DiagId = diagram_id, @UIDFound = principal_id from dbo.sysdiagrams where principal_id = @owner_id and name = @diagramname 
+		if(@DiagId IS NULL or (@IsDbo = 0 and @UIDFound <> @theId))
+		begin
+			RAISERROR ('Diagram does not exist or you do not have permission.', 16, 1)
+			return -3
+		end
+	
+		-- if((@u_name is not null) and (@new_diagramname = @diagramname))	-- nothing will change
+		--	return 0;
+	
+		if(@u_name is null)
+			select @DiagIdTarg = diagram_id from dbo.sysdiagrams where principal_id = @theId and name = @new_diagramname
+		else
+			select @DiagIdTarg = diagram_id from dbo.sysdiagrams where principal_id = @owner_id and name = @new_diagramname
+	
+		if((@DiagIdTarg is not null) and  @DiagId <> @DiagIdTarg)
+		begin
+			RAISERROR ('The name is already used.', 16, 1);
+			return -2
+		end		
+	
+		if(@u_name is null)
+			update dbo.sysdiagrams set [name] = @new_diagramname, principal_id = @theId where diagram_id = @DiagId
+		else
+			update dbo.sysdiagrams set [name] = @new_diagramname where diagram_id = @DiagId
+		return 0
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_ReturnTempMaterial]
+
+-- SP: Return Temp Material (Outward)
+CREATE   PROCEDURE sp_ReturnTempMaterial
+    @EntryNo NVARCHAR(50),
+    @Remarks NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @GlobalNo INT, @OutwardNo NVARCHAR(50);
+    EXEC sp_GetNextSerialNumber 'GLOBAL', @GlobalNo OUTPUT;
+    
+    SET @OutwardNo = 'TMPOUT-' + CAST(@GlobalNo AS NVARCHAR(20));
+
+    UPDATE t_TempMaterialRegister
+    SET OutwardNo = @OutwardNo, ReturnDateTime = GETDATE(), Status = 'Returned',
+        Remarks = ISNULL(Remarks, '') + ' | ' + ISNULL(@Remarks, '')
+    WHERE EntryNo = @EntryNo AND Status = 'In Yard';
+
+    SELECT @OutwardNo AS OutwardNo;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_SaveLabQualityCheck]
+
+-- 4. Stored Procedure for Lab Check
+CREATE   PROCEDURE sp_SaveLabQualityCheck
+    @RSTNumber NVARCHAR(50),
+    @MoisturePct DECIMAL(5,2),
+    @DustPct DECIMAL(5,2),
+    @PayiaPct DECIMAL(5,2),
+    @GrainQualityPct DECIMAL(5,2),
+    @TotalDeductionPct DECIMAL(5,2),
+    @TestedBy INT
+AS
+BEGIN
+    INSERT INTO t_LabQualityCheck (RSTNumber, MoisturePct, DustPct, PayiaPct, GrainQualityPct, TotalDeductionPct, TestedBy)
+    VALUES (@RSTNumber, @MoisturePct, @DustPct, @PayiaPct, @GrainQualityPct, @TotalDeductionPct, @TestedBy);
+    
+    UPDATE t_GateEntry SET Status = 'Tested' WHERE RSTNumber = @RSTNumber;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_SavePersondetails]
+-- SP: Save Person Details with exact Table Insertion Logic
+-- Tables involved:
+-- 1. p02_Person (Always inserted for any person registration)
+-- 2. P11_PersonDesignatation / p1_persondesignatation (Inserted for any registered person having a designation/post)
+-- 3. o_designatationreletation (Inserted ONLY when a Worker is registered under a Meth)
+-- 4. sa05_user (Inserted ONLY when an Employee/Login-required role is registered)
+
+CREATE   PROCEDURE sp_SavePersondetails
+    @PersonName NVARCHAR(200),
+    @MobileNumber NVARCHAR(20),
+    @Address NVARCHAR(500),
+    @PersonType NVARCHAR(50), -- PostId or Role Name
+    @O05_officeId INT = NULL,
+    @o10postid INT = NULL,
+    @o12_parentid INT = NULL, -- Meth PersonId (when registering Worker)
+    @PartyCategory INT = 1,
+    @FirmName NVARCHAR(200) = NULL,
+    @FirmDesignation NVARCHAR(100) = NULL,
+    @designatationId INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @PersonId INT = 0;
+    DECLARE @CalculatedDesignationId INT = 0;
+
+    -- 1. Insert into p02_Person (Always)
+    INSERT INTO p02_Person (
+        PersonName, MobileNumber, Address, PersonType, 
+        PartyCategory, FirmName, FirmDesignation, IsActive
+    )
+    VALUES (
+        @PersonName, @MobileNumber, @Address, @PersonType, 
+        @PartyCategory, @FirmName, @FirmDesignation, 1
+    );
+
+    SET @PersonId = SCOPE_IDENTITY();
+
+    -- Check if Designation exists in O12_Designatation matching PersonType/Post Name, or insert it
+    DECLARE @PostName NVARCHAR(100);
+    SELECT TOP 1 @PostName = PostName FROM o10_post WHERE PostId = TRY_CAST(@PersonType AS INT);
+    IF @PostName IS NULL SET @PostName = @PersonType;
+
+    SELECT TOP 1 @CalculatedDesignationId = DesignationId 
+    FROM o12_designatation 
+    WHERE DesignationName = @PostName AND IsActive = 1;
+
+    IF (@CalculatedDesignationId = 0 OR @CalculatedDesignationId IS NULL)
+    BEGIN
+        INSERT INTO o12_designatation (DesignationName, IsActive)
+        VALUES (@PostName, 1);
+        SET @CalculatedDesignationId = SCOPE_IDENTITY();
+    END
+
+    SET @designatationId = @CalculatedDesignationId;
+
+    -- 2. Insert into P11_PersonDesignatation / p1_persondesignatation (Always upon Person Registration)
+    INSERT INTO p1_persondesignatation (PersonId, DesignationId, IsActive)
+    VALUES (@PersonId, @CalculatedDesignationId, 1);
+
+    -- 3. Insert into o_designatationreletation (ONLY when Worker is registered under a Meth)
+    -- If @o12_parentid (Meth PersonId) is provided
+    IF (@o12_parentid IS NOT NULL AND @o12_parentid > 0)
+    BEGIN
+        DECLARE @MethDesignationId INT = 0;
+        SELECT TOP 1 @MethDesignationId = DesignationId 
+        FROM p1_persondesignatation 
+        WHERE PersonId = @o12_parentid AND IsActive = 1;
+
+        IF (@MethDesignationId > 0)
+        BEGIN
+            INSERT INTO o_designatationreletation (
+                o12_parentid, o12_childid, parent_postid, child_postid, IsActive
+            )
+            VALUES (
+                @MethDesignationId, @CalculatedDesignationId, NULL, TRY_CAST(@PersonType AS INT), 1
+            );
+        END
+    END
+
+    -- Return New PersonId
+    SELECT @PersonId AS PersonId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_SaveUnloading]
+
+-- 3. Stored Procedures for Unloading
+CREATE   PROCEDURE sp_SaveUnloading
+    @RSTNumber NVARCHAR(50),
+    @LocationId INT,
+    @SupervisorId INT,
+    @MethId INT,
+    @BagTypeId INT,
+    @NumberOfBags INT
+AS
+BEGIN
+    DECLARE @DeductionGrams INT;
+    SELECT @DeductionGrams = DeductionWeightGrams FROM m_BagType WHERE BagTypeId = @BagTypeId;
+    
+    DECLARE @TotalDeduction DECIMAL(18,2) = (@NumberOfBags * @DeductionGrams) / 1000.0; -- Convert grams to KG
+    
+    INSERT INTO t_UnloadTransaction (RSTNumber, LocationId, SupervisorId, MethId, BagTypeId, NumberOfBags, TotalBagDeductionGrams)
+    VALUES (@RSTNumber, @LocationId, @SupervisorId, @MethId, @BagTypeId, @NumberOfBags, @TotalDeduction);
+    
+    SELECT SCOPE_IDENTITY() AS UnloadId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_SaveWorkerAllocation]
+
+CREATE   PROCEDURE sp_SaveWorkerAllocation
+    @UnloadId INT,
+    @WorkerId INT,
+    @PalledariAmount DECIMAL(18,2)
+AS
+BEGIN
+    INSERT INTO t_WorkerAllocation (UnloadId, WorkerId, PalledariAmount)
+    VALUES (@UnloadId, @WorkerId, @PalledariAmount);
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_SubmitUnloading]
+
+-- 6. Create SP for Meth Unloading Submission
+CREATE   PROCEDURE sp_SubmitUnloading
+    @UnloadId INT,
+    @GateManId INT,
+    @BagTypeId INT,
+    @NumberOfBags INT
+AS
+BEGIN
+    UPDATE t_UnloadTransaction 
+    SET GateManId = @GateManId,
+        BagTypeId = @BagTypeId,
+        NumberOfBags = @NumberOfBags,
+        UnloadTime = GETDATE(),
+        Status = 'Unloaded'
+    WHERE UnloadId = @UnloadId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdateBagType]
+
+CREATE   PROCEDURE sp_UpdateBagType
+    @BagTypeId INT,
+    @BagTypeName NVARCHAR(50),
+    @DeductionWeightGrams INT,
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE m_BagType
+    SET BagTypeName = @BagTypeName, DeductionWeightGrams = @DeductionWeightGrams, IsActive = @IsActive
+    WHERE BagTypeId = @BagTypeId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdateDesignation]
+
+CREATE   PROCEDURE sp_UpdateDesignation
+    @DesignationId INT,
+    @DesignationName NVARCHAR(100),
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE o12_designatation
+    SET DesignationName = @DesignationName, IsActive = @IsActive
+    WHERE DesignationId = @DesignationId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdateItem]
+
+CREATE   PROCEDURE sp_UpdateItem
+    @ItemId INT,
+    @ItemName NVARCHAR(100),
+    @CategoryId INT,
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE m_Item
+    SET ItemName = @ItemName, CategoryId = @CategoryId, IsActive = @IsActive
+    WHERE ItemId = @ItemId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdateItemCategory]
+
+CREATE   PROCEDURE sp_UpdateItemCategory
+    @CategoryId INT,
+    @CategoryName NVARCHAR(100),
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE m_ItemCategory
+    SET CategoryName = @CategoryName, IsActive = @IsActive
+    WHERE CategoryId = @CategoryId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdateOffice]
+
+CREATE   PROCEDURE sp_UpdateOffice
+    @OfficeId INT,
+    @OfficeName NVARCHAR(100),
+    @Location NVARCHAR(200),
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE o05_office
+    SET OfficeName = @OfficeName, Location = @Location, IsActive = @IsActive
+    WHERE OfficeId = @OfficeId
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdatePerson]
+
+CREATE   PROCEDURE sp_UpdatePerson
+    @PersonId INT,
+    @PersonName NVARCHAR(200),
+    @MobileNumber NVARCHAR(20),
+    @Address NVARCHAR(500),
+    @PersonType NVARCHAR(50),
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE p02_Person
+    SET PersonName = @PersonName, MobileNumber = @MobileNumber, Address = @Address, PersonType = @PersonType, IsActive = @IsActive
+    WHERE PersonId = @PersonId
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdatePost]
+
+CREATE   PROCEDURE sp_UpdatePost
+    @PostId INT,
+    @PostName NVARCHAR(100),
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE o10_post
+    SET PostName = @PostName, IsActive = @IsActive
+    WHERE PostId = @PostId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_UpdateVehicle]
+
+CREATE   PROCEDURE sp_UpdateVehicle
+    @VehicleId INT,
+    @VehicleNumber NVARCHAR(50),
+    @IsActive BIT
+AS
+BEGIN
+    UPDATE m_Vehicle
+    SET VehicleNumber = @VehicleNumber, IsActive = @IsActive
+    WHERE VehicleId = @VehicleId;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_upgraddiagrams]
+
+	CREATE PROCEDURE dbo.sp_upgraddiagrams
+	AS
+	BEGIN
+		IF OBJECT_ID(N'dbo.sysdiagrams') IS NOT NULL
+			return 0;
+	
+		CREATE TABLE dbo.sysdiagrams
+		(
+			name sysname NOT NULL,
+			principal_id int NOT NULL,	-- we may change it to varbinary(85)
+			diagram_id int PRIMARY KEY IDENTITY,
+			version int,
+	
+			definition varbinary(max)
+			CONSTRAINT UK_principal_name UNIQUE
+			(
+				principal_id,
+				name
+			)
+		);
+
+
+		/* Add this if we need to have some form of extended properties for diagrams */
+		/*
+		IF OBJECT_ID(N'dbo.sysdiagram_properties') IS NULL
+		BEGIN
+			CREATE TABLE dbo.sysdiagram_properties
+			(
+				diagram_id int,
+				name sysname,
+				value varbinary(max) NOT NULL
+			)
+		END
+		*/
+
+		IF OBJECT_ID(N'dbo.dtproperties') IS NOT NULL
+		begin
+			insert into dbo.sysdiagrams
+			(
+				[name],
+				[principal_id],
+				[version],
+				[definition]
+			)
+			select	 
+				convert(sysname, dgnm.[uvalue]),
+				DATABASE_PRINCIPAL_ID(N'dbo'),			-- will change to the sid of sa
+				0,							-- zero for old format, dgdef.[version],
+				dgdef.[lvalue]
+			from dbo.[dtproperties] dgnm
+				inner join dbo.[dtproperties] dggd on dggd.[property] = 'DtgSchemaGUID' and dggd.[objectid] = dgnm.[objectid]	
+				inner join dbo.[dtproperties] dgdef on dgdef.[property] = 'DtgSchemaDATA' and dgdef.[objectid] = dgnm.[objectid]
+				
+			where dgnm.[property] = 'DtgSchemaNAME' and dggd.[uvalue] like N'_EA3E6268-D998-11CE-9454-00AA00A3F36E_' 
+			return 2;
+		end
+		return 1;
+	END
+	
+GO
+-- PROCEDURE: [dbo].[sp_ValidateUser]
+--exec sp_ValidateUser 'admin','1111'
+-- 2. Stored Procedure for User Validation
+CREATE   PROCEDURE [dbo].[sp_ValidateUser]
+    @Username NVARCHAR(100),
+    @Password NVARCHAR(256)
+AS
+BEGIN
+    SELECT 
+	    o10_postid,
+		sa10_usertypeid,
+        u.UserId,
+        u.Username,
+        u.PersonId,
+        p.PersonName,
+        p.PersonType AS Role,
+		LayoutName
+    FROM sa05_user u
+    INNER JOIN p02_Person p ON u.PersonId = p.PersonId
+	inner join sa10_usertype on u.sa10_usertypeid=sa10_usertype.UserTypeId
+    WHERE u.Username = @Username AND u.PasswordHash = @Password AND u.IsActive = 1 AND p.IsActive = 1;
+END
+
+GO
+-- PROCEDURE: [dbo].[sp_VerifyUnloading]
+
+-- 7. Create SP for Supervisor Verification
+CREATE   PROCEDURE sp_VerifyUnloading
+    @UnloadId INT,
+    @TotalBagDeductionGrams DECIMAL(18,2)
+AS
+BEGIN
+    UPDATE t_UnloadTransaction 
+    SET TotalBagDeductionGrams = @TotalBagDeductionGrams,
+        Status = 'Verified'
+    WHERE UnloadId = @UnloadId;
+END
+
+GO
