@@ -146,10 +146,39 @@ namespace RiceMillProject.DAL
                     LEFT JOIN p02_Person p ON h.PartyId = p.PersonId
                     LEFT JOIN m_Vehicle v ON UPPER(TRIM(h.VehicleNo)) = UPPER(TRIM(v.VehicleNumber))
                     LEFT JOIN p02_Person d ON LOWER(TRIM(h.DriverName)) = LOWER(TRIM(d.PersonName))
-                    WHERE TRIM(h.InwardNo) = TRIM(@InwardNo)";
+                    WHERE TRIM(h.InwardNo) = TRIM(@InwardNo)
+                      AND h.IsRSTGenerated = 0";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@InwardNo", inwardNo ?? "");
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+            return dt;
+        }
+
+        public DataTable GetInwardDetailsById(int inwardId)
+        {
+            var dt = new DataTable();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                    SELECT h.InwardId, h.InwardNo, h.PartyId,
+                           ISNULL(NULLIF(TRIM(h.PartyName),''), p.PersonName) AS PartyName,
+                           h.VehicleNo, v.VehicleId, h.DriverName, h.DriverMobile,
+                           d.PersonId AS DriverId, h.ApproxNoOfBags, h.ApproxWeight
+                    FROM t_InwardHeader h
+                    INNER JOIN m_InwardTypeMaster it ON it.InwardTypeId = h.InwardTypeId
+                    LEFT JOIN p02_Person p ON h.PartyId = p.PersonId
+                    LEFT JOIN m_Vehicle v ON UPPER(TRIM(h.VehicleNo)) = UPPER(TRIM(v.VehicleNumber))
+                    LEFT JOIN p02_Person d ON LOWER(TRIM(h.DriverName)) = LOWER(TRIM(d.PersonName))
+                    WHERE h.InwardId = @InwardId AND it.RSTRequired = 1 AND h.IsRSTGenerated = 0;";
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.Add("@InwardId", SqlDbType.Int).Value = inwardId;
                     using (SqlDataAdapter da = new SqlDataAdapter(cmd))
                     {
                         da.Fill(dt);

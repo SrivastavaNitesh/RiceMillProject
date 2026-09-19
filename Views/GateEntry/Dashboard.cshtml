@@ -1,0 +1,78 @@
+@model IEnumerable<RiceMillProject.Models.GateEntry>
+@{
+    ViewData["Title"] = "Weightman Dashboard";
+}
+
+<div class="erp-page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon"><i class="bi bi-speedometer2"></i></div>
+        <div>
+            <h3 class="erp-page-title">WEIGHTMAN DASHBOARD</h3>
+            <p class="erp-page-subtitle">Inbound weighment queue, RST register and vehicle weight status</p>
+        </div>
+    </div>
+    <a asp-controller="Gateman" asp-action="Report" class="btn btn-primary">
+        <i class="bi bi-journal-text me-1"></i> Open Gateman Report
+    </a>
+</div>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="erp-card h-100 p-3"><small class="text-muted fw-semibold">TOTAL RST</small><h3 class="mb-0 mt-2 text-primary">@ViewBag.TotalEntries</h3></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="erp-card h-100 p-3"><small class="text-muted fw-semibold">TODAY'S WEIGHMENTS</small><h3 class="mb-0 mt-2 text-info">@ViewBag.TodayEntries</h3></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="erp-card h-100 p-3"><small class="text-muted fw-semibold">PENDING TARE</small><h3 class="mb-0 mt-2 text-warning">@ViewBag.PendingTare</h3></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="erp-card h-100 p-3"><small class="text-muted fw-semibold">COMPLETED</small><h3 class="mb-0 mt-2 text-success">@ViewBag.CompletedEntries</h3></div></div>
+</div>
+
+<div class="erp-card">
+    <div class="erp-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-2"></i>Weighment Register</span>
+        <small class="text-muted">Select pending work from Gateman Inward Report</small>
+    </div>
+    <div class="erp-card-body p-3">
+        <div class="table-responsive">
+            <table class="table erp-table table-bordered w-100" id="weightmanRegister">
+                <thead>
+                    <tr>
+                        <th>S.N.</th><th>Date</th><th>RST</th><th>Vehicle No.</th><th>Party Name</th><th>Material Name</th>
+                        <th>Total Bags</th><th>Gross Wt.</th><th>Tare Wt.</th><th>Net Wt.</th><th>Wt. Charge</th><th>Inward/Outward</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @{ var sn = 1; }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@(sn++)</td>
+                        <td data-order="@item.GateEntryTime.ToString("yyyy-MM-dd HH:mm:ss")">@item.GateEntryTime.ToString("dd-MMM-yyyy")</td>
+                        <td class="fw-semibold text-primary">@item.RSTNumber</td>
+                        <td>@item.VehicleNumber</td>
+                        <td>@item.PartyName</td>
+                        <td class="text-muted">&mdash;</td>
+                        <td>@(item.TotalBags?.ToString() ?? "—")</td>
+                        <td>@item.GrossWeight.ToString("0.##")</td>
+                        <td>@(item.TareWeight?.ToString("0.##") ?? "—")</td>
+                        <td>@(item.NetWeight?.ToString("0.##") ?? "—")</td>
+                        <td>@item.WeighmentCharge.ToString("0.##")</td>
+                        <td>@item.InwardOutward</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            if ($.fn.DataTable && $('#weightmanRegister tbody tr').length) {
+                $('#weightmanRegister').DataTable({ responsive: true, pageLength: 25, order: [[1, 'desc']] });
+            }
+        });
+    </script>
+}

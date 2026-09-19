@@ -30,11 +30,11 @@
                     <input type="hidden" asp-for="LocationId" />
 
                     <div class="col-md-12">
-                        <label class="form-label">Location Code <span class="req-star">*</span></label>
-                        <div class="input-group">
-                            <input asp-for="LocationCode" class="form-control bg-light" placeholder="[ Auto-Generated Location Code ]" readonly />
-                            <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
-                        </div>
+                        <label class="form-label">Company <span class="req-star">*</span></label>
+                        <select asp-for="OfficeId" asp-items="ViewBag.Offices" class="form-select" required>
+                            <option value="">Select Company</option>
+                        </select>
+                        <span asp-validation-for="OfficeId" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
@@ -45,14 +45,17 @@
 
                     <div class="col-md-12">
                         <label class="form-label">Location Type <span class="req-star">*</span></label>
-                        <select asp-for="LocationType" class="form-select" required>
-                            <option value="">Select Location Type</option>
-                            <option value="Godown">Godown</option>
-                            <option value="Yard">Yard</option>
-                            <option value="Shed">Shed</option>
-                            <option value="Warehouse">Warehouse</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <div class="d-flex flex-wrap gap-3 border rounded p-3 bg-light">
+                            @foreach (var locationType in (IEnumerable<RiceMillProject.Models.LocationTypeOption>)ViewBag.LocationTypes)
+                            {
+                                var radioId = $"locationType_{locationType.LocationTypeId}";
+                                <div class="form-check form-check-inline mb-0">
+                                    <input asp-for="LocationType" class="form-check-input" type="radio"
+                                           id="@radioId" value="@locationType.LocationTypeName" required />
+                                    <label class="form-check-label" for="@radioId">@locationType.LocationTypeName</label>
+                                </div>
+                            }
+                        </div>
                         <span asp-validation-for="LocationType" class="text-danger small"></span>
                     </div>
 
@@ -77,11 +80,6 @@
                     <div class="col-md-12">
                         <label class="form-label">Area / Address</label>
                         <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter Area / Address"></textarea>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label">Remarks</label>
-                        <textarea asp-for="Remarks" class="form-control" rows="2" placeholder="Enter Remarks (Optional)"></textarea>
                     </div>
 
                     <div class="col-md-12">

@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
 using System.Data;
 using System.Linq;
+using System.Security.Claims;
 
 namespace RiceMillProject.Controllers
 {
+    [Authorize]
     public class GateEntryController : Controller
     {
         private readonly GateEntryBAL _gateBal;
@@ -40,12 +43,58 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult Dashboard()
         {
             try
             {
-                PopulateDropdowns(new GateEntry());
-                return View(new GateEntry());
+                var entries = _gateBal.GetAllGateEntries();
+                ViewBag.TotalEntries = entries.Count;
+                ViewBag.TodayEntries = entries.Count(e => e.GateEntryTime.Date == DateTime.Today);
+                ViewBag.PendingTare = entries.Count(e => !e.TareWeight.HasValue);
+                ViewBag.CompletedEntries = entries.Count(e => e.NetWeight.HasValue);
+                return View(entries);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "An error occurred while loading Weightman dashboard: " + ex.Message;
+                ViewBag.TotalEntries = 0;
+                ViewBag.TodayEntries = 0;
+                ViewBag.PendingTare = 0;
+                ViewBag.CompletedEntries = 0;
+                return View(new List<GateEntry>());
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Create(int? inwardId = null)
+        {
+            try
+            {
+                var entry = new GateEntry();
+                if (inwardId.HasValue)
+                {
+                    var details = _gateBal.GetInwardDetailsById(inwardId.Value);
+                    if (details.Rows.Count == 0)
+                    {
+                        TempData["ErrorMessage"] = "Selected inward entry is unavailable or its RST is already generated.";
+                        return RedirectToAction("Report", "Gateman");
+                    }
+
+                    var row = details.Rows[0];
+                    entry.InwardNo = row["InwardNo"]?.ToString() ?? string.Empty;
+                    entry.PartyId = row["PartyId"] != DBNull.Value ? Convert.ToInt32(row["PartyId"]) : 0;
+                    entry.VehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : 0;
+                    entry.DriverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : 0;
+                    ViewBag.LockInward = true;
+                    ViewBag.InwardId = inwardId.Value;
+                    ViewBag.PartyName = row["PartyName"]?.ToString() ?? "-";
+                    ViewBag.VehicleNo = row["VehicleNo"]?.ToString() ?? "-";
+                    ViewBag.DriverName = row["DriverName"]?.ToString() ?? "-";
+                    ViewBag.DriverMobile = row["DriverMobile"]?.ToString() ?? "-";
+                    ViewBag.TotalBags = row["ApproxNoOfBags"] != DBNull.Value ? Convert.ToInt32(row["ApproxNoOfBags"]) : 0;
+                }
+                PopulateDropdowns(entry);
+                return View(entry);
             }
             catch (Exception ex)
             {
@@ -59,11 +108,25 @@ namespace RiceMillProject.Controllers
         {
             try
             {
+                entry.CreatedBy = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (!string.IsNullOrWhiteSpace(entry.InwardNo))
+                {
+                    var inward = _gateBal.GetInwardDetails(entry.InwardNo);
+                    if (inward.Rows.Count == 0)
+                    {
+                        throw new InvalidOperationException("The selected inward entry could not be verified.");
+                    }
+
+                    var row = inward.Rows[0];
+                    entry.PartyId = row["PartyId"] != DBNull.Value ? Convert.ToInt32(row["PartyId"]) : 0;
+                    entry.VehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : 0;
+                    entry.DriverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : 0;
+                }
                 if (ModelState.IsValid || entry.GrossWeight > 0)
                 {
                     string generatedRST = _gateBal.CreateGateEntry(entry);
                     TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {generatedRST}";
-                    return RedirectToAction("Create");
+                    return RedirectToAction("Dashboard");
                 }
                 
                 PopulateDropdowns(entry);

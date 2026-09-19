@@ -1,6 +1,6 @@
 @model RiceMillProject.Models.DhermKata
 @{
-    ViewData["Title"] = "Add Office";
+    ViewData["Title"] = "Add Weighbridge";
 }
 
 <!-- Page Header -->
@@ -11,7 +11,7 @@
         </div>
         <div>
             <h3 class="erp-page-title">ADD NEW WEIGHBRIDGE / DHERMKATA</h3>
-            <p class="erp-page-subtitle">Configure weighbridge terminal and link to office location</p>
+            <p class="erp-page-subtitle">Configure weighbridge terminal and link to company location</p>
         </div>
     </div>
     <a asp-action="Index" class="btn-erp-outline">
@@ -28,9 +28,9 @@
             <div class="erp-card-body">
                 <form asp-action="Create" method="post" class="row g-3">
                     <div class="col-md-12">
-                        <label asp-for="Mainofficeid" class="form-label">Office Location <span class="req-star">*</span></label>
+                        <label asp-for="Mainofficeid" class="form-label">Company <span class="req-star">*</span></label>
                         <select asp-items="Model.MainOfficelist" asp-for="Mainofficeid" class="form-select" required>
-                            <option value="0">-- Select Office --</option>
+                            <option value="0">-- Select Company --</option>
                         </select>
                     </div>
                     <div class="col-md-12">

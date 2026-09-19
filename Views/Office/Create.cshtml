@@ -1,6 +1,6 @@
 @model RiceMillProject.Models.Office
 @{
-    ViewData["Title"] = "Add Office";
+    ViewData["Title"] = "Add Company";
 }
 
 <!-- Page Header -->
@@ -10,8 +10,8 @@
             <i class="bi bi-building"></i>
         </div>
         <div>
-            <h3 class="erp-page-title">ADD NEW OFFICE / MILL UNIT</h3>
-            <p class="erp-page-subtitle">Configure office branch and associate storage locations</p>
+            <h3 class="erp-page-title">ADD NEW COMPANY / MILL UNIT</h3>
+            <p class="erp-page-subtitle">Configure company and associate storage locations</p>
         </div>
     </div>
     <a asp-action="Index" class="btn-erp-outline">
@@ -23,12 +23,12 @@
     <div class="col-lg-6 col-md-8">
         <div class="erp-card">
             <div class="erp-card-header">
-                <span><i class="bi bi-plus-circle text-primary me-2"></i> Office Branch Information</span>
+                <span><i class="bi bi-plus-circle text-primary me-2"></i> Company Information</span>
             </div>
             <div class="erp-card-body">
-                <form asp-action="Create" method="post" class="row g-3">
+                <form asp-action="Create" method="post" class="row g-3" id="officeCreateForm" novalidate>
                     <div class="col-md-12">
-                        <label asp-for="OfficeName" class="form-label">Office / Plant Name <span class="req-star">*</span></label>
+                        <label asp-for="OfficeName" class="form-label">Company / Plant Name <span class="req-star">*</span></label>
                         <input asp-for="OfficeName" class="form-control" placeholder="e.g. Main Plant Unit 1" required />
                         <span asp-validation-for="OfficeName" class="text-danger"></span>
                     </div>
@@ -42,6 +42,14 @@
                         <small class="text-muted"></small>
                         <span asp-validation-for="Location" class="text-danger"></span>
                     </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="OfficeTypeId" class="form-label">Company Type <span class="req-star">*</span></label>
+                        <select asp-for="OfficeTypeId" asp-items="@(ViewBag.OfficeTypes as SelectList)" class="form-select" id="officeTypeId" required>
+                            <option value="">-- Select Company Type --</option>
+                        </select>
+                        <span asp-validation-for="OfficeTypeId" class="text-danger"></span>
+                    </div>
                     
                     <!-- Hidden field since IsActive is default true for new -->
                     <input type="hidden" asp-for="IsActive" value="true" />
@@ -51,7 +59,7 @@
                             <i class="bi bi-x-circle me-1"></i> Cancel
                         </a>
                         <button type="submit" class="btn-erp-primary">
-                            <i class="bi bi-check-circle me-1"></i> Save Office
+                            <i class="bi bi-check-circle me-1"></i> Save Company
                         </button>
                     </div>
                 </form>
@@ -62,4 +70,30 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const serverError = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ErrorMessage as string));
+            if (serverError) {
+                Swal.fire({ icon: 'error', title: 'Unable to save company', text: serverError, confirmButtonColor: '#1e3c72' });
+            }
+
+            const form = document.getElementById('officeCreateForm');
+            form?.addEventListener('submit', function (event) {
+                const missing = [];
+                if (!document.getElementById('OfficeName')?.value.trim()) missing.push('Company / Plant Name');
+                if (!document.getElementById('Location')?.value.trim()) missing.push('Location');
+                if (!document.getElementById('officeTypeId')?.value) missing.push('Company Type');
+                if (missing.length) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Required fields missing',
+                        html: '<div class="text-start">Please fill:<ul class="mt-2">' + missing.map(x => '<li>' + x + '</li>').join('') + '</ul></div>',
+                        confirmButtonColor: '#1e3c72'
+                    });
+                }
+            });
+        });
+    </script>
 }

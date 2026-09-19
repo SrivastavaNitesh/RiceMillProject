@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace RiceMillProject.Controllers
 {
@@ -25,18 +26,43 @@ namespace RiceMillProject.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            PopulateOfficeTypes();
             return View(new Office { IsActive = true });
         }
 
         [HttpPost]
         public IActionResult Create(Office office)
         {
-            if (ModelState.IsValid)
+            if (office.OfficeTypeId <= 0)
             {
-                _officeBal.AddOffice(office);
+                ModelState.AddModelError(nameof(office.OfficeTypeId), "Office Type is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                PopulateOfficeTypes(office.OfficeTypeId);
+                ViewBag.ErrorMessage = "Please fill all mandatory company fields.";
+                return View(office);
+            }
+
+            try
+            {
+                int officeId = _officeBal.AddOffice(office);
+                if (officeId <= 0) throw new InvalidOperationException("Company could not be saved.");
+                TempData["SuccessMessage"] = "Company created successfully!";
                 return RedirectToAction("Index");
             }
-            return View(office);
+            catch (Exception ex)
+            {
+                PopulateOfficeTypes(office.OfficeTypeId);
+                ViewBag.ErrorMessage = "Company save failed: " + ex.Message;
+                return View(office);
+            }
+        }
+
+        private void PopulateOfficeTypes(int selectedId = 0)
+        {
+            ViewBag.OfficeTypes = new SelectList(_officeBal.GetActiveOfficeTypes(), "OfficeTypeId", "OfficeTypeName", selectedId);
         }
 
         [HttpGet]
@@ -56,8 +82,16 @@ namespace RiceMillProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                _officeBal.UpdateOffice(office);
-                return RedirectToAction("Index");
+                try
+                {
+                    _officeBal.UpdateOffice(office);
+                    TempData["SuccessMessage"] = "Company updated successfully!";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Company update failed: " + ex.Message;
+                }
             }
             return View(office);
         }

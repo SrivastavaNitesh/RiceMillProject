@@ -27,6 +27,14 @@ namespace RiceMillProject.Controllers
                 return RedirectToAction("Dashboard", "Gateman");
             }
 
+            bool isWeightmanOnly = (User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4")
+                                  && !User.IsInRole("Admin")
+                                  && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
+            if (isWeightmanOnly)
+            {
+                return RedirectToAction("Dashboard", "GateEntry");
+            }
+
             var stats = new DashboardStats();
             
             using (SqlConnection con = new SqlConnection(_connectionString))
