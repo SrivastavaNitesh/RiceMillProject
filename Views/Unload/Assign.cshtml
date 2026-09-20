@@ -1,4 +1,5 @@
 @model RiceMillProject.Models.UnloadTransaction
+
 @{
     ViewData["Title"] = "Assign Meth";
 }
@@ -9,69 +10,181 @@
         <div class="erp-page-icon">
             <i class="bi bi-person-plus-fill"></i>
         </div>
+
         <div>
-            <h3 class="erp-page-title">ASSIGN METH / UNLOADING CONTRACTOR</h3>
-            <p class="erp-page-subtitle">Assign supervisor and labor team (Meth) for RST vehicle unloading</p>
+            <h3 class="erp-page-title">
+                ASSIGN METH / UNLOADING CONTRACTOR
+            </h3>
+
+            <p class="erp-page-subtitle">
+                Assign unloading location and labor team (Meth) for RST vehicle unloading
+            </p>
         </div>
     </div>
+
     <a asp-action="Index" class="btn-erp-outline">
-        <i class="bi bi-arrow-left me-1"></i> Back to Unload Queue
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Unload Queue
     </a>
 </div>
 
 <div class="row justify-content-center">
     <div class="col-lg-6 col-md-8">
+
         <div class="erp-card">
+
             <div class="erp-card-header">
-                <span><i class="bi bi-person-check text-primary me-2"></i> Unloading Assignment Details</span>
+                <span>
+                    <i class="bi bi-person-check text-primary me-2"></i>
+                    Unloading Assignment Details
+                </span>
             </div>
+
             <div class="erp-card-body">
-                <form asp-action="Assign" method="post" class="row g-3">
-                    <input type="hidden" asp-for="RSTNumber" />
-                    
-                    <div class="col-md-12">
-                        <label class="form-label">RST Number</label>
-                        <input type="text" class="form-control bg-light font-monospace fw-bold" value="@Model.RSTNumber" readonly />
+
+                <form asp-action="Assign"
+                      asp-controller="Unload"
+                      method="post"
+                      class="row g-3">
+
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="text-danger">
                     </div>
 
+                    <!-- RST Number Hidden -->
+                    <input type="hidden"
+                           asp-for="RSTNumber" />
+
+                    <!-- Supervisor Hidden -->
+                    <input type="hidden"
+                           asp-for="SupervisorId" />
+
+                    <!-- Item Hidden -->
+                    <input type="hidden"
+                           asp-for="ItemId" />
+
+                    <!-- RST Number -->
                     <div class="col-md-12">
-                        <label asp-for="SupervisorId" class="form-label">Select Supervisor <span class="req-star">*</span></label>
-                        <select asp-for="SupervisorId" class="form-select" asp-items="ViewBag.Supervisors" required>
-                            <option value="">-- Select Supervisor --</option>
+
+                        <label class="form-label">
+                            RST Number
+                        </label>
+
+                        <input type="text"
+                               class="form-control bg-light font-monospace fw-bold"
+                               value="@Model.RSTNumber"
+                               readonly />
+
+                    </div>
+
+                    <!-- Unloading Location -->
+                    <div class="col-md-12">
+
+                        <label asp-for="LocationId"
+                               class="form-label">
+
+                            Unloading Location
+
+                            <span class="req-star">
+                                *
+                            </span>
+
+                        </label>
+
+                        <select asp-for="LocationId"
+                                class="form-select"
+                                asp-items="ViewBag.Locations"
+                                required>
+
+                            <option value="">
+                                -- Select Unloading Location --
+                            </option>
+
                         </select>
-                        <span asp-validation-for="SupervisorId" class="text-danger"></span>
+
+                        <span asp-validation-for="LocationId"
+                              class="text-danger">
+                        </span>
+
+                        <small class="text-muted">
+                            Select the location where this vehicle will be unloaded.
+                        </small>
+
                     </div>
 
+                    <!-- Meth -->
                     <div class="col-md-12">
-                        <label asp-for="ItemId" class="form-label">Paddy Variety / Item Type <span class="req-star">*</span></label>
-                        <select asp-for="ItemId" class="form-select" asp-items="ViewBag.Items" required>
-                            <option value="">-- Select Paddy Type (From Master Data) --</option>
+
+                        <label asp-for="MethId"
+                               class="form-label">
+
+                            Assign to Meth (Labor Head)
+
+                            <span class="req-star">
+                                *
+                            </span>
+
+                        </label>
+
+                        <select asp-for="MethId"
+                                class="form-select"
+                                asp-items="ViewBag.Meths"
+                                required>
+
+                            <option value="">
+                                -- Select Meth --
+                            </option>
+
                         </select>
-                        <span asp-validation-for="ItemId" class="text-danger"></span>
+
+                        <span asp-validation-for="MethId"
+                              class="text-danger">
+                        </span>
+
                     </div>
 
-                    <div class="col-md-12">
-                        <label asp-for="MethId" class="form-label">Assign to Meth (Labor Head) <span class="req-star">*</span></label>
-                        <select asp-for="MethId" class="form-select" asp-items="ViewBag.Meths" required>
-                            <option value="">-- Select Meth --</option>
-                        </select>
-                        <span asp-validation-for="MethId" class="text-danger"></span>
-                    </div>
+                    <!-- Buttons -->
+                    <div class="col-12
+                                d-flex
+                                justify-content-between
+                                border-top
+                                pt-3
+                                mt-4">
 
-                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
-                        <a asp-action="Index" class="btn-erp-secondary">
-                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        <a asp-action="Index"
+                           class="btn-erp-secondary">
+
+                            <i class="bi bi-x-circle me-1"></i>
+                            Cancel
+
                         </a>
-                        <button type="submit" class="btn-erp-primary">
-                            <i class="bi bi-file-earmark-check me-1"></i> Generate Assignment Slip
+
+                        <button type="submit"
+                                class="btn-erp-primary">
+
+                            <i class="bi bi-file-earmark-check me-1"></i>
+                            Accept RST & Assign Meth
+
                         </button>
+
                     </div>
+
                 </form>
+
             </div>
+
         </div>
+
     </div>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial"
+        );
+    }
 }

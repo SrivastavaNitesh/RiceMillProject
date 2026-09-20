@@ -10,7 +10,7 @@ namespace RiceMillProject.Models
         public string PersonName { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "Mobile Number is required.")]
-        [Phone]
+        [Phone(ErrorMessage = "Please enter a valid mobile number.")]
         public string MobileNumber { get; set; } = string.Empty;
         
         public string? Address { get; set; }
@@ -33,3 +33,4 @@ namespace RiceMillProject.Models
         public string? EmployeeCode { get; set; }
     }
 }
+

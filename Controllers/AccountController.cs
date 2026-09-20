@@ -46,6 +46,7 @@ namespace RiceMillProject.Controllers
                         new Claim(ClaimTypes.Role, user.Role),
                         new Claim("PostId", user.o10_postid.ToString()),
                         new Claim("UserTypeId", user.sa10_usertypeid.ToString()),
+                        new Claim("CompanyId", user.OfficeId.ToString()),
                         new Claim("LayoutName", user.LayoutName)
                     };
 

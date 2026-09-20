@@ -1,6 +1,7 @@
 @model IEnumerable<RiceMillProject.Models.InwardHeader>
 @{
     ViewData["Title"] = "Gateman Inward Entry";
+    Layout = "_LayoutGateman";
     var newInward = ViewBag.NewInward as RiceMillProject.Models.InwardHeader ?? new RiceMillProject.Models.InwardHeader();
     bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
 }
@@ -71,20 +72,32 @@
                         </div>
                     </div>
 
-                    <!-- Party / Supplier (Textbox Field) -->
+                    <!-- Party / Supplier Person Dropdown -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold text-dark">
-                            Party / Supplier Name <span class="text-danger">*</span>
+                            Party / Supplier <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="PartyName" id="txtPartyName" class="form-control border-primary-subtle" placeholder="Enter Party / Farmer / Supplier Name" required />
+                        <select name="PartyId" id="txtPartyName" class="form-select border-primary-subtle" asp-items="@(ViewBag.Parties as SelectList)" required>
+                            <option value="">Select Party / Supplier</option>
+                        </select>
+                        <input type="hidden" name="PartyName" id="selectedPartyName" />
                     </div>
 
-                    <!-- Vehicle Number -->
+                    <!-- Vehicle Number Dropdown -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold text-dark">
                             Vehicle Number <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="VehicleNo" id="txtVehicleNo" class="form-control border-primary-subtle text-uppercase fw-bold" placeholder="e.g. UP65AB1234" required />
+                        <select name="VehicleNo" id="txtVehicleNo" class="form-select border-primary-subtle" required>
+                            <option value="">Select Vehicle</option>
+                            @if(ViewBag.Vehicles != null)
+                            {
+                                foreach(var item in (IEnumerable<SelectListItem>)ViewBag.Vehicles)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
                     </div>
 
                     <!-- Driver Name & Mobile -->
@@ -92,7 +105,16 @@
                         <label class="form-label fw-bold text-dark">
                             Driver Name <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="DriverName" id="txtDriverName" class="form-control" placeholder="Enter Driver Name" required />
+                        <select name="DriverName" id="txtDriverName" class="form-select" required>
+                            <option value="">Select Driver</option>
+                            @if(ViewBag.Drivers != null)
+                            {
+                                foreach(var item in (IEnumerable<SelectListItem>)ViewBag.Drivers)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold text-dark">
@@ -203,7 +225,26 @@ catch (Exception ex)
 
         // Driver Mobile Input Validation & AJAX Duplicate Check
         const txtMobile = document.getElementById('txtDriverMobile');
+        const txtDriverName = document.getElementById('txtDriverName');
         const warningDiv = document.getElementById('mobileDuplicateWarning');
+
+        if (txtDriverName) {
+            txtDriverName.addEventListener('change', function() {
+                const driver = this.value;
+                if(driver) {
+                    fetch('/Gateman/GetDriverMobileData?driverName=' + encodeURIComponent(driver))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success && data.mobile && txtMobile) {
+                                txtMobile.value = data.mobile;
+                                const event = new Event('change');
+                                txtMobile.dispatchEvent(event);
+                            }
+                        })
+                        .catch(e => console.error(e));
+                }
+            });
+        }
 
         if (txtMobile) {
             txtMobile.addEventListener('input', function() {
@@ -232,7 +273,10 @@ catch (Exception ex)
         if (form) {
             form.addEventListener('submit', function (e) {
                 const isTypeSelected = document.querySelector('input[name="InwardTypeId"]:checked');
-                const partyName = document.getElementById('txtPartyName')?.value.trim();
+                const partySelect = document.getElementById('txtPartyName');
+                const partyId = partySelect?.value.trim();
+                const partyName = partyId ? partySelect.options[partySelect.selectedIndex].text.trim() : '';
+                document.getElementById('selectedPartyName').value = partyName;
                 const vehicleNo = document.getElementById('txtVehicleNo')?.value.trim();
                 const driverName = document.getElementById('txtDriverName')?.value.trim();
                 const driverMobile = document.getElementById('txtDriverMobile')?.value.trim();
@@ -241,7 +285,7 @@ catch (Exception ex)
                 let missingFields = [];
 
                 if (!isTypeSelected) missingFields.push('Inward Type (With RST / Without RST)');
-                if (!partyName) missingFields.push('Party / Supplier Name');
+                if (!partyId) missingFields.push('Party / Supplier Name');
                 if (!vehicleNo) missingFields.push('Vehicle Number');
                 if (!driverName) missingFields.push('Driver Name');
                 if (!driverMobile) {

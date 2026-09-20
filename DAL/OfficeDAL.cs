@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+
 using RiceMillProject.Models;
 
 namespace RiceMillProject.DAL
@@ -16,6 +17,80 @@ namespace RiceMillProject.DAL
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? "";
         }
 
+
+        public int GetOfficeIdByPersonId(int personId)
+        {
+            using SqlConnection con = new SqlConnection(_connectionString);
+
+            using SqlCommand cmd = new SqlCommand(@"
+        SELECT TOP 1 ISNULL(OfficeId, 0)
+        FROM dbo.sa05_user
+        WHERE PersonId = @PersonId
+        ORDER BY UserId DESC
+    ", con);
+
+            cmd.Parameters.Add("@PersonId", SqlDbType.Int).Value = personId;
+
+            con.Open();
+
+            object? result = cmd.ExecuteScalar();
+
+            return result == null || result == DBNull.Value
+                ? 0
+                : Convert.ToInt32(result);
+        }
+
+        public List<OfficeLocation> GetOfficeLocations(int officeId)
+        {
+            var locations = new List<OfficeLocation>();
+
+            using SqlConnection con =
+                new SqlConnection(_connectionString);
+
+            using SqlCommand cmd =
+                new SqlCommand(
+                    "sp_GetOfficeLocations",
+                    con
+                );
+
+            cmd.CommandType =
+                CommandType.StoredProcedure;
+
+            cmd.Parameters.Add(
+                "@OfficeId",
+                SqlDbType.Int
+            ).Value = officeId;
+
+            con.Open();
+
+            using SqlDataReader reader =
+                cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                locations.Add(
+                    new OfficeLocation
+                    {
+                        LocationId =
+                            Convert.ToInt32(
+                                reader["LocationId"]
+                            ),
+
+                        OfficeId =
+                            Convert.ToInt32(
+                                reader["OfficeId"]
+                            ),
+
+                        LocationName =
+                            reader["LocationName"]
+                            ?.ToString()
+                            ?? ""
+                    }
+                );
+            }
+
+            return locations;
+        }
         public List<Office> GetAllOffices()
         {
             var offices = new List<Office>();

@@ -63,6 +63,42 @@ namespace RiceMillProject.DAL
             return vehicleId;
         }
 
+        public int InsertVehicleWithMapping(Vehicle vehicle)
+        {
+            using var con = new SqlConnection(_connectionString);
+            con.Open();
+            using var transaction = con.BeginTransaction();
+            try
+            {
+                int vehicleId;
+                using (var vehicleCmd = new SqlCommand("sp_InsertVehicle", con, transaction))
+                {
+                    vehicleCmd.CommandType = CommandType.StoredProcedure;
+                    vehicleCmd.Parameters.Add("@VehicleNumber", SqlDbType.NVarChar, 30).Value = vehicle.VehicleNumber;
+                    vehicleId = Convert.ToInt32(vehicleCmd.ExecuteScalar() ?? 0);
+                }
+
+                if (vehicleId <= 0) throw new InvalidOperationException("Vehicle could not be saved.");
+
+                using (var mappingCmd = new SqlCommand("sp_InsertVehicleMapping", con, transaction))
+                {
+                    mappingCmd.CommandType = CommandType.StoredProcedure;
+                    mappingCmd.Parameters.Add("@VehicleId", SqlDbType.Int).Value = vehicleId;
+                    mappingCmd.Parameters.Add("@PartyId", SqlDbType.Int).Value = vehicle.PartyId;
+                    mappingCmd.Parameters.Add("@DriverId", SqlDbType.Int).Value = vehicle.DriverId;
+                    mappingCmd.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                return vehicleId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
         public bool UpdateVehicle(Vehicle vehicle)
         {
             int rowsAffected = 0;

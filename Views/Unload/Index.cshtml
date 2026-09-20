@@ -149,9 +149,18 @@
                                 <td><span class="badge-erp badge-erp-info">@(unload.NumberOfBags ?? 0) Bags</span></td>
                                 <td><span class="badge-erp badge-erp-warning">@unload.Status</span></td>
                                 <td class="text-center pe-4">
-                                    <a asp-action="Verify" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success fw-bold">
-                                        <i class="bi bi-shield-check me-1"></i> Verify & Deductions
-                                    </a>
+                                    @if (unload.Status == "Assigned")
+                                    {
+                                        <a asp-action="Complete" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-primary fw-bold">
+                                            <i class="bi bi-box-arrow-in-down me-1"></i> Complete Unloading
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Verify" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success fw-bold">
+                                            <i class="bi bi-shield-check me-1"></i> View / Deductions
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }

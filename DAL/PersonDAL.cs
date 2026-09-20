@@ -45,6 +45,40 @@ namespace RiceMillProject.DAL
             }
             return persons;
         }
+
+        public List<Person> GetActivePersonsByPost(int postId)
+        {
+            var persons = new List<Person>();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT DISTINCT p.PersonId, p.PersonName,
+                       ISNULL(p.MobileNumber, '') AS MobileNumber,
+                       ISNULL(p.PersonType, '') AS PersonType, p.IsActive
+                FROM dbo.P02_Person p
+                INNER JOIN dbo.P11_PersonDesignatation pd
+                    ON pd.P02_PersonId = p.PersonId AND pd.IsActive = 1
+                INNER JOIN dbo.O12_Designatation d
+                    ON d.DesignationId = pd.O12_DesignationId AND d.IsActive = 1
+                INNER JOIN dbo.O10_Post post
+                    ON post.PostId = d.O10_PostId AND post.IsActive = 1
+                WHERE p.IsActive = 1 AND post.PostId = @PostId
+                ORDER BY p.PersonName", con);
+            cmd.Parameters.Add("@PostId", SqlDbType.Int).Value = postId;
+            con.Open();
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                persons.Add(new Person
+                {
+                    PersonId = Convert.ToInt32(reader["PersonId"]),
+                    PersonName = reader["PersonName"]?.ToString() ?? string.Empty,
+                    MobileNumber = reader["MobileNumber"]?.ToString() ?? string.Empty,
+                    PersonType = reader["PersonType"]?.ToString() ?? string.Empty,
+                    IsActive = Convert.ToBoolean(reader["IsActive"])
+                });
+            }
+            return persons;
+        }
         public List<Person> GetAllPersonsForcheckdublicateMobileRecord()
         {
             var persons = new List<Person>();

@@ -151,6 +151,24 @@ namespace RiceMillProject.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult GetDriverMobileData(string driverName)
+        {
+            try
+            {
+                var driver = _personBal.GetAllPersons().FirstOrDefault(p => p.PersonName == driverName && p.PersonType == "Driver");
+                if (driver != null)
+                {
+                    return Json(new { success = true, mobile = driver.MobileNumber });
+                }
+                return Json(new { success = false });
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
+        }
+
         [HttpPost]
         public IActionResult CreateInward(string vehicleNumber, string driverName, int? itemId, decimal? quantity, string? unit)
         {
@@ -263,6 +281,57 @@ namespace RiceMillProject.Controllers
                 ViewBag.Gates = new SelectList(gates, "GateId", "GateName");
                 ViewBag.InwardTypes = new SelectList(inwardTypes, "InwardTypeId", "InwardTypeName");
                 ViewBag.VehicleTypes = new SelectList(vehicleTypes, "VehicleTypeId", "VehicleTypeName");
+                
+                var parties = _personBal.GetActivePersonsByPost(8);
+                ViewBag.Parties = new SelectList(parties, "PersonId", "PersonName");
+
+                // Fetch Drivers using INNER JOIN: p02 -> P11(IsActive=1) -> o12(IsActive=1) -> o10_post(PostId=9=Driver)
+                // UNION fallback: PersonType = 'Driver' AND p02.IsActive=1
+                var drivers = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+                string constr = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetConnectionString("DefaultConnection") ?? "";
+                using(var con = new Microsoft.Data.SqlClient.SqlConnection(constr))
+                {
+                    string driverQuery = @"
+                        SELECT DISTINCT p.PersonId, p.PersonName 
+                        FROM p02_Person p 
+                        INNER JOIN P11_PersonDesignatation pd ON p.PersonId = pd.P02_PersonId AND pd.IsActive = 1
+                        INNER JOIN o12_designatation o12      ON pd.O12_DesignationId = o12.DesignationId AND o12.IsActive = 1
+                        INNER JOIN o10_post op                ON o12.O10_Postid = op.PostId
+                        WHERE op.PostId = 9 AND p.IsActive = 1
+                        UNION
+                        SELECT p.PersonId, p.PersonName
+                        FROM p02_Person p
+                        WHERE p.PersonType = 'Driver' AND p.IsActive = 1
+                        ORDER BY PersonName";
+                    
+                    using(var cmd = new Microsoft.Data.SqlClient.SqlCommand(driverQuery, con))
+                    {
+                        con.Open();
+                        using(var rdr = cmd.ExecuteReader())
+                        {
+                            while(rdr.Read())
+                            {
+                                drivers.Add(new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = rdr["PersonName"].ToString(), Text = rdr["PersonName"].ToString() });
+                            }
+                        }
+                    }
+                    
+                    // Fetch Vehicles
+                    var vehicles = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+                    using(var cmd = new Microsoft.Data.SqlClient.SqlCommand("SELECT VehicleId, VehicleNumber FROM m_Vehicle WHERE IsActive=1", con))
+                    {
+                        using(var rdr = cmd.ExecuteReader())
+                        {
+                            while(rdr.Read())
+                            {
+                                vehicles.Add(new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = rdr["VehicleNumber"].ToString(), Text = rdr["VehicleNumber"].ToString() });
+                            }
+                        }
+                    }
+                    ViewBag.Vehicles = vehicles;
+                }
+                ViewBag.Drivers = drivers;
+
             }
             catch (Exception)
             {
@@ -271,6 +340,9 @@ namespace RiceMillProject.Controllers
                 ViewBag.Gates = Enumerable.Empty<SelectListItem>();
                 ViewBag.InwardTypes = Enumerable.Empty<SelectListItem>();
                 ViewBag.VehicleTypes = Enumerable.Empty<SelectListItem>();
+                ViewBag.Companies = Enumerable.Empty<SelectListItem>();
+                ViewBag.Drivers = Enumerable.Empty<SelectListItem>();
+                ViewBag.Vehicles = Enumerable.Empty<SelectListItem>();
             }
         }
     }

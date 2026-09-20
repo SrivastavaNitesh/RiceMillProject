@@ -1,9 +1,24 @@
 using System;
-
+using System.Collections.Generic;
 namespace RiceMillProject.Models
 {
     public class UnloadTransaction
     {
+        public int? LocationId { get; set; }
+
+        public string? VehicleNumber { get; set; }
+
+        public string? PartyName { get; set; }
+
+        public string? OfficeName { get; set; }
+
+        public decimal GrossWeight { get; set; }
+
+        public decimal TareWeight { get; set; }
+
+        public decimal NetWeight { get; set; }
+
+        public List<WorkerAllocation> WorkerRows { get; set; } = new();
         public int UnloadId { get; set; }
         [System.ComponentModel.DataAnnotations.MinLength(1, ErrorMessage = "Select the items actually unloaded.")]
         public int[] SelectedItemIds { get; set; } = [];

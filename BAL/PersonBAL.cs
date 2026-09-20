@@ -18,6 +18,10 @@ namespace RiceMillProject.BAL
         {
             return _personDal.GetAllPersons();
         }
+        public List<Person> GetActivePersonsByPost(int postId)
+        {
+            return _personDal.GetActivePersonsByPost(postId);
+        }
         public List<Person> GetEmployeeList(string Mode)
         {
             return _personDal.GetEmployeeList(Mode);

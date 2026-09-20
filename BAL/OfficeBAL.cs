@@ -18,12 +18,18 @@ namespace RiceMillProject.BAL
         {
             return _officeDal.GetAllOffices();
         }
-
+        public List<OfficeLocation> GetOfficeLocations(int officeId)
+        {
+            return _officeDal.GetOfficeLocations(officeId);
+        }
         public List<OfficeLocation> GetAllLocations()
         {
             return _officeDal.GetAllLocations();
         }
-
+        public int GetOfficeIdByPersonId(int personId)
+        {
+            return _officeDal.GetOfficeIdByPersonId(personId);
+        }
         public List<OfficeType> GetActiveOfficeTypes()
         {
             return _officeDal.GetActiveOfficeTypes();

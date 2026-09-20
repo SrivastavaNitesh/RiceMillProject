@@ -1,7 +1,7 @@
 @model IEnumerable<RiceMillProject.Models.InwardHeader>
 @{
     ViewData["Title"] = "Gate Inward Register";
-    bool isWeightman = User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4";
+    bool isWeightman = User.IsWeightmanUser();
 }
 
 <style>
@@ -178,15 +178,11 @@
                                 @if (isWeightman)
                                 {
                                     <td class="text-nowrap">
-                                        @if (item.RSTRequired && !item.IsRSTGenerated)
+                                        @if (item.RSTRequired)
                                         {
                                             <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">
-                                                <i class="bi bi-speedometer2 me-1"></i> Take Weighment
+                                                <i class="bi bi-speedometer2 me-1"></i> @(item.IsRSTGenerated ? "Add Variety RST" : "Take Gross Weight")
                                             </a>
-                                        }
-                                        else if (item.IsRSTGenerated)
-                                        {
-                                            <span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Completed</span>
                                         }
                                         else
                                         {

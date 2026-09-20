@@ -1,97 +1,364 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
 using System.Linq;
+using System.Security.Claims;
 
 namespace RiceMillProject.Controllers
 {
+    [Authorize(Policy = "MethAccess")]
     public class MethController : Controller
     {
         private readonly UnloadTransactionBAL _unloadBal;
-        private readonly LabWorkflowBAL _labWorkflow;
         private readonly BagTypeBAL _bagBal;
-        private readonly OfficeBAL _officeBal;
 
-        public MethController(IConfiguration configuration)
+        public MethController(
+            IConfiguration configuration)
         {
-            _unloadBal = new UnloadTransactionBAL(configuration);
-            _labWorkflow = new LabWorkflowBAL(configuration);
-            _bagBal = new BagTypeBAL(configuration);
-            _officeBal = new OfficeBAL(configuration);
+            _unloadBal =
+                new UnloadTransactionBAL(configuration);
+
+            _bagBal =
+                new BagTypeBAL(configuration);
         }
 
+
+        private int CurrentPersonId()
+        {
+            return int.TryParse(
+                User.FindFirstValue("PersonId"),
+                out var personId)
+                ? personId
+                : 0;
+        }
+
+
+        [HttpGet]
         public IActionResult Index()
         {
-            var unloads = _unloadBal.GetAllUnloading();
-            
-            // Pending Unloads: Assigned to a Meth, but not yet unloaded.
-            var pendingUnloads = unloads.Where(u => u.Status == "Assigned").ToList();
-            
-            // Completed Unloads: Unloaded but waiting for verification, or verified
-            var completedUnloads = unloads.Where(u => u.Status == "Unloaded" || u.Status == "Verified").ToList();
+            int methPersonId =
+                CurrentPersonId();
 
-            ViewBag.PendingUnloads = pendingUnloads;
-            ViewBag.CompletedUnloads = completedUnloads;
+            var assignments =
+                _unloadBal.GetMethAssignments(
+                    methPersonId
+                );
+
+            ViewBag.PendingUnloads =
+                assignments
+                    .Where(x =>
+                        x.Status == "Assigned")
+                    .ToList();
+
+            ViewBag.CompletedUnloads =
+                assignments
+                    .Where(x =>
+                        x.Status == "Unloaded" ||
+                        x.Status == "Verified")
+                    .ToList();
 
             return View();
         }
 
+
         [HttpGet]
         public IActionResult ExecuteUnload(int id)
         {
-            var unload = _unloadBal.GetAllUnloading().FirstOrDefault(u => u.UnloadId == id);
-            if (unload == null) return NotFound();
+            int methPersonId =
+                CurrentPersonId();
 
-            var allPersons = _unloadBal.GetUnloadingPeople();
-            ViewBag.GateMen = new SelectList(allPersons.Where(p => p.PersonType == "Gate Man"), "PersonId", "PersonName");
-            ViewBag.Workers = allPersons.Where(p => p.PersonType == "Worker").ToList();
-            ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName");
-            ViewBag.Locations = new SelectList(_officeBal.GetAllLocations(), "LocationId", "LocationName");
-            ViewBag.UnloadItems = _labWorkflow.GetItems();
-            
+            var unload =
+                _unloadBal
+                    .GetMethAssignments(
+                        methPersonId
+                    )
+                    .FirstOrDefault(
+                        x => x.UnloadId == id
+                    );
+
+            if (unload == null)
+                return NotFound();
+
+            if (unload.Status != "Assigned")
+            {
+                TempData["ErrorMessage"] =
+                    "This unloading has already been submitted.";
+
+                return RedirectToAction(
+                    nameof(Index)
+                );
+            }
+
+            var workers =
+                _unloadBal
+                    .GetWorkersByMeth(
+                        methPersonId
+                    );
+
+            unload.WorkerRows =
+                workers
+                    .Select(x =>
+                        new WorkerAllocation
+                        {
+                            WorkerId =
+                                x.PersonId,
+
+                            WorkerName =
+                                x.PersonName
+                        })
+                    .ToList();
+
+            ViewBag.BagTypes =
+                _bagBal.GetAllBagTypes();
+
             return View(unload);
         }
 
+
         [HttpPost]
-        [Microsoft.AspNetCore.Authorization.Authorize]
         [ValidateAntiForgeryToken]
-        public IActionResult ExecuteUnload(UnloadTransaction unload, int[] SelectedWorkers, string Shift, int ActualLocationId)
+        public IActionResult ExecuteUnload(UnloadTransaction unload)
         {
-            if (unload.BagTypeId.GetValueOrDefault() <= 0 || unload.NumberOfBags.GetValueOrDefault() <= 0 || ActualLocationId <= 0)
-                ModelState.AddModelError("", "Select a bag type, unloading location and a positive number of bags.");
-            if (ModelState.IsValid)
+            int methPersonId = 0;
+
+            var personClaim = User.Claims
+                .FirstOrDefault(c => c.Type == "PersonId")
+                ?.Value;
+
+            if (!string.IsNullOrWhiteSpace(personClaim))
             {
-                try
+                int.TryParse(
+                    personClaim,
+                    out methPersonId
+                );
+            }
+
+
+            if (methPersonId <= 0)
+            {
+                return Forbid();
+            }
+
+
+            // ============================================================
+            // ASSIGNMENT VERIFY
+            // ============================================================
+
+            var saved = _unloadBal
+                .GetMethAssignments(methPersonId)
+                .FirstOrDefault(x =>
+                    x.UnloadId == unload.UnloadId
+                );
+
+
+            if (saved == null)
+            {
+                return NotFound();
+            }
+
+
+            if (saved.MethId != methPersonId)
+            {
+                return Forbid();
+            }
+
+
+            if (saved.Status != "Assigned")
+            {
+                TempData["ErrorMessage"] =
+                    "This unloading assignment is no longer pending.";
+
+                return RedirectToAction(
+                    nameof(Index)
+                );
+            }
+
+
+            // ============================================================
+            // ONLY ACTUAL WORK ROWS
+            // ============================================================
+
+            var workerRows =
+                unload.WorkerRows?
+                .Where(x =>
+                    x.WorkerId > 0 &&
+                    x.BagTypeId.GetValueOrDefault() > 0 &&
+                    x.BagCount > 0
+                )
+                .ToList()
+                ?? new List<WorkerAllocation>();
+
+
+            // ============================================================
+            // VALIDATION
+            // ============================================================
+
+            if (workerRows.Count == 0)
+            {
+                ModelState.Clear();
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Please enter work details for at least one worker."
+                );
+
+                PrepareExecuteUnloadView(
+                    saved,
+                    methPersonId
+                );
+
+                return View(saved);
+            }
+
+
+            foreach (var row in workerRows)
+            {
+                if (row.WorkType != "Load" &&
+                    row.WorkType != "Unload")
                 {
-                    _unloadBal.CompleteWithItems(unload, ActualLocationId, Shift, SelectedWorkers);
-                    return RedirectToAction("PrintSlip", new { id = unload.UnloadId });
+                    ModelState.Clear();
+
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"Please select Loading or Unloading for {row.WorkerName}."
+                    );
+
+                    PrepareExecuteUnloadView(
+                        saved,
+                        methPersonId
+                    );
+
+                    return View(saved);
                 }
-                catch (Microsoft.Data.SqlClient.SqlException ex)
+
+
+                if (row.BagTypeId.GetValueOrDefault() <= 0)
                 {
-                    ModelState.AddModelError("", ex.Number == 50001 ? ex.Message : "Unloading could not be saved. Reload the assignment and try again.");
+                    ModelState.Clear();
+
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"Please select Bag Type for {row.WorkerName}."
+                    );
+
+                    PrepareExecuteUnloadView(
+                        saved,
+                        methPersonId
+                    );
+
+                    return View(saved);
+                }
+
+
+                if (row.BagCount <= 0)
+                {
+                    ModelState.Clear();
+
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"Bag Count must be greater than zero for {row.WorkerName}."
+                    );
+
+                    PrepareExecuteUnloadView(
+                        saved,
+                        methPersonId
+                    );
+
+                    return View(saved);
+                }
+
+
+                if (row.PerBagCharge < 0)
+                {
+                    ModelState.Clear();
+
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"Per Bag Charge cannot be negative for {row.WorkerName}."
+                    );
+
+                    PrepareExecuteUnloadView(
+                        saved,
+                        methPersonId
+                    );
+
+                    return View(saved);
                 }
             }
 
-            var allPersons = _unloadBal.GetUnloadingPeople();
-            ViewBag.GateMen = new SelectList(allPersons.Where(p => p.PersonType == "Gate Man"), "PersonId", "PersonName", unload.GateManId);
-            ViewBag.Workers = allPersons.Where(p => p.PersonType == "Worker").ToList();
-            ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName", unload.BagTypeId);
-            ViewBag.Locations = new SelectList(_officeBal.GetAllLocations(), "LocationId", "LocationName", ActualLocationId);
-            ViewBag.UnloadItems = _labWorkflow.GetItems();
-            ViewBag.SelectedWorkers = SelectedWorkers;
-            ViewBag.SelectedShift = Shift;
 
-            return View(unload);
+            // ============================================================
+            // SAVE
+            // ============================================================
+
+            try
+            {
+                _unloadBal.CompleteMethUnload(
+                    unload.UnloadId,
+                    methPersonId,
+                    workerRows
+                );
+
+
+                TempData["SuccessMessage"] =
+                    $"RST {saved.RSTNumber} work entry saved successfully.";
+
+
+                // IMPORTANT:
+                // Same ExecuteUnload page return nahi karna.
+                // Dashboard par redirect karna hai.
+                return RedirectToAction(
+                    nameof(Index)
+                );
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                ModelState.Clear();
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    ex.Message
+                );
+            }
+            catch (Exception ex)
+            {
+                ModelState.Clear();
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    ex.Message
+                );
+            }
+
+
+            PrepareExecuteUnloadView(
+                saved,
+                methPersonId
+            );
+
+            return View(saved);
         }
-
-        [HttpGet]
-        public IActionResult PrintSlip(int id)
+        private void PrepareExecuteUnloadView(
+      UnloadTransaction unload,
+      int methPersonId)
         {
-            var unload = _unloadBal.GetAllUnloading().FirstOrDefault(u => u.UnloadId == id);
-            if (unload == null) return NotFound();
-            return View(unload);
+            var workers =
+                _unloadBal.GetWorkersByMeth(
+                    methPersonId
+                );
+
+            unload.WorkerRows = workers
+                .Select(w => new WorkerAllocation
+                {
+                    WorkerId = w.PersonId,
+                    WorkerName = w.PersonName ?? ""
+                })
+                .ToList();
+
+            ViewBag.BagTypes =
+                _bagBal.GetAllBagTypes();
         }
     }
 }
