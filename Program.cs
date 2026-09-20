@@ -1,12 +1,30 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using RiceMillProject.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddAuthorization(options => options.AddPolicy("LabAccess", policy =>
-    policy.RequireAuthenticatedUser().RequireAssertion(context =>
-        context.User.HasClaim("PostId", "1") || context.User.HasClaim("PostId", "5"))));
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("GatemanAccess", policy => policy.RequireAuthenticatedUser()
+        .RequireAssertion(context => context.User.IsGatemanUser() || context.User.IsAdminUser()));
+    options.AddPolicy("WeightmanAccess", policy => policy.RequireAuthenticatedUser()
+        .RequireAssertion(context => context.User.IsWeightmanUser() || context.User.IsAdminUser()));
+    options.AddPolicy("SupervisorAccess", policy => policy.RequireAuthenticatedUser()
+        .RequireAssertion(context => context.User.IsSupervisorUser() || context.User.IsAdminUser()));
+    options.AddPolicy("LabAccess", policy => policy.RequireAuthenticatedUser()
+        .RequireAssertion(context => context.User.IsLabUser() || context.User.IsAdminUser()));
+    options.AddPolicy(
+    "MethAccess",
+    policy => policy
+        .RequireAuthenticatedUser()
+        .RequireAssertion(context =>
+            context.User.IsMethUser() ||
+            context.User.IsAdminUser()
+        )
+);
+});
 
 // Add Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

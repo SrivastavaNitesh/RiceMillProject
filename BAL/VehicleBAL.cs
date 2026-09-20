@@ -24,6 +24,11 @@ namespace RiceMillProject.BAL
             return _vehicleDal.InsertVehicle(vehicle);
         }
 
+        public int AddVehicleWithMapping(Vehicle vehicle)
+        {
+            return _vehicleDal.InsertVehicleWithMapping(vehicle);
+        }
+
         public bool UpdateVehicle(Vehicle vehicle)
         {
             return _vehicleDal.UpdateVehicle(vehicle);

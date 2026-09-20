@@ -1,121 +1,186 @@
 @{
     ViewData["Title"] = "Meth Dashboard";
-    var pendingUnloads = ViewBag.PendingUnloads as List<RiceMillProject.Models.UnloadTransaction>;
-    var completedUnloads = ViewBag.CompletedUnloads as List<RiceMillProject.Models.UnloadTransaction>;
+
+    var pending =
+        ViewBag.PendingUnloads
+        as List<RiceMillProject.Models.UnloadTransaction>
+        ?? new();
+
+    var completed =
+        ViewBag.CompletedUnloads
+        as List<RiceMillProject.Models.UnloadTransaction>
+        ?? new();
 }
 
-<!-- Page Header -->
 <div class="erp-page-header">
     <div class="erp-page-title-group">
         <div class="erp-page-icon">
-            <i class="bi bi-person-badge-fill"></i>
+            <i class="bi bi-people-fill"></i>
         </div>
+
         <div>
-            <h3 class="erp-page-title">METH (LABOUR HEAD) DASHBOARD</h3>
-            <p class="erp-page-subtitle">Assigned unloading trucks, bag recording, and labour slip generation</p>
+            <h3 class="erp-page-title">
+                METH DASHBOARD
+            </h3>
+
+            <p class="erp-page-subtitle">
+                Your assigned unloading work
+            </p>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <!-- Pending Unloads (Assigned to Meth) -->
-    <div class="col-md-6 mb-4">
-        <div class="erp-card h-100 mb-0">
-            <div class="erp-card-header">
-                <span><i class="bi bi-clock-history text-primary me-2"></i> Assigned Trucks (Pending Unload)</span>
-            </div>
-            <div class="erp-card-body p-0">
-                <div class="table-responsive">
-                    <table class="erp-table">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">RST Number</th>
-                                <th>Supervisor</th>
-                                <th class="text-center pe-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if(pendingUnloads != null && pendingUnloads.Any())
-                            {
-                                foreach(var unload in pendingUnloads)
-                                {
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-primary">@unload.RSTNumber</td>
-                                        <td>@unload.SupervisorName</td>
-                                        <td class="text-center pe-4">
-                                            <a asp-action="ExecuteUnload" asp-route-id="@unload.UnloadId" class="btn-erp-primary btn-sm">
-                                                <i class="bi bi-play-circle me-1"></i> Execute Unload
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="3" class="text-center py-4 text-muted">No pending unloads</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="erp-card mb-0">
+            <div class="erp-card-body">
+                <small class="text-muted">
+                    Pending Work
+                </small>
+
+                <h2 class="fw-bold text-primary mb-0">
+                    @pending.Count
+                </h2>
             </div>
         </div>
     </div>
 
-    <!-- Completed Unloads -->
-    <div class="col-md-6 mb-4">
-        <div class="erp-card h-100 mb-0">
-            <div class="erp-card-header">
-                <span><i class="bi bi-check-circle text-success me-2"></i> Completed Unloads</span>
-            </div>
-            <div class="erp-card-body p-0">
-                <div class="table-responsive">
-                    <table class="erp-table">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">RST Number</th>
-                                <th>Bags</th>
-                                <th>Status</th>
-                                <th class="text-center pe-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if(completedUnloads != null && completedUnloads.Any())
-                            {
-                                foreach(var unload in completedUnloads)
-                                {
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-primary">@unload.RSTNumber</td>
-                                        <td><span class="badge-erp badge-erp-info">@unload.NumberOfBags Bags</span></td>
-                                        <td>
-                                            @if(unload.Status == "Verified")
-                                            {
-                                                <span class="badge-erp badge-erp-success">Verified</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge-erp badge-erp-warning">Pending Verify</span>
-                                            }
-                                        </td>
-                                        <td class="text-center pe-4">
-                                            <a asp-action="PrintSlip" asp-route-id="@unload.UnloadId" class="btn btn-sm btn-outline-success">
-                                                <i class="bi bi-printer me-1"></i> Print Slip
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">No completed unloads</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+    <div class="col-md-4">
+        <div class="erp-card mb-0">
+            <div class="erp-card-body">
+                <small class="text-muted">
+                    Completed Work
+                </small>
+
+                <h2 class="fw-bold text-success mb-0">
+                    @completed.Count
+                </h2>
             </div>
         </div>
     </div>
+
+</div>
+
+
+<div class="erp-card">
+
+    <div class="erp-card-header">
+        <span>
+            <i class="bi bi-truck me-2 text-primary"></i>
+            Assigned RST
+        </span>
+    </div>
+
+    <div class="erp-card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="erp-table">
+
+                <thead>
+                    <tr>
+                        <th>RST Number</th>
+                        <th>Vehicle</th>
+                        <th>Party</th>
+                        <th>Material</th>
+                        <th>Location</th>
+                        <th>Supervisor</th>
+                        <th>Status</th>
+                        <th class="text-center">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                @if (pending.Any())
+                {
+                    foreach (var item in pending)
+                    {
+                        <tr>
+
+                            <td class="fw-bold text-primary">
+                                @item.RSTNumber
+                            </td>
+
+                            <td>
+                                @item.VehicleNumber
+                            </td>
+
+                            <td>
+                                @item.PartyName
+                            </td>
+
+                            <td>
+                                @item.ItemName
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @item.LocationName
+                                </span>
+                            </td>
+
+                            <td>
+                                @item.SupervisorName
+                            </td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    Assigned
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+
+                                <a asp-controller="Meth"
+                                   asp-action="ExecuteUnload"
+                                   asp-route-id="@item.UnloadId"
+                                   class="btn-erp-primary">
+
+                                    <i class="bi bi-play-circle me-1"></i>
+
+                                    Take Action
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8"
+                            class="text-center py-5 text-muted">
+
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+
+                            No unloading work assigned.
+
+                        </td>
+                    </tr>
+                }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>

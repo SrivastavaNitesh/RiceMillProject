@@ -352,13 +352,9 @@
                      ================================================= -->
 
                 @{
-                    bool isAdmin = User.IsInRole("Admin");
-                    bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "2")
-                                        && !isAdmin 
-                                        && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
-                    bool isWeightmanOnly = (User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4")
-                                          && !isAdmin
-                                          && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
+                    bool isAdmin = User.IsAdminUser();
+                    bool isGatemanOnly = User.IsGatemanUser();
+                    bool isWeightmanOnly = User.IsWeightmanUser();
                 }
 
                 <ul class="nav flex-column mb-auto">

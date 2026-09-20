@@ -39,7 +39,7 @@
                 <thead>
                     <tr>
                         <th>S.N.</th><th>Date</th><th>RST</th><th>Vehicle No.</th><th>Party Name</th><th>Material Name</th>
-                        <th>Total Bags</th><th>Gross Wt.</th><th>Tare Wt.</th><th>Net Wt.</th><th>Wt. Charge</th><th>Inward/Outward</th>
+                        <th>Total Bags</th><th>Gross Wt.</th><th>Tare Wt.</th><th>Net Wt.</th><th>Wt. Charge</th><th>Inward/Outward</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,13 +52,23 @@
                         <td class="fw-semibold text-primary">@item.RSTNumber</td>
                         <td>@item.VehicleNumber</td>
                         <td>@item.PartyName</td>
-                        <td class="text-muted">&mdash;</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.ItemName) ? "—" : item.ItemName)</td>
                         <td>@(item.TotalBags?.ToString() ?? "—")</td>
                         <td>@item.GrossWeight.ToString("0.##")</td>
                         <td>@(item.TareWeight?.ToString("0.##") ?? "—")</td>
                         <td>@(item.NetWeight?.ToString("0.##") ?? "—")</td>
                         <td>@item.WeighmentCharge.ToString("0.##")</td>
                         <td>@item.InwardOutward</td>
+                        <td>
+                            @if (item.Status == "WaitingForTare")
+                            {
+                                <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-danger">Take Tare</a>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-dark border">@item.Status</span>
+                            }
+                        </td>
                     </tr>
                 }
                 </tbody>

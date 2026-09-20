@@ -22,9 +22,20 @@ namespace RiceMillProject.BAL
             return _unloadDal.GetAllUnloading();
         }
 
-        public int AssignUnloading(string rstNumber, int supervisorId, int methId, int? itemId = null)
+        public int AssignUnloading(
+    string rstNumber,
+    int supervisorId,
+    int methId,
+    int? itemId,
+    int locationId)
         {
-            return _unloadDal.AssignUnloading(rstNumber, supervisorId, methId, itemId);
+            return _unloadDal.AssignUnloading(
+                rstNumber,
+                supervisorId,
+                methId,
+                itemId,
+                locationId
+            );
         }
 
         public bool SubmitUnloading(int unloadId, int gateManId, int bagTypeId, int numberOfBags)
@@ -45,6 +56,27 @@ namespace RiceMillProject.BAL
         public bool SaveWorkerAllocation(int unloadId, int workerId, decimal palledariAmount)
         {
             return _unloadDal.SaveWorkerAllocation(unloadId, workerId, palledariAmount);
+        }
+        public List<UnloadTransaction> GetMethAssignments(int methPersonId)
+        {
+            return _unloadDal.GetMethAssignments(methPersonId);
+        }
+
+        public List<Person> GetWorkersByMeth(int methPersonId)
+        {
+            return _unloadDal.GetWorkersByMeth(methPersonId);
+        }
+
+        public void CompleteMethUnload(
+            int unloadId,
+            int methPersonId,
+            List<WorkerAllocation> workerRows)
+        {
+            _unloadDal.CompleteMethUnload(
+                unloadId,
+                methPersonId,
+                workerRows
+            );
         }
     }
 }

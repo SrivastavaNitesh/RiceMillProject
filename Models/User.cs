@@ -16,6 +16,7 @@ namespace RiceMillProject.Models
         public string PersonName { get; set; } = string.Empty;
         public int o10_postid { get; set; }
         public int sa10_usertypeid { get; set; }
+        public int OfficeId { get; set; }
         public string Role { get; set; } = string.Empty;
         public string LayoutName { get; set; } = "_Layout";
     }

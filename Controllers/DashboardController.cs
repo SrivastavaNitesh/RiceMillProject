@@ -19,21 +19,18 @@ namespace RiceMillProject.Controllers
 
         public IActionResult Index()
         {
-            bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "2")
-                                && !User.IsInRole("Admin") 
-                                && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
-            if (isGatemanOnly)
+            if (User.IsGatemanUser())
             {
                 return RedirectToAction("Dashboard", "Gateman");
             }
 
-            bool isWeightmanOnly = (User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4")
-                                  && !User.IsInRole("Admin")
-                                  && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
-            if (isWeightmanOnly)
+            if (User.IsWeightmanUser())
             {
                 return RedirectToAction("Dashboard", "GateEntry");
             }
+
+            if (User.IsSupervisorUser()) return RedirectToAction("Index", "Unload");
+            if (User.IsLabUser()) return RedirectToAction("Index", "Lab");
 
             var stats = new DashboardStats();
             

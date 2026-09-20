@@ -1,0 +1,91 @@
+@model RiceMillProject.Models.UnloadTransaction
+@{
+    ViewData["Title"] = "Complete Supervisor Unloading Report";
+}
+
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon"><i class="bi bi-clipboard2-check-fill"></i></div>
+        <div>
+            <h3 class="erp-page-title">SUPERVISOR UNLOADING REPORT</h3>
+            <p class="erp-page-subtitle">Complete unloading details against the same Weightman RST</p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn-erp-outline"><i class="bi bi-arrow-left me-1"></i> Back</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="erp-card">
+            <div class="erp-card-header d-flex justify-content-between">
+                <span><i class="bi bi-truck me-2"></i> Unloading Completion</span>
+                <span class="badge bg-primary">RST @Model.RSTNumber</span>
+            </div>
+            <div class="erp-card-body">
+                <form asp-action="Complete" method="post" class="row g-3">
+                    <input asp-for="UnloadId" type="hidden" />
+                    <input asp-for="RSTNumber" type="hidden" />
+                    <input asp-for="ItemId" type="hidden" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Material / Variety</label>
+                        <input class="form-control bg-light fw-bold" value="@Model.ItemName" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="MethId" class="form-label">Assigned Meth</label>
+                        <input class="form-control bg-light" value="@Model.MethName" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Unloading Location <span class="text-danger">*</span></label>
+                        <select name="ActualLocationId" class="form-select" asp-items="ViewBag.Locations" required>
+                            <option value="">-- Select Location --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="GateManId" class="form-label">Gate Man Witness <span class="text-danger">*</span></label>
+                        <select asp-for="GateManId" class="form-select" asp-items="ViewBag.GateMen" required>
+                            <option value="">-- Select Gate Man --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="BagTypeId" class="form-label">Bag Type <span class="text-danger">*</span></label>
+                        <select asp-for="BagTypeId" class="form-select" asp-items="ViewBag.BagTypes" required>
+                            <option value="">-- Select Bag Type --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="NumberOfBags" class="form-label">Total Bags <span class="text-danger">*</span></label>
+                        <input asp-for="NumberOfBags" type="number" min="1" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Shift <span class="text-danger">*</span></label>
+                        <select name="Shift" class="form-select" required>
+                            <option value="Day" selected="@(ViewBag.SelectedShift as string != "Night")">Day</option>
+                            <option value="Night" selected="@(ViewBag.SelectedShift as string == "Night")">Night</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Workers</label>
+                        <div class="border rounded p-2" style="max-height:150px;overflow:auto">
+                            @foreach (var worker in (ViewBag.Workers as List<RiceMillProject.Models.Person> ?? []))
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="SelectedWorkers" value="@worker.PersonId" id="worker-@worker.PersonId"
+                                           checked="@(ViewBag.SelectedWorkers is int[] selected && selected.Contains(worker.PersonId))" />
+                                    <label class="form-check-label" for="worker-@worker.PersonId">@worker.PersonName</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-12 border-top pt-3 d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn-erp-secondary">Cancel</a>
+                        <button type="submit" class="btn-erp-primary"><i class="bi bi-check-circle me-1"></i> Complete Report & Send for Tare</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); } }

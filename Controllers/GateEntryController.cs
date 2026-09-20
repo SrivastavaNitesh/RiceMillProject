@@ -10,13 +10,14 @@ using System.Security.Claims;
 
 namespace RiceMillProject.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "WeightmanAccess")]
     public class GateEntryController : Controller
     {
         private readonly GateEntryBAL _gateBal;
         private readonly VehicleBAL _vehicleBal;
         private readonly PersonBAL _personBal;
         private readonly OfficeBAL _officeBal;
+        private readonly ItemBAL _itemBal;
         private readonly BusinessLayer _busLayer;
 
         public GateEntryController(IConfiguration configuration)
@@ -25,6 +26,7 @@ namespace RiceMillProject.Controllers
             _vehicleBal = new VehicleBAL(configuration);
             _personBal = new PersonBAL(configuration);
             _officeBal = new OfficeBAL(configuration);
+            _itemBal = new ItemBAL(configuration);
             _busLayer = new BusinessLayer(configuration);
         }
 
@@ -76,7 +78,7 @@ namespace RiceMillProject.Controllers
                     var details = _gateBal.GetInwardDetailsById(inwardId.Value);
                     if (details.Rows.Count == 0)
                     {
-                        TempData["ErrorMessage"] = "Selected inward entry is unavailable or its RST is already generated.";
+                TempData["ErrorMessage"] = "Selected inward entry is unavailable or closed for new RST entries.";
                         return RedirectToAction("Report", "Gateman");
                     }
 
@@ -122,9 +124,11 @@ namespace RiceMillProject.Controllers
                     entry.VehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : 0;
                     entry.DriverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : 0;
                 }
-                if (ModelState.IsValid || entry.GrossWeight > 0)
+                if (ModelState.IsValid)
                 {
                     string generatedRST = _gateBal.CreateGateEntry(entry);
+                    if (string.IsNullOrWhiteSpace(generatedRST))
+                        throw new InvalidOperationException("RST could not be generated. Please reload and try again.");
                     TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {generatedRST}";
                     return RedirectToAction("Dashboard");
                 }
@@ -134,8 +138,9 @@ namespace RiceMillProject.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "An error occurred while saving entry: " + ex.Message;
-                return RedirectToAction("Create");
+                ModelState.AddModelError(string.Empty, "Entry could not be saved: " + ex.Message);
+                PopulateDropdowns(entry);
+                return View(entry);
             }
         }
 
@@ -148,14 +153,15 @@ namespace RiceMillProject.Controllers
 
                 ViewBag.Vehicles = new SelectList(_vehicleBal.GetAllVehicles(), "VehicleId", "VehicleNumber", entry.VehicleId);
                 
-                var allPersons = _personBal.GetAllPersons();
-                ViewBag.Parties = new SelectList(allPersons, "PersonId", "PersonName", entry.PartyId);
+                var parties = _personBal.GetActivePersonsByPost(8);
+                ViewBag.Parties = new SelectList(parties, "PersonId", "PersonName", entry.PartyId);
                 
                 var driversList = _gateBal.GetDriversWithMobile();
                 ViewBag.Drivers = new SelectList(driversList, "DriverId", "DriverNameMobile", entry.DriverId);
                 
                 DataTable dtOffice = _busLayer.GetAllMainoffice();
                 ViewBag.Offices = Allclass.CreateDropdown(dtOffice);
+                ViewBag.Items = new SelectList(_itemBal.GetAllItems().Where(i => i.IsActive), "ItemId", "ItemName", entry.ItemId);
             }
             catch (Exception)
             {
@@ -164,6 +170,7 @@ namespace RiceMillProject.Controllers
                 ViewBag.Parties = Enumerable.Empty<SelectListItem>();
                 ViewBag.Drivers = Enumerable.Empty<SelectListItem>();
                 ViewBag.Offices = Enumerable.Empty<SelectListItem>();
+                ViewBag.Items = Enumerable.Empty<SelectListItem>();
             }
         }
 

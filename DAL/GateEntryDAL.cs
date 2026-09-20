@@ -34,6 +34,8 @@ namespace RiceMillProject.DAL
                                 RSTNumber = reader["RSTNumber"].ToString() ?? "",
                                 InwardNo = reader["InwardNo"]?.ToString() ?? "",
                                 GrossWeight = Convert.ToDecimal(reader["GrossWeight"]),
+                                ItemId = HasColumn(reader, "ItemId") && reader["ItemId"] != DBNull.Value ? Convert.ToInt32(reader["ItemId"]) : 0,
+                                ItemName = HasColumn(reader, "ItemName") && reader["ItemName"] != DBNull.Value ? reader["ItemName"].ToString() ?? "" : "",
                                 TareWeight = reader["TareWeight"] != DBNull.Value ? Convert.ToDecimal(reader["TareWeight"]) : null,
                                 NetWeight = reader["NetWeight"] != DBNull.Value ? Convert.ToDecimal(reader["NetWeight"]) : null,
                                 TargetOfficeId = reader["TargetOfficeId"] != DBNull.Value ? Convert.ToInt32(reader["TargetOfficeId"]) : null,
@@ -69,8 +71,10 @@ namespace RiceMillProject.DAL
                     cmd.Parameters.AddWithValue("@PartyId", entry.PartyId > 0 ? entry.PartyId : 1);
                     cmd.Parameters.AddWithValue("@DriverId", entry.DriverId > 0 ? entry.DriverId : 1);
                     cmd.Parameters.AddWithValue("@GrossWeight", entry.GrossWeight);
+                    cmd.Parameters.AddWithValue("@ItemId", entry.ItemId);
                     cmd.Parameters.AddWithValue("@TargetOfficeId", (object?)entry.TargetOfficeId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", entry.CreatedBy > 0 ? entry.CreatedBy : 1);
+                    cmd.Parameters.AddWithValue("@WeightCharge", entry.WeighmentCharge);
                     
                     con.Open();
                     object? result = cmd.ExecuteScalar();
@@ -147,7 +151,7 @@ namespace RiceMillProject.DAL
                     LEFT JOIN m_Vehicle v ON UPPER(TRIM(h.VehicleNo)) = UPPER(TRIM(v.VehicleNumber))
                     LEFT JOIN p02_Person d ON LOWER(TRIM(h.DriverName)) = LOWER(TRIM(d.PersonName))
                     WHERE TRIM(h.InwardNo) = TRIM(@InwardNo)
-                      AND h.IsRSTGenerated = 0";
+                      AND ISNULL(h.RSTEntryCompleted, 0) = 0";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@InwardNo", inwardNo ?? "");
@@ -158,6 +162,13 @@ namespace RiceMillProject.DAL
                 }
             }
             return dt;
+        }
+
+        private static bool HasColumn(SqlDataReader reader, string columnName)
+        {
+            for (var i = 0; i < reader.FieldCount; i++)
+                if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
         }
 
         public DataTable GetInwardDetailsById(int inwardId)
@@ -175,7 +186,7 @@ namespace RiceMillProject.DAL
                     LEFT JOIN p02_Person p ON h.PartyId = p.PersonId
                     LEFT JOIN m_Vehicle v ON UPPER(TRIM(h.VehicleNo)) = UPPER(TRIM(v.VehicleNumber))
                     LEFT JOIN p02_Person d ON LOWER(TRIM(h.DriverName)) = LOWER(TRIM(d.PersonName))
-                    WHERE h.InwardId = @InwardId AND it.RSTRequired = 1 AND h.IsRSTGenerated = 0;";
+                    WHERE h.InwardId = @InwardId AND it.RSTRequired = 1 AND ISNULL(h.RSTEntryCompleted, 0) = 0;";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.Add("@InwardId", SqlDbType.Int).Value = inwardId;

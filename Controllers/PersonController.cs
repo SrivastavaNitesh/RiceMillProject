@@ -56,9 +56,34 @@ namespace RiceMillProject.Controllers
 
             if (ModelState.IsValid)
             {
-                _personBal.AddPerson(person);
-                return RedirectToAction("Index");
+                try
+                {
+                    int newId = _personBal.AddPerson(person);
+                    if (newId > 0)
+                    {
+                        TempData["SuccessMessage"] = $"{GetPersonRoleName(person.PersonType)} '{person.PersonName}' saved successfully!";
+                        return RedirectToAction("Index");
+                    }
+
+                    ModelState.AddModelError(string.Empty, "Database did not return the new person ID.");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
             }
+
+            var errors = ModelState.Values
+                .SelectMany(value => value.Errors)
+                .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage)
+                    ? error.Exception?.Message
+                    : error.ErrorMessage)
+                .Where(message => !string.IsNullOrWhiteSpace(message))
+                .Distinct()
+                .ToList();
+            TempData["ErrorMessage"] = errors.Count > 0
+                ? string.Join(" ", errors)
+                : "Person could not be saved. Please verify the entered details.";
 
             DataTable dt = _BusLayer.GetPost();
             ViewBag.Post = Allclass.CreateDropdown(dt);
@@ -146,6 +171,17 @@ namespace RiceMillProject.Controllers
             dt = _BusLayer.ManageDepartmentMaster("GETALL");
             ViewBag.Departments = Allclass.CreateDropdown(dt);
             return View(person);
+        }
+
+        private string GetPersonRoleName(string? personType)
+        {
+            if (!int.TryParse(personType, out int postId)) return "Person";
+            DataTable posts = _BusLayer.GetPost();
+            DataRow? row = posts.AsEnumerable().FirstOrDefault(item =>
+                item.Table.Columns.Contains("PostId") && Convert.ToInt32(item["PostId"]) == postId);
+            return row != null && row.Table.Columns.Contains("PostName")
+                ? row["PostName"]?.ToString() ?? "Person"
+                : "Person";
         }
 
         [HttpGet]

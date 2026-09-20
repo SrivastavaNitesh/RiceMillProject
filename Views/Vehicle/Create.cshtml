@@ -47,17 +47,19 @@
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Linked Party / Owner</label>
-                                <select name="PartyId" class="form-select" asp-items="ViewBag.Parties">
-                                    <option value="">-- Select Existing Party --</option>
+                                <label asp-for="PartyId" class="form-label">Party / Supplier <span class="text-danger">*</span></label>
+                                <select asp-for="PartyId" class="form-select" asp-items="ViewBag.Parties" required>
+                                    <option value="">-- Select Party / Supplier --</option>
                                 </select>
+                                <span asp-validation-for="PartyId" class="text-danger small"></span>
                                 <small class="text-muted"><a asp-controller="Person" asp-action="Create" target="_blank">Add New Party <i class="bi bi-box-arrow-up-right"></i></a></small>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Default Driver</label>
-                                <select name="DriverId" class="form-select" asp-items="ViewBag.Drivers">
+                                <label asp-for="DriverId" class="form-label">Default Driver <span class="text-danger">*</span></label>
+                                <select asp-for="DriverId" class="form-select" asp-items="ViewBag.Drivers" required>
                                     <option value="">-- Select Existing Driver --</option>
                                 </select>
+                                <span asp-validation-for="DriverId" class="text-danger small"></span>
                                 <small class="text-muted"><a asp-controller="Person" asp-action="Create" target="_blank">Add New Driver <i class="bi bi-box-arrow-up-right"></i></a></small>
                             </div>
                         </div>

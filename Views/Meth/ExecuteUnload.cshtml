@@ -1,113 +1,2174 @@
 @model RiceMillProject.Models.UnloadTransaction
+@using RiceMillProject.Models
+
 @{
-    ViewData["Title"] = "Execute Unload";
+    ViewData["Title"] = "Execute Unloading";
+
+    var bagTypes =
+        ViewBag.BagTypes as List<BagType>
+        ?? new List<BagType>();
+
+    var workers = Model.WorkerRows
+        .GroupBy(x => new
+        {
+            x.WorkerId,
+            x.WorkerName
+        })
+        .Select(g => g.First())
+        .ToList();
 }
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-premium-blue">
-                <h5 class="mb-0">Execute Unload & Generate Slip</h5>
+
+<div style="
+    width:100%;
+    max-width:100%;
+    min-height:100%;
+    background:#f4f7fb;
+    box-sizing:border-box;
+    overflow:visible;
+    padding-bottom:20px;
+">
+
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
+    <div style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:15px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+    ">
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+        ">
+
+            <div style="
+                width:44px;
+                height:44px;
+                border-radius:10px;
+                background:#e8f0ff;
+                color:#0d6efd;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:20px;
+                flex-shrink:0;
+            ">
+                <i class="bi bi-truck-flatbed"></i>
             </div>
-            <div class="card-body">
-                <div class="alert alert-secondary border-0 shadow-sm rounded-3 mb-4">
-                    <strong>RST Number:</strong> <span class="text-primary fw-bold">@Model.RSTNumber</span> | 
-                    <strong>Supervisor:</strong> @Model.SupervisorName
+
+            <div>
+                <h3 style="
+                    margin:0;
+                    font-size:21px;
+                    font-weight:750;
+                    color:#172033;
+                ">
+                    EXECUTE UNLOADING
+                </h3>
+
+                <div style="
+                    margin-top:3px;
+                    color:#697386;
+                    font-size:13px;
+                ">
+                    Worker-wise loading / unloading and bag-wise palledari entry
+                </div>
+            </div>
+
+        </div>
+
+
+        <a asp-action="Index"
+           style="
+                display:inline-flex;
+                align-items:center;
+                gap:6px;
+                min-height:38px;
+                padding:8px 14px;
+                background:#ffffff;
+                border:1px solid #ccd4df;
+                border-radius:8px;
+                color:#344054;
+                font-weight:600;
+                font-size:13px;
+                text-decoration:none;
+           ">
+
+            <i class="bi bi-arrow-left"></i>
+            Back
+
+        </a>
+
+    </div>
+
+
+    <!-- VALIDATION -->
+
+    <div asp-validation-summary="ModelOnly"
+         style="
+            color:#b42318;
+            font-size:13px;
+            margin-bottom:12px;
+         ">
+    </div>
+
+
+    <!-- =========================================================
+         RST DETAILS
+         ========================================================= -->
+
+    <div style="
+        width:100%;
+        background:#ffffff;
+        border:1px solid #e1e6ee;
+        border-radius:12px;
+        overflow:hidden;
+        margin-bottom:18px;
+        box-shadow:0 2px 8px rgba(16,24,40,.04);
+    ">
+
+        <div style="
+            min-height:48px;
+            padding:12px 18px;
+            border-bottom:1px solid #e7ebf0;
+            display:flex;
+            align-items:center;
+            font-size:14px;
+            font-weight:700;
+            color:#26344d;
+        ">
+
+            <i class="bi bi-receipt me-2"
+               style="color:#0d6efd;">
+            </i>
+
+            RST / Assignment Details
+
+        </div>
+
+
+        <div style="padding:16px 18px;">
+
+            <div class="row g-3">
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        RST Number
+                    </label>
+
+                    <input type="text"
+                           value="@Model.RSTNumber"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                color:#202939;
+                                font-family:monospace;
+                                font-weight:700;
+                                outline:none;
+                           " />
+
                 </div>
 
-                <form asp-action="ExecuteUnload" method="post">
-                    <input type="hidden" asp-for="UnloadId" />
-                    <input type="hidden" asp-for="RSTNumber" />
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <fieldset class="border rounded p-3 mb-3">
-                        <legend class="float-none w-auto px-2 fs-6 fw-bold">Items actually unloaded (select multiple)</legend>
-                        <p class="text-muted">Only these items and categories will be available to the lab for this RST.</p>
-                        @if (ViewBag.UnloadItems is List<RiceMillProject.Models.LabItemOption> unloadItems)
-                        {
-                            @foreach (var category in unloadItems.GroupBy(i => i.CategoryId))
-                            {
-                                <div class="fw-bold mt-2">@category.First().CategoryName</div>
-                                @foreach (var item in category)
-                                {
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" name="SelectedItemIds" value="@item.ItemId" id="unload-item-@item.ItemId" checked="@Model.SelectedItemIds.Contains(item.ItemId)" />
-                                        <label class="form-check-label" for="unload-item-@item.ItemId">@item.ItemName</label>
-                                    </div>
-                                }
-                            }
-                            @if (unloadItems.Count == 0) { <p class="text-warning">Create item categories and items before submitting unloading.</p> }
-                        }
-                        <span asp-validation-for="SelectedItemIds" class="text-danger"></span>
-                    </fieldset>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Actual Unloaded Location</label>
-                            <select name="ActualLocationId" class="form-select" asp-items="ViewBag.Locations" required>
-                                <option value="">-- Select Location --</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="GateManId" class="form-label fw-bold">Gate Man (Witness)</label>
-                            <select asp-for="GateManId" class="form-select" asp-items="ViewBag.GateMen" required>
-                                <option value="">-- Select Gate Man --</option>
-                            </select>
-                            <span asp-validation-for="GateManId" class="text-danger"></span>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="BagTypeId" class="form-label fw-bold">Bag Type</label>
-                            <select asp-for="BagTypeId" class="form-select" asp-items="ViewBag.BagTypes" required>
-                                <option value="">-- Select Bag Type --</option>
-                            </select>
-                            <span asp-validation-for="BagTypeId" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="NumberOfBags" class="form-label fw-bold">Number of Bags Unloaded</label>
-                            <input asp-for="NumberOfBags" type="number" class="form-control" required />
-                            <span asp-validation-for="NumberOfBags" class="text-danger"></span>
-                        </div>
-                    </div>
+                <div class="col-xl-3 col-lg-4 col-md-6">
 
-                    <div class="row border-top pt-3 mt-3">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold text-primary">Assign Workers (Palledari)</label>
-                            <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto;">
-                                @if (ViewBag.Workers != null)
-                                {
-                                    foreach (var worker in ViewBag.Workers)
-                                    {
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="SelectedWorkers" value="@worker.PersonId" id="worker_@worker.PersonId" checked="@(ViewBag.SelectedWorkers is int[] selectedWorkers && selectedWorkers.Contains((int)worker.PersonId))">
-                                            <label class="form-check-label" for="worker_@worker.PersonId">
-                                                @worker.PersonName
-                                            </label>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold text-primary">Shift</label>
-                            <select name="Shift" class="form-select" required>
-                                <option value="Day" selected="@(ViewBag.SelectedShift as string != "Night")">Day Shift (10 per worker)</option>
-                                <option value="Night" selected="@(ViewBag.SelectedShift as string == "Night")">Night Shift (15 per worker)</option>
-                            </select>
-                        </div>
-                    </div>
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Vehicle Number
+                    </label>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-premium-blue fw-bold">Submit Unload Slip</button>
-                    </div>
-                </form>
+                    <input type="text"
+                           value="@Model.VehicleNumber"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                font-weight:700;
+                                color:#202939;
+                           " />
+
+                </div>
+
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Party
+                    </label>
+
+                    <input type="text"
+                           value="@Model.PartyName"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                color:#344054;
+                           " />
+
+                </div>
+
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Company
+                    </label>
+
+                    <input type="text"
+                           value="@Model.OfficeName"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                color:#344054;
+                           " />
+
+                </div>
+
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Material / Variety
+                    </label>
+
+                    <input type="text"
+                           value="@Model.ItemName"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                font-weight:700;
+                                color:#344054;
+                           " />
+
+                </div>
+
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Supervisor
+                    </label>
+
+                    <input type="text"
+                           value="@Model.SupervisorName"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                color:#344054;
+                           " />
+
+                </div>
+
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Meth
+                    </label>
+
+                    <input type="text"
+                           value="@Model.MethName"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #d4dae3;
+                                border-radius:7px;
+                                background:#f7f8fa;
+                                font-weight:600;
+                                color:#344054;
+                           " />
+
+                </div>
+
+
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#596579;
+                    ">
+                        Unloading Location
+                    </label>
+
+                    <input type="text"
+                           value="@Model.LocationName"
+                           readonly
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 11px;
+                                border:1px solid #c7d8f7;
+                                border-radius:7px;
+                                background:#f4f8ff;
+                                font-weight:700;
+                                color:#0d6efd;
+                           " />
+
+                </div>
+
             </div>
+
         </div>
+
     </div>
+
+
+    <!-- =========================================================
+         FORM
+         ========================================================= -->
+
+    <form asp-action="ExecuteUnload"
+          asp-controller="Meth"
+          method="post"
+          id="unloadForm">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="UnloadId"
+               type="hidden" />
+
+
+        <div style="
+            width:100%;
+            background:#ffffff;
+            border:1px solid #e1e6ee;
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:0 2px 8px rgba(16,24,40,.04);
+        ">
+
+
+            <!-- CARD HEADER -->
+
+            <div style="
+                padding:13px 18px;
+                border-bottom:1px solid #e7ebf0;
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:10px;
+                flex-wrap:wrap;
+            ">
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    font-size:14px;
+                    font-weight:750;
+                    color:#26344d;
+                ">
+
+                    <i class="bi bi-people-fill me-2"
+                       style="color:#0d6efd;">
+                    </i>
+
+                    Worker Wise Work Entry
+
+                </div>
+
+
+                <div style="
+                    color:#7b8494;
+                    font-size:12px;
+                ">
+                    Select work type, then enter all bag details
+                </div>
+
+            </div>
+
+
+            <!-- WORKERS -->
+
+            <div style="padding:18px;">
+
+                @if (workers.Count == 0)
+                {
+                    <div style="
+                        padding:14px;
+                        border:1px solid #f5d78e;
+                        border-radius:8px;
+                        background:#fff9e8;
+                        color:#8a6400;
+                        font-size:13px;
+                    ">
+
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+
+                        No workers are mapped under this Meth.
+
+                    </div>
+                }
+                else
+                {
+                    @for (int w = 0; w < workers.Count; w++)
+                    {
+                        var worker = workers[w];
+
+                        <div class="worker-card"
+                             data-worker-id="@worker.WorkerId"
+                             data-worker-name="@worker.WorkerName"
+                             style="
+                                width:100%;
+                                margin-bottom:18px;
+                                border:1px solid #dfe4eb;
+                                border-radius:12px;
+                                overflow:hidden;
+                                background:#ffffff;
+                                box-shadow:0 2px 7px rgba(16,24,40,.035);
+                             ">
+
+
+                            <!-- =================================================
+                                 WORKER TOP
+                                 ================================================= -->
+
+                            <div style="
+                                padding:15px 17px;
+                                background:#f7f9fc;
+                                border-bottom:1px solid #e3e7ed;
+                            ">
+
+                                <div style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:11px;
+                                    margin-bottom:14px;
+                                ">
+
+                                    <div style="
+                                        width:40px;
+                                        height:40px;
+                                        border-radius:50%;
+                                        background:#e7efff;
+                                        color:#0d6efd;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        flex-shrink:0;
+                                    ">
+
+                                        <i class="bi bi-person-fill"></i>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <div style="
+                                            font-size:15px;
+                                            font-weight:750;
+                                            color:#172033;
+                                        ">
+                                            @worker.WorkerName
+                                        </div>
+
+                                        <div style="
+                                            margin-top:1px;
+                                            font-size:11px;
+                                            color:#7c8799;
+                                        ">
+                                            Worker ID: @worker.WorkerId
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- STEP 1 -->
+
+                                <div style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:7px;
+                                    margin-bottom:9px;
+                                    color:#344054;
+                                    font-size:13px;
+                                    font-weight:750;
+                                ">
+
+                                    <span style="
+                                        display:inline-flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        width:22px;
+                                        height:22px;
+                                        border-radius:50%;
+                                        background:#0d6efd;
+                                        color:#ffffff;
+                                        font-size:11px;
+                                    ">
+                                        1
+                                    </span>
+
+                                    SELECT WORK TYPE
+
+                                    <span style="color:#dc3545;">
+                                        *
+                                    </span>
+
+                                </div>
+
+
+                                <div style="
+                                    display:flex;
+                                    gap:10px;
+                                    flex-wrap:wrap;
+                                ">
+
+                                    <input type="radio"
+                                           id="workLoad_@w"
+                                           name="workerWorkType_@w"
+                                           value="Load"
+                                           class="worker-work-type"
+                                           style="display:none;" />
+
+
+                                    <label for="workLoad_@w"
+                                           class="work-type-label"
+                                           data-type="Load"
+                                           style="
+                                                min-width:145px;
+                                                min-height:43px;
+                                                padding:10px 16px;
+                                                border:2px solid #ccd3dd;
+                                                border-radius:9px;
+                                                background:#ffffff;
+                                                color:#344054;
+                                                display:flex;
+                                                align-items:center;
+                                                justify-content:center;
+                                                gap:7px;
+                                                cursor:pointer;
+                                                font-size:13px;
+                                                font-weight:700;
+                                                user-select:none;
+                                           ">
+
+                                        <i class="bi bi-box-arrow-in-up"></i>
+                                        Loading
+
+                                    </label>
+
+
+                                    <input type="radio"
+                                           id="workUnload_@w"
+                                           name="workerWorkType_@w"
+                                           value="Unload"
+                                           class="worker-work-type"
+                                           style="display:none;" />
+
+
+                                    <label for="workUnload_@w"
+                                           class="work-type-label"
+                                           data-type="Unload"
+                                           style="
+                                                min-width:145px;
+                                                min-height:43px;
+                                                padding:10px 16px;
+                                                border:2px solid #ccd3dd;
+                                                border-radius:9px;
+                                                background:#ffffff;
+                                                color:#344054;
+                                                display:flex;
+                                                align-items:center;
+                                                justify-content:center;
+                                                gap:7px;
+                                                cursor:pointer;
+                                                font-size:13px;
+                                                font-weight:700;
+                                                user-select:none;
+                                           ">
+
+                                        <i class="bi bi-box-arrow-in-down"></i>
+                                        Unloading
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- =================================================
+                                 BAG SECTION
+                                 ================================================= -->
+
+                            <div style="padding:16px 17px;">
+
+                                <!-- STEP 2 -->
+
+                                <div style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:7px;
+                                    margin-bottom:13px;
+                                    font-size:13px;
+                                    font-weight:750;
+                                    color:#344054;
+                                ">
+
+                                    <span style="
+                                        display:inline-flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        width:22px;
+                                        height:22px;
+                                        border-radius:50%;
+                                        background:#667085;
+                                        color:#ffffff;
+                                        font-size:11px;
+                                    ">
+                                        2
+                                    </span>
+
+                                    ENTER BAG DETAILS
+
+                                </div>
+
+
+                                <div class="bag-rows">
+
+
+                                    <!-- FIRST BAG ROW -->
+
+                                    <div class="bag-row"
+                                         style="
+                                            width:100%;
+                                            padding:11px;
+                                            margin-bottom:10px;
+                                            border:1px solid #e2e6ec;
+                                            border-radius:9px;
+                                            background:#fafbfc;
+                                         ">
+
+                                        <div class="row g-2 align-items-end">
+
+
+                                            <!-- BAG TYPE -->
+
+                                            <div class="col-xl-4 col-lg-4 col-md-6">
+
+                                                <label style="
+                                                    display:block;
+                                                    margin-bottom:5px;
+                                                    font-size:11px;
+                                                    font-weight:750;
+                                                    color:#596579;
+                                                ">
+                                                    BAG TYPE
+                                                </label>
+
+                                                <select class="form-select bag-type"
+                                                        style="
+                                                            width:100%;
+                                                            height:40px;
+                                                            border:1px solid #ccd4df;
+                                                            border-radius:7px;
+                                                            font-size:13px;
+                                                        ">
+
+                                                    <option value="">
+                                                        -- Select Bag Type --
+                                                    </option>
+
+                                                    @foreach (var bag in bagTypes)
+                                                    {
+                                                        <option value="@bag.BagTypeId">
+                                                            @bag.BagTypeName
+                                                        </option>
+                                                    }
+
+                                                </select>
+
+                                            </div>
+
+
+                                            <!-- BAG COUNT -->
+
+                                            <div class="col-xl-2 col-lg-2 col-md-6">
+
+                                                <label style="
+                                                    display:block;
+                                                    margin-bottom:5px;
+                                                    font-size:11px;
+                                                    font-weight:750;
+                                                    color:#596579;
+                                                ">
+                                                    BAG COUNT
+                                                </label>
+
+                                                <input type="text"
+                                                       inputmode="numeric"
+                                                       autocomplete="off"
+                                                       class="bag-count"
+                                                       placeholder="Count"
+                                                       style="
+                                                            width:100%;
+                                                            height:40px;
+                                                            padding:8px 10px;
+                                                            border:1px solid #ccd4df;
+                                                            border-radius:7px;
+                                                            background:#ffffff;
+                                                            color:#202939;
+                                                            font-size:13px;
+                                                            text-align:right;
+                                                            outline:none;
+                                                       " />
+
+                                            </div>
+
+
+                                            <!-- RATE -->
+
+                                            <div class="col-xl-3 col-lg-3 col-md-6">
+
+                                                <label style="
+                                                    display:block;
+                                                    margin-bottom:5px;
+                                                    font-size:11px;
+                                                    font-weight:750;
+                                                    color:#596579;
+                                                ">
+                                                    PER BAG CHARGE
+                                                </label>
+
+
+                                                <div style="
+                                                    width:100%;
+                                                    height:40px;
+                                                    display:flex;
+                                                ">
+
+                                                    <span style="
+                                                        width:38px;
+                                                        min-width:38px;
+                                                        height:40px;
+                                                        border:1px solid #ccd4df;
+                                                        border-right:0;
+                                                        border-radius:7px 0 0 7px;
+                                                        background:#f3f5f7;
+                                                        display:flex;
+                                                        align-items:center;
+                                                        justify-content:center;
+                                                        color:#344054;
+                                                        font-size:13px;
+                                                    ">
+                                                        ₹
+                                                    </span>
+
+                                                    <input type="text"
+                                                           inputmode="decimal"
+                                                           autocomplete="off"
+                                                           class="per-bag-charge"
+                                                           placeholder="Rate"
+                                                           style="
+                                                                width:100%;
+                                                                height:40px;
+                                                                padding:8px 10px;
+                                                                border:1px solid #ccd4df;
+                                                                border-radius:0 7px 7px 0;
+                                                                background:#ffffff;
+                                                                color:#202939;
+                                                                font-size:13px;
+                                                                text-align:right;
+                                                                outline:none;
+                                                           " />
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <!-- TOTAL -->
+
+                                            <div class="col-xl-2 col-lg-2 col-md-5">
+
+                                                <label style="
+                                                    display:block;
+                                                    margin-bottom:5px;
+                                                    font-size:11px;
+                                                    font-weight:750;
+                                                    color:#596579;
+                                                ">
+                                                    TOTAL
+                                                </label>
+
+                                                <div class="bag-total"
+                                                     style="
+                                                        width:100%;
+                                                        height:40px;
+                                                        padding:8px 10px;
+                                                        border-radius:7px;
+                                                        background:#eef2f7;
+                                                        display:flex;
+                                                        align-items:center;
+                                                        justify-content:flex-end;
+                                                        color:#172033;
+                                                        font-size:14px;
+                                                        font-weight:750;
+                                                     ">
+
+                                                    ₹0.00
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <!-- DELETE -->
+
+                                            <div class="col-xl-1 col-lg-1 col-md-1">
+
+                                                <button type="button"
+                                                        class="remove-bag-btn"
+                                                        title="Remove bag row"
+                                                        style="
+                                                            width:40px;
+                                                            height:40px;
+                                                            border:0;
+                                                            border-radius:7px;
+                                                            background:#fff0f0;
+                                                            color:#dc3545;
+                                                            display:flex;
+                                                            align-items:center;
+                                                            justify-content:center;
+                                                            cursor:pointer;
+                                                        ">
+
+                                                    <i class="bi bi-trash"></i>
+
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- FOOTER -->
+
+                                <div style="
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:space-between;
+                                    flex-wrap:wrap;
+                                    gap:12px;
+                                    padding-top:13px;
+                                    margin-top:4px;
+                                    border-top:1px dashed #d9dee6;
+                                ">
+
+                                    <button type="button"
+                                            class="add-bag-btn"
+                                            style="
+                                                min-height:38px;
+                                                padding:8px 13px;
+                                                border:1px dashed #0d6efd;
+                                                border-radius:7px;
+                                                background:#f6f9ff;
+                                                color:#0d6efd;
+                                                font-size:12px;
+                                                font-weight:700;
+                                                cursor:pointer;
+                                            ">
+
+                                        <i class="bi bi-plus-circle me-1"></i>
+
+                                        Add Bag Type
+
+                                    </button>
+
+
+                                    <div style="text-align:right;">
+
+                                        <div style="
+                                            color:#7b8494;
+                                            font-size:11px;
+                                            font-weight:600;
+                                        ">
+                                            WORKER TOTAL
+                                        </div>
+
+                                        <div style="
+                                            color:#172033;
+                                            font-size:18px;
+                                            font-weight:800;
+                                        ">
+
+                                            ₹<span class="worker-total">
+                                                0.00
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+
+            <!-- =====================================================
+                 GRAND SUMMARY
+                 ===================================================== -->
+
+            <div style="
+                padding:15px 18px;
+                border-top:1px solid #e4e8ee;
+                background:#f7f9fc;
+                display:flex;
+                justify-content:flex-end;
+                align-items:center;
+                gap:35px;
+                flex-wrap:wrap;
+            ">
+
+                <div style="text-align:right;">
+
+                    <div style="
+                        color:#7a8495;
+                        font-size:11px;
+                        font-weight:700;
+                    ">
+                        TOTAL BAGS
+                    </div>
+
+                    <div style="
+                        color:#172033;
+                        font-size:21px;
+                        font-weight:800;
+                    ">
+
+                        <span id="totalBags">
+                            0
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div style="text-align:right;">
+
+                    <div style="
+                        color:#7a8495;
+                        font-size:11px;
+                        font-weight:700;
+                    ">
+                        TOTAL PALLEDARI AMOUNT
+                    </div>
+
+                    <div style="
+                        color:#198754;
+                        font-size:22px;
+                        font-weight:800;
+                    ">
+
+                        ₹<span id="grandTotal">
+                            0.00
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 ACTION BUTTONS
+                 ===================================================== -->
+
+            <div style="
+                padding:15px 18px;
+                border-top:1px solid #e4e8ee;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:10px;
+                flex-wrap:wrap;
+                background:#ffffff;
+            ">
+
+                <a asp-action="Index"
+                   style="
+                        min-height:39px;
+                        padding:9px 15px;
+                        display:inline-flex;
+                        align-items:center;
+                        gap:6px;
+                        border:1px solid #ccd4df;
+                        border-radius:7px;
+                        background:#ffffff;
+                        color:#475467;
+                        font-size:13px;
+                        font-weight:650;
+                        text-decoration:none;
+                   ">
+
+                    <i class="bi bi-x-circle"></i>
+                    Cancel
+
+                </a>
+
+
+                <button type="submit"
+                        id="submitBtn"
+                        @(workers.Count == 0 ? "disabled" : null)
+                        style="
+                            min-height:40px;
+                            padding:9px 18px;
+                            border:0;
+                            border-radius:7px;
+                            background:#0d6efd;
+                            color:#ffffff;
+                            font-size:13px;
+                            font-weight:700;
+                            cursor:pointer;
+                            box-shadow:0 2px 5px rgba(13,110,253,.20);
+                        ">
+
+                    <i class="bi bi-check-circle me-1"></i>
+
+                    Submit Work Entry
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<!-- =============================================================
+     BAG ROW TEMPLATE
+     ============================================================= -->
+
+<template id="bagRowTemplate">
+
+    <div class="bag-row"
+         style="
+            width:100%;
+            padding:11px;
+            margin-bottom:10px;
+            border:1px solid #e2e6ec;
+            border-radius:9px;
+            background:#fafbfc;
+         ">
+
+        <div class="row g-2 align-items-end">
+
+
+            <div class="col-xl-4 col-lg-4 col-md-6">
+
+                <label style="
+                    display:block;
+                    margin-bottom:5px;
+                    font-size:11px;
+                    font-weight:750;
+                    color:#596579;
+                ">
+                    BAG TYPE
+                </label>
+
+                <select class="form-select bag-type"
+                        style="
+                            width:100%;
+                            height:40px;
+                            border:1px solid #ccd4df;
+                            border-radius:7px;
+                            font-size:13px;
+                        ">
+
+                    <option value="">
+                        -- Select Bag Type --
+                    </option>
+
+                    @foreach (var bag in bagTypes)
+                    {
+                        <option value="@bag.BagTypeId">
+                            @bag.BagTypeName
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="col-xl-2 col-lg-2 col-md-6">
+
+                <label style="
+                    display:block;
+                    margin-bottom:5px;
+                    font-size:11px;
+                    font-weight:750;
+                    color:#596579;
+                ">
+                    BAG COUNT
+                </label>
+
+                <input type="text"
+                       inputmode="numeric"
+                       autocomplete="off"
+                       class="bag-count"
+                       placeholder="Count"
+                       style="
+                            width:100%;
+                            height:40px;
+                            padding:8px 10px;
+                            border:1px solid #ccd4df;
+                            border-radius:7px;
+                            background:#ffffff;
+                            color:#202939;
+                            font-size:13px;
+                            text-align:right;
+                            outline:none;
+                       " />
+
+            </div>
+
+
+            <div class="col-xl-3 col-lg-3 col-md-6">
+
+                <label style="
+                    display:block;
+                    margin-bottom:5px;
+                    font-size:11px;
+                    font-weight:750;
+                    color:#596579;
+                ">
+                    PER BAG CHARGE
+                </label>
+
+
+                <div style="
+                    width:100%;
+                    height:40px;
+                    display:flex;
+                ">
+
+                    <span style="
+                        width:38px;
+                        min-width:38px;
+                        height:40px;
+                        border:1px solid #ccd4df;
+                        border-right:0;
+                        border-radius:7px 0 0 7px;
+                        background:#f3f5f7;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:#344054;
+                    ">
+                        ₹
+                    </span>
+
+
+                    <input type="text"
+                           inputmode="decimal"
+                           autocomplete="off"
+                           class="per-bag-charge"
+                           placeholder="Rate"
+                           style="
+                                width:100%;
+                                height:40px;
+                                padding:8px 10px;
+                                border:1px solid #ccd4df;
+                                border-radius:0 7px 7px 0;
+                                background:#ffffff;
+                                color:#202939;
+                                font-size:13px;
+                                text-align:right;
+                                outline:none;
+                           " />
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-2 col-lg-2 col-md-5">
+
+                <label style="
+                    display:block;
+                    margin-bottom:5px;
+                    font-size:11px;
+                    font-weight:750;
+                    color:#596579;
+                ">
+                    TOTAL
+                </label>
+
+                <div class="bag-total"
+                     style="
+                        width:100%;
+                        height:40px;
+                        padding:8px 10px;
+                        border-radius:7px;
+                        background:#eef2f7;
+                        display:flex;
+                        align-items:center;
+                        justify-content:flex-end;
+                        color:#172033;
+                        font-size:14px;
+                        font-weight:750;
+                     ">
+
+                    ₹0.00
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-1 col-lg-1 col-md-1">
+
+                <button type="button"
+                        class="remove-bag-btn"
+                        title="Remove bag row"
+                        style="
+                            width:40px;
+                            height:40px;
+                            border:0;
+                            border-radius:7px;
+                            background:#fff0f0;
+                            color:#dc3545;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            cursor:pointer;
+                        ">
+
+                    <i class="bi bi-trash"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</template>
+
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial"
+        );
+    }
+
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function ()
+            {
+                const form =
+                    document.getElementById(
+                        "unloadForm"
+                    );
+
+                const template =
+                    document.getElementById(
+                        "bagRowTemplate"
+                    );
+
+
+                // =================================================
+                // WORK TYPE VISUAL SELECTION
+                // =================================================
+
+                function updateWorkTypeUI(workerCard)
+                {
+                    const radios =
+                        workerCard.querySelectorAll(
+                            ".worker-work-type"
+                        );
+
+                    radios.forEach(function (radio)
+                    {
+                        const label =
+                            workerCard.querySelector(
+                                'label[for="' +
+                                radio.id +
+                                '"]'
+                            );
+
+                        if (!label)
+                            return;
+
+
+                        if (radio.checked)
+                        {
+                            label.style.background =
+                                "#0d6efd";
+
+                            label.style.borderColor =
+                                "#0d6efd";
+
+                            label.style.color =
+                                "#ffffff";
+
+                            label.style.boxShadow =
+                                "0 3px 8px rgba(13,110,253,.20)";
+                        }
+                        else
+                        {
+                            label.style.background =
+                                "#ffffff";
+
+                            label.style.borderColor =
+                                "#ccd3dd";
+
+                            label.style.color =
+                                "#344054";
+
+                            label.style.boxShadow =
+                                "none";
+                        }
+                    });
+                }
+
+
+                document.addEventListener(
+                    "change",
+                    function (event)
+                    {
+                        if (
+                            event.target.matches(
+                                ".worker-work-type"
+                            )
+                        )
+                        {
+                            const workerCard =
+                                event.target.closest(
+                                    ".worker-card"
+                                );
+
+                            updateWorkTypeUI(
+                                workerCard
+                            );
+                        }
+                    }
+                );
+
+
+                // =================================================
+                // BAG TYPE DUPLICATE CONTROL
+                // =================================================
+
+                function updateBagTypeOptions(workerCard)
+                {
+                    const rows =
+                        workerCard.querySelectorAll(
+                            ".bag-row"
+                        );
+
+                    const selectedValues = [];
+
+
+                    rows.forEach(function (row)
+                    {
+                        const select =
+                            row.querySelector(
+                                ".bag-type"
+                            );
+
+                        if (select.value)
+                        {
+                            selectedValues.push(
+                                select.value
+                            );
+                        }
+                    });
+
+
+                    rows.forEach(function (row)
+                    {
+                        const select =
+                            row.querySelector(
+                                ".bag-type"
+                            );
+
+                        const currentValue =
+                            select.value;
+
+
+                        Array
+                            .from(select.options)
+                            .forEach(function (option)
+                            {
+                                if (!option.value)
+                                {
+                                    option.disabled =
+                                        false;
+
+                                    return;
+                                }
+
+
+                                option.disabled =
+                                    option.value !==
+                                    currentValue
+                                    &&
+                                    selectedValues.includes(
+                                        option.value
+                                    );
+                            });
+                    });
+
+
+                    const addButton =
+                        workerCard.querySelector(
+                            ".add-bag-btn"
+                        );
+
+
+                    const totalBagTypes =
+                        @bagTypes.Count;
+
+
+                    const usedBagTypes =
+                        selectedValues.length;
+
+
+                    if (addButton)
+                    {
+                        if (
+                            totalBagTypes > 0 &&
+                            usedBagTypes >= totalBagTypes
+                        )
+                        {
+                            addButton.disabled =
+                                true;
+
+                            addButton.style.opacity =
+                                ".55";
+
+                            addButton.style.cursor =
+                                "not-allowed";
+                        }
+                        else
+                        {
+                            addButton.disabled =
+                                false;
+
+                            addButton.style.opacity =
+                                "1";
+
+                            addButton.style.cursor =
+                                "pointer";
+                        }
+                    }
+                }
+
+
+                // =================================================
+                // ADD BAG
+                // =================================================
+
+                document
+                    .querySelectorAll(
+                        ".add-bag-btn"
+                    )
+                    .forEach(function (button)
+                    {
+                        button.addEventListener(
+                            "click",
+                            function ()
+                            {
+                                if (button.disabled)
+                                    return;
+
+
+                                const workerCard =
+                                    button.closest(
+                                        ".worker-card"
+                                    );
+
+
+                                const bagRows =
+                                    workerCard.querySelector(
+                                        ".bag-rows"
+                                    );
+
+
+                                const clone =
+                                    template.content
+                                        .cloneNode(true);
+
+
+                                bagRows.appendChild(
+                                    clone
+                                );
+
+
+                                updateBagTypeOptions(
+                                    workerCard
+                                );
+
+
+                                calculateTotals();
+                            }
+                        );
+                    });
+
+
+                // =================================================
+                // BAG TYPE CHANGE
+                // =================================================
+
+                document.addEventListener(
+                    "change",
+                    function (event)
+                    {
+                        if (
+                            event.target.matches(
+                                ".bag-type"
+                            )
+                        )
+                        {
+                            const workerCard =
+                                event.target.closest(
+                                    ".worker-card"
+                                );
+
+
+                            updateBagTypeOptions(
+                                workerCard
+                            );
+                        }
+                    }
+                );
+
+
+                // =================================================
+                // REMOVE BAG
+                // =================================================
+
+                document.addEventListener(
+                    "click",
+                    function (event)
+                    {
+                        const button =
+                            event.target.closest(
+                                ".remove-bag-btn"
+                            );
+
+
+                        if (!button)
+                            return;
+
+
+                        const workerCard =
+                            button.closest(
+                                ".worker-card"
+                            );
+
+
+                        const rows =
+                            workerCard.querySelectorAll(
+                                ".bag-row"
+                            );
+
+
+                        if (rows.length === 1)
+                        {
+                            const row =
+                                button.closest(
+                                    ".bag-row"
+                                );
+
+
+                            row.querySelector(
+                                ".bag-type"
+                            ).value = "";
+
+
+                            row.querySelector(
+                                ".bag-count"
+                            ).value = "";
+
+
+                            row.querySelector(
+                                ".per-bag-charge"
+                            ).value = "";
+                        }
+                        else
+                        {
+                            button
+                                .closest(
+                                    ".bag-row"
+                                )
+                                .remove();
+                        }
+
+
+                        updateBagTypeOptions(
+                            workerCard
+                        );
+
+
+                        calculateTotals();
+                    }
+                );
+
+
+                // =================================================
+                // NUMERIC CONTROL
+                // =================================================
+
+                document.addEventListener(
+                    "input",
+                    function (event)
+                    {
+                        if (
+                            event.target.matches(
+                                ".bag-count"
+                            )
+                        )
+                        {
+                            event.target.value =
+                                event.target.value
+                                    .replace(
+                                        /[^0-9]/g,
+                                        ""
+                                    );
+
+
+                            calculateTotals();
+                        }
+
+
+                        if (
+                            event.target.matches(
+                                ".per-bag-charge"
+                            )
+                        )
+                        {
+                            let value =
+                                event.target.value
+                                    .replace(
+                                        /[^0-9.]/g,
+                                        ""
+                                    );
+
+
+                            const firstDot =
+                                value.indexOf(".");
+
+
+                            if (firstDot !== -1)
+                            {
+                                value =
+                                    value.substring(
+                                        0,
+                                        firstDot + 1
+                                    )
+                                    +
+                                    value
+                                        .substring(
+                                            firstDot + 1
+                                        )
+                                        .replace(
+                                            /\./g,
+                                            ""
+                                        );
+                            }
+
+
+                            event.target.value =
+                                value;
+
+
+                            calculateTotals();
+                        }
+                    }
+                );
+
+
+                // =================================================
+                // TOTALS
+                // =================================================
+
+                function calculateTotals()
+                {
+                    let totalBags = 0;
+                    let grandTotal = 0;
+
+
+                    document
+                        .querySelectorAll(
+                            ".worker-card"
+                        )
+                        .forEach(function (workerCard)
+                        {
+                            let workerTotal = 0;
+
+
+                            workerCard
+                                .querySelectorAll(
+                                    ".bag-row"
+                                )
+                                .forEach(function (row)
+                                {
+                                    const bagCount =
+                                        parseInt(
+                                            row.querySelector(
+                                                ".bag-count"
+                                            ).value
+                                        ) || 0;
+
+
+                                    const rate =
+                                        parseFloat(
+                                            row.querySelector(
+                                                ".per-bag-charge"
+                                            ).value
+                                        ) || 0;
+
+
+                                    const total =
+                                        bagCount * rate;
+
+
+                                    row.querySelector(
+                                        ".bag-total"
+                                    ).textContent =
+                                        "₹" +
+                                        total.toFixed(2);
+
+
+                                    totalBags +=
+                                        bagCount;
+
+
+                                    workerTotal +=
+                                        total;
+
+
+                                    grandTotal +=
+                                        total;
+                                });
+
+
+                            workerCard
+                                .querySelector(
+                                    ".worker-total"
+                                )
+                                .textContent =
+                                    workerTotal.toFixed(2);
+                        });
+
+
+                    document.getElementById(
+                        "totalBags"
+                    ).textContent =
+                        totalBags;
+
+
+                    document.getElementById(
+                        "grandTotal"
+                    ).textContent =
+                        grandTotal.toFixed(2);
+                }
+
+
+                // =================================================
+                // FORM SUBMIT
+                // =================================================
+
+                form.addEventListener(
+                    "submit",
+                    function (event)
+                    {
+                        form
+                            .querySelectorAll(
+                                ".dynamic-post-field"
+                            )
+                            .forEach(function (input)
+                            {
+                                input.remove();
+                            });
+
+
+                        let index = 0;
+                        let validRows = 0;
+                        let hasError = false;
+
+
+                        document
+                            .querySelectorAll(
+                                ".worker-card"
+                            )
+                            .forEach(function (workerCard)
+                            {
+                                if (hasError)
+                                    return;
+
+
+                                const workerId =
+                                    workerCard.dataset
+                                        .workerId;
+
+
+                                const workerName =
+                                    workerCard.dataset
+                                        .workerName;
+
+
+                                const selectedWork =
+                                    workerCard
+                                        .querySelector(
+                                            ".worker-work-type:checked"
+                                        );
+
+
+                                workerCard
+                                    .querySelectorAll(
+                                        ".bag-row"
+                                    )
+                                    .forEach(function (row)
+                                    {
+                                        if (hasError)
+                                            return;
+
+
+                                        const bagType =
+                                            row.querySelector(
+                                                ".bag-type"
+                                            ).value;
+
+
+                                        const bagCount =
+                                            parseInt(
+                                                row.querySelector(
+                                                    ".bag-count"
+                                                ).value
+                                            ) || 0;
+
+
+                                        const charge =
+                                            parseFloat(
+                                                row.querySelector(
+                                                    ".per-bag-charge"
+                                                ).value
+                                            ) || 0;
+
+
+                                        if (
+                                            !bagType &&
+                                            bagCount <= 0 &&
+                                            charge <= 0
+                                        )
+                                        {
+                                            return;
+                                        }
+
+
+                                        if (!selectedWork)
+                                        {
+                                            alert(
+                                                "Please select Loading or Unloading for " +
+                                                workerName +
+                                                "."
+                                            );
+
+
+                                            hasError =
+                                                true;
+
+
+                                            return;
+                                        }
+
+
+                                        if (!bagType)
+                                        {
+                                            alert(
+                                                "Please select Bag Type for " +
+                                                workerName +
+                                                "."
+                                            );
+
+
+                                            hasError =
+                                                true;
+
+
+                                            return;
+                                        }
+
+
+                                        if (bagCount <= 0)
+                                        {
+                                            alert(
+                                                "Please enter Bag Count for " +
+                                                workerName +
+                                                "."
+                                            );
+
+
+                                            hasError =
+                                                true;
+
+
+                                            return;
+                                        }
+
+
+                                        addHiddenInput(
+                                            "WorkerRows[" +
+                                            index +
+                                            "].WorkerId",
+                                            workerId
+                                        );
+
+
+                                        addHiddenInput(
+                                            "WorkerRows[" +
+                                            index +
+                                            "].WorkerName",
+                                            workerName
+                                        );
+
+
+                                        addHiddenInput(
+                                            "WorkerRows[" +
+                                            index +
+                                            "].WorkType",
+                                            selectedWork.value
+                                        );
+
+
+                                        addHiddenInput(
+                                            "WorkerRows[" +
+                                            index +
+                                            "].BagTypeId",
+                                            bagType
+                                        );
+
+
+                                        addHiddenInput(
+                                            "WorkerRows[" +
+                                            index +
+                                            "].BagCount",
+                                            bagCount
+                                        );
+
+
+                                        addHiddenInput(
+                                            "WorkerRows[" +
+                                            index +
+                                            "].PerBagCharge",
+                                            charge
+                                        );
+
+
+                                        index++;
+                                        validRows++;
+                                    });
+                            });
+
+
+                        if (hasError)
+                        {
+                            event.preventDefault();
+                            return;
+                        }
+
+
+                        if (validRows === 0)
+                        {
+                            event.preventDefault();
+
+
+                            alert(
+                                "Please enter work details for at least one worker."
+                            );
+
+
+                            return;
+                        }
+
+
+                        const submitButton =
+                            document.getElementById(
+                                "submitBtn"
+                            );
+
+
+                        submitButton.disabled =
+                            true;
+
+
+                        submitButton.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                    }
+                );
+
+
+                // =================================================
+                // CREATE MVC POST FIELD
+                // =================================================
+
+                function addHiddenInput(
+                    name,
+                    value
+                )
+                {
+                    const input =
+                        document.createElement(
+                            "input"
+                        );
+
+
+                    input.type =
+                        "hidden";
+
+
+                    input.name =
+                        name;
+
+
+                    input.value =
+                        value;
+
+
+                    input.className =
+                        "dynamic-post-field";
+
+
+                    form.appendChild(
+                        input
+                    );
+                }
+
+
+                // =================================================
+                // INITIALIZE
+                // =================================================
+
+                document
+                    .querySelectorAll(
+                        ".worker-card"
+                    )
+                    .forEach(function (workerCard)
+                    {
+                        updateWorkTypeUI(
+                            workerCard
+                        );
+
+
+                        updateBagTypeOptions(
+                            workerCard
+                        );
+                    });
+
+
+                calculateTotals();
+            }
+        );
+
+    </script>
 }

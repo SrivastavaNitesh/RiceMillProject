@@ -11,7 +11,19 @@ namespace RiceMillProject.Controllers
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                if (User.HasClaim("PostId", "5")) return RedirectToAction("Index", "Lab");
+                if (User.IsGatemanUser())
+                    return RedirectToAction("Dashboard", "Gateman");
+
+                if (User.IsWeightmanUser())
+                    return RedirectToAction("Dashboard", "GateEntry");
+
+                if (User.IsLabUser())
+                    return RedirectToAction("Index", "Lab");
+                if (User.IsMethUser())
+                    return RedirectToAction("Index", "Meth");
+                if (User.IsSupervisorUser())
+                    return RedirectToAction("Index", "Unload");
+
                 return RedirectToAction("Index", "Dashboard");
             }
             return View();

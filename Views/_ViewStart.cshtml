@@ -1,17 +1,33 @@
 @{
     var layoutClaim = User.FindFirst("LayoutName")?.Value;
-    var isWeightman = User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4";
-    if (isWeightman)
+    var isAdmin = User.IsAdminUser();
+    var isGateman = User.IsGatemanUser();
+    var isWeightman = User.IsWeightmanUser();
+    var isLab = User.IsLabUser();
+    var isSupervisor = User.IsSupervisorUser();
+    var isMeth = User.IsMethUser();
+    if (isGateman)
     {
-        Layout = "_LayoutAdmin";
+        Layout = "_LayoutGateman";
     }
-    else if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
+    else if (isLab)
+    {
+        Layout = "_LayoutLab";
+    }
+    else if (isSupervisor)
+    {
+        Layout = "_LayoutSupervisor";
+    }else if (isMeth)
+{
+    Layout = "_LayoutMeth";
+}
+    else if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault" && layoutClaim != "_Layout")
     {
         Layout = layoutClaim;
     }
     else
     {
-        Layout = "_Layout";
+        Layout = "_LayoutAdmin";
     }
 }
 
