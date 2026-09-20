@@ -1,7 +1,8 @@
 // Enterprise ERP Global JavaScript - Active Link & DataTables Auto-Initializer
 document.addEventListener("DOMContentLoaded", function () {
     // 1. ACTIVE LINK AUTO-MATCHER
-    const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, "");
+    const normalizePath = path => path.toLowerCase().replace(/\/+$/, "").replace(/\/index$/, "");
+    const currentPath = normalizePath(window.location.pathname);
     const links = document.querySelectorAll(".sidebar a, .navbar-nav a");
 
     let matchedLink = null;
@@ -10,9 +11,9 @@ document.addEventListener("DOMContentLoaded", function () {
     links.forEach(function (link) {
         link.classList.remove("active");
         const href = link.getAttribute("href");
-        if (!href || href === "#" || href.startsWith("javascript:")) return;
+        if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
 
-        const linkPath = href.toLowerCase().replace(/\/$/, "");
+        const linkPath = normalizePath(new URL(href, window.location.origin).pathname);
         if (currentPath === linkPath) {
             matchedLink = link;
         }
@@ -23,10 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
         let longestLen = 0;
         links.forEach(function (link) {
             const href = link.getAttribute("href");
-            if (!href || href === "#" || href.startsWith("javascript:")) return;
+            if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
 
-            const linkPath = href.toLowerCase().replace(/\/$/, "");
-            if (linkPath.length > 1 && currentPath.startsWith(linkPath + "/")) {
+            const linkPath = normalizePath(new URL(href, window.location.origin).pathname);
+            if (linkPath.split("/").filter(Boolean).length >= 2 && currentPath.startsWith(linkPath + "/")) {
                 if (linkPath.length > longestLen) {
                     longestLen = linkPath.length;
                     matchedLink = link;

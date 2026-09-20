@@ -104,6 +104,7 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(GateEntry entry)
         {
             try
@@ -128,7 +129,7 @@ namespace RiceMillProject.Controllers
                     TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {generatedRST}";
                     return RedirectToAction("Dashboard");
                 }
-                
+
                 PopulateDropdowns(entry);
                 return View(entry);
             }
@@ -141,32 +142,13 @@ namespace RiceMillProject.Controllers
 
         private void PopulateDropdowns(GateEntry entry)
         {
-            try
-            {
-                DataTable dtInward = _busLayer.GetActiveInwardEntriesForDropdown();
-                ViewBag.InwardEntries = Allclass.CreateDropdown(dtInward);
-
-                ViewBag.Vehicles = new SelectList(_vehicleBal.GetAllVehicles(), "VehicleId", "VehicleNumber", entry.VehicleId);
-                
-                var allPersons = _personBal.GetAllPersons();
-                ViewBag.Parties = new SelectList(allPersons, "PersonId", "PersonName", entry.PartyId);
-                
-                var driversList = _gateBal.GetDriversWithMobile();
-                ViewBag.Drivers = new SelectList(driversList, "DriverId", "DriverNameMobile", entry.DriverId);
-                
-                DataTable dtOffice = _busLayer.GetAllMainoffice();
-                ViewBag.Offices = Allclass.CreateDropdown(dtOffice);
-            }
-            catch (Exception)
-            {
-                ViewBag.InwardEntries = Enumerable.Empty<SelectListItem>();
-                ViewBag.Vehicles = Enumerable.Empty<SelectListItem>();
-                ViewBag.Parties = Enumerable.Empty<SelectListItem>();
-                ViewBag.Drivers = Enumerable.Empty<SelectListItem>();
-                ViewBag.Offices = Enumerable.Empty<SelectListItem>();
-            }
+            ViewBag.PendingInwards = new List<PendingRstInward>();
+            ViewBag.Offices = Enumerable.Empty<SelectListItem>();
+            try { ViewBag.PendingInwards = _gateBal.GetPendingRstInwards(); }
+            catch (Exception) { ModelState.AddModelError("", "Pending inwards could not be loaded. Check the database connection and GateEntry_Inward_Workflow.sql migration."); }
+            try { ViewBag.Offices = new SelectList(_officeBal.GetAllOffices().Where(x => x.IsActive), "OfficeId", "OfficeName", entry.TargetOfficeId); }
+            catch (Exception) { ModelState.AddModelError("", "Company names could not be loaded."); }
         }
-
         [HttpGet]
         public IActionResult Outbound(string id)
         {

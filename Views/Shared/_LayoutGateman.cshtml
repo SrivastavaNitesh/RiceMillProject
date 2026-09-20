@@ -18,8 +18,9 @@
     <nav class="navbar gateman-navbar shadow-sm px-4 py-2">
         <div class="d-flex align-items-center w-100 justify-content-between flex-wrap">
             <div class="d-flex align-items-center gap-3">
-                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-door-open-fill me-2"></i> Gateman Portal</h4>
-                <ul class="nav nav-pills ms-4">
+                <h4 class="mb-0 fw-bold text-white">Gateman Portal</h4>
+                <ul class="nav nav-pills navbar-nav flex-row ms-4">
+                    <li class="nav-item"><a class="nav-link" asp-controller="Gateman" asp-action="Dashboard">Dashboard</a></li>
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Gateman" asp-action="Index"><i class="bi bi-sign-turn-right me-1"></i> Gate Entries</a>
                     </li>

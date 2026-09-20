@@ -1,7 +1,7 @@
-@model RiceMillProject.Models.GateEntry
+﻿@model RiceMillProject.Models.GateEntry
 @{
     ViewData["Title"] = "Weightman Entry & RST Generation";
-    bool isWeightman = User.IsInRole("Weighbridge Man") || User.IsInRole("WeightMan") || User.IsInRole("Weightman") || User.IsInRole("Weight Man") || User.FindFirst("PostId")?.Value == "4";
+    bool isWeightman = User.IsWeightmanUser();
     bool lockInward = ViewBag.LockInward == true;
 }
 
@@ -113,6 +113,17 @@
                         }
                     </div>
 
+                    <div class="col-md-6">
+                        <label asp-for="ItemId" class="form-label fw-bold text-dark">
+                            Material / Variety <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="ItemId" class="form-select border-primary-subtle" asp-items="ViewBag.Items" id="ddlItem" required>
+                            <option value="">-- Select Material / Variety --</option>
+                        </select>
+                        <span asp-validation-for="ItemId" class="text-danger small"></span>
+                        <small class="text-muted">Every variety will receive a separate RST number.</small>
+                    </div>
+
                     <!-- Gross Weight (Loaded Truck Weight in KG) -->
                     <div class="col-md-6">
                         <label asp-for="GrossWeight" class="form-label fw-bold text-dark">
@@ -121,6 +132,14 @@
                         <div class="input-group">
                             <input asp-for="GrossWeight" type="number" step="0.01" id="txtGrossWeight" class="form-control form-control-lg fw-bold text-primary border-primary-subtle" placeholder="Enter Gross Weight in KG" required />
                             <span class="input-group-text bg-primary text-white fw-bold">KG</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="WeighmentCharge" class="form-label fw-bold text-dark">Weight Charge</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input asp-for="WeighmentCharge" type="number" min="0" step="0.01" class="form-control" />
                         </div>
                     </div>
 
@@ -226,7 +245,7 @@ catch (Exception ex)
                                 data.vehicles.forEach(v => {
                                     const opt = document.createElement('option');
                                     opt.value = v.vehicleId;
-                                    opt.textContent = v.isLinked ? `${v.vehicleNumber} (Linked)` : v.vehicleNumber;
+                                    opt.textContent = v.isLinked ? ${v.vehicleNumber} (Linked) : v.vehicleNumber;
                                     if (v.isLinked) opt.style.fontWeight = 'bold';
                                     ddlVehicle.appendChild(opt);
                                 });
@@ -244,7 +263,7 @@ catch (Exception ex)
                                 data.drivers.forEach(d => {
                                     const opt = document.createElement('option');
                                     opt.value = d.driverId;
-                                    opt.textContent = d.isLinked ? `${d.driverNameMobile} (Linked)` : d.driverNameMobile;
+                                    opt.textContent = d.isLinked ? ${d.driverNameMobile} (Linked) : d.driverNameMobile;
                                     if (d.isLinked) opt.style.fontWeight = 'bold';
                                     ddlDriver.appendChild(opt);
                                 });
@@ -326,4 +345,4 @@ catch (Exception ex)
             }
         });
     </script>
-}
+}s
