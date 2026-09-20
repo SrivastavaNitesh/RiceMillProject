@@ -1,33 +1,67 @@
 @{
     var layoutClaim = User.FindFirst("LayoutName")?.Value;
+
+    // Existing helper based checks
     var isAdmin = User.IsAdminUser();
     var isGateman = User.IsGatemanUser();
     var isWeightman = User.IsWeightmanUser();
     var isLab = User.IsLabUser();
     var isSupervisor = User.IsSupervisorUser();
     var isMeth = User.IsMethUser();
+
+    // =========================================================
+    // GATEMAN
+    // =========================================================
     if (isGateman)
     {
         Layout = "_LayoutGateman";
     }
+
+    // =========================================================
+    // LAB
+    // =========================================================
     else if (isLab)
     {
         Layout = "_LayoutLab";
     }
+
+    // =========================================================
+    // SUPERVISOR
+    // =========================================================
     else if (isSupervisor)
     {
         Layout = "_LayoutSupervisor";
-    }else if (isMeth)
-{
-    Layout = "_LayoutMeth";
-}
-    else if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault" && layoutClaim != "_Layout")
+    }
+
+    // =========================================================
+    // METH
+    // Both developers' logic preserved
+    // =========================================================
+    else if (
+        isMeth
+        || User.HasClaim("PostId", "6")
+    )
+    {
+        Layout = "_LayoutMeth";
+    }
+
+    // =========================================================
+    // CLAIM BASED LAYOUT
+    // =========================================================
+    else if (
+        !string.IsNullOrEmpty(layoutClaim)
+        && layoutClaim != "_LayoutDefault"
+        && layoutClaim != "_Layout"
+    )
     {
         Layout = layoutClaim;
     }
+
+    // =========================================================
+    // DEFAULT / ADMIN
+    // =========================================================
     else
     {
         Layout = "_LayoutAdmin";
     }
 }
-

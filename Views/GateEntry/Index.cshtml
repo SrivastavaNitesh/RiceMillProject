@@ -1,111 +1,397 @@
 @model IEnumerable<RiceMillProject.Models.GateEntry>
+
 @{
     ViewData["Title"] = "Gate Operations";
 }
 
 <!-- Page Header -->
 <div class="erp-page-header">
+
     <div class="erp-page-title-group">
+
         <div class="erp-page-icon">
             <i class="bi bi-door-open-fill"></i>
         </div>
+
         <div>
-            <h3 class="erp-page-title">GATE OPERATIONS</h3>
-            <p class="erp-page-subtitle">Inbound & outbound truck weight register & movement history</p>
+            <h3 class="erp-page-title">
+                GATE OPERATIONS
+            </h3>
+
+            <p class="erp-page-subtitle">
+                Inbound & outbound truck weight register & movement history
+            </p>
         </div>
+
     </div>
-    <a asp-action="Create" class="btn-erp-primary">
-        <i class="bi bi-plus-lg me-1"></i> New Inbound Entry
+
+    <a asp-action="Create"
+       class="btn-erp-primary">
+
+        <i class="bi bi-plus-lg me-1"></i>
+
+        New Inbound Entry
+
     </a>
+
 </div>
 
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger"
+         role="alert">
+
+        @errorMessage
+
+    </div>
+}
+
+
 <div class="erp-table-container">
+
     <div class="table-responsive">
+
         <table class="erp-table">
+
             <thead>
+
                 <tr>
-                    <th class="ps-4">RST Number</th>
-                    <th>Vehicle</th>
-                    <th>Party</th>
-                    <th>Driver</th>
-                    <th>Gross Wt.</th>
-                    <th>Tare Wt.</th>
-                    <th>Net Wt.</th>
-                    <th>Status</th>
-                    <th class="text-center pe-4">Action</th>
+
+                    <th class="ps-4">
+                        RST Number
+                    </th>
+
+                    <th>
+                        Vehicle
+                    </th>
+
+                    <th>
+                        Party
+                    </th>
+
+                    <th>
+                        Driver
+                    </th>
+
+                    <th>
+                        Gross Wt.
+                    </th>
+
+                    <th>
+                        Tare Wt.
+                    </th>
+
+                    <th>
+                        Net Wt.
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th class="text-center pe-4">
+                        Action
+                    </th>
+
                 </tr>
+
             </thead>
+
+
             <tbody>
+
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="ps-4 fw-bold text-primary">@item.RSTNumber</td>
-                        <td><strong class="text-dark">@item.VehicleNumber</strong></td>
-                        <td>@item.PartyName</td>
-                        <td>@item.DriverName</td>
-                        <td><span class="badge-erp badge-erp-info">@item.GrossWeight kg</span></td>
+
+                        <!-- RST -->
+                        <td class="ps-4 fw-bold text-primary">
+
+                            @item.RSTNumber
+
+                        </td>
+
+
+                        <!-- VEHICLE -->
                         <td>
+
+                            <strong class="text-dark">
+                                @item.VehicleNumber
+                            </strong>
+
+                        </td>
+
+
+                        <!-- PARTY -->
+                        <td>
+
+                            @item.PartyName
+
+                        </td>
+
+
+                        <!-- DRIVER -->
+                        <td>
+
+                            @item.DriverName
+
+                        </td>
+
+
+                        <!-- GROSS -->
+                        <td>
+
+                            <span class="badge-erp badge-erp-info">
+
+                                @item.GrossWeight kg
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- TARE -->
+                        <td>
+
                             @if (item.TareWeight.HasValue)
                             {
-                                <span class="badge-erp badge-erp-warning">@item.TareWeight kg</span>
+                                <span class="badge-erp badge-erp-warning">
+
+                                    @item.TareWeight kg
+
+                                </span>
                             }
                             else
                             {
-                                <span class="text-muted">-</span>
+                                <span class="text-muted">
+                                    -
+                                </span>
                             }
+
                         </td>
+
+
+                        <!-- NET -->
                         <td>
+
                             @if (item.NetWeight.HasValue)
                             {
-                                <span class="badge-erp badge-erp-success">@item.NetWeight kg</span>
+                                <span class="badge-erp badge-erp-success">
+
+                                    @item.NetWeight kg
+
+                                </span>
                             }
                             else
                             {
-                                <span class="text-muted">-</span>
+                                <span class="text-muted">
+                                    -
+                                </span>
                             }
+
                         </td>
+
+
+                        <!-- STATUS -->
                         <td>
+
                             @if (item.Status == "Entered")
                             {
-                                <span class="badge-erp badge-erp-warning">Inside Mill</span>
+                                <span class="badge-erp badge-erp-warning">
+
+                                    Inside Mill
+
+                                </span>
+                            }
+                            else if (item.Status == "WaitingForSupervisor")
+                            {
+                                <span class="badge-erp badge-erp-warning">
+
+                                    Waiting Supervisor
+
+                                </span>
+                            }
+                            else if (item.Status == "UnloadingAssigned")
+                            {
+                                <span class="badge-erp badge-erp-info">
+
+                                    Unloading Assigned
+
+                                </span>
+                            }
+                            else if (item.Status == "WaitingForTare")
+                            {
+                                <span class="badge-erp badge-erp-warning">
+
+                                    Waiting For Tare
+
+                                </span>
                             }
                             else if (item.Status == "Tested")
                             {
-                                <span class="badge-erp badge-erp-info">Quality Checked</span>
+                                <span class="badge-erp badge-erp-info">
+
+                                    Quality Checked
+
+                                </span>
                             }
                             else if (item.Status == "Exited")
                             {
-                                <span class="badge-erp badge-erp-success">Exited</span>
+                                <span class="badge-erp badge-erp-success">
+
+                                    Exited
+
+                                </span>
+                            }
+                            else if (item.Status == "Completed")
+                            {
+                                <span class="badge-erp badge-erp-success">
+
+                                    Completed
+
+                                </span>
                             }
                             else
                             {
-                                <span class="badge-erp badge-erp-info">@item.Status</span>
+                                <span class="badge-erp badge-erp-info">
+
+                                    @item.Status
+
+                                </span>
                             }
+
                         </td>
+
+
+                        <!-- ACTION -->
                         <td class="text-center pe-4">
-                            <div class="btn-group" role="group">
-                                @if (item.Status == "WaitingForTare")
+
+                            <div class="btn-group"
+                                 role="group">
+
+
+                                @*
+                                    Other developer ka Unload button
+                                    preserve kiya gaya hai.
+
+                                    Unloading WaitingForTare par nahi hona chahiye.
+                                    WaitingForTare ka matlab Meth unloading
+                                    complete kar chuka hai.
+                                *@
+
+                                @if (
+                                    User.IsSupervisorUser()
+                                    &&
+                                    (
+                                        item.Status == "WaitingForSupervisor"
+                                        ||
+                                        item.Status == "Entered"
+                                    )
+                                )
                                 {
-                                    <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-danger fw-bold">
-                                        <i class="bi bi-speedometer2 me-1"></i> Take Tare
+                                    <a asp-controller="Unload"
+                                       asp-action="Assign"
+                                       asp-route-rstNumber="@item.RSTNumber"
+                                       class="btn btn-sm btn-outline-success fw-bold">
+
+                                        <i class="bi bi-truck me-1"></i>
+
+                                        Unload
+
                                     </a>
                                 }
-                                else if (item.Status is "Completed" or "Exited")
+
+
+                                @if (item.Status == "WaitingForTare")
                                 {
-                                    <button class="btn btn-sm btn-light border text-muted" disabled>Completed</button>
+                                    <a asp-action="Outbound"
+                                       asp-route-id="@item.RSTNumber"
+                                       class="btn btn-sm btn-outline-danger fw-bold">
+
+                                        <i class="bi bi-speedometer2 me-1"></i>
+
+                                        Take Tare
+
+                                    </a>
+                                }
+                                else if (
+                                    item.Status == "Completed"
+                                    ||
+                                    item.Status == "Exited"
+                                )
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-light border text-muted"
+                                            disabled>
+
+                                        Completed
+
+                                    </button>
+                                }
+                                else if (
+                                    item.Status == "UnloadingAssigned"
+                                )
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-light border text-muted"
+                                            disabled>
+
+                                        Unloading In Progress
+
+                                    </button>
+                                }
+                                else if (
+                                    item.Status == "WaitingForSupervisor"
+                                    ||
+                                    item.Status == "Entered"
+                                )
+                                {
+                                    @if (!User.IsSupervisorUser())
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-light border text-muted"
+                                                disabled>
+
+                                            Waiting Supervisor
+
+                                        </button>
+                                    }
                                 }
                                 else
                                 {
-                                    <button class="btn btn-sm btn-light border text-muted" disabled>Waiting Supervisor</button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-light border text-muted"
+                                            disabled>
+
+                                        @item.Status
+
+                                    </button>
                                 }
-                                <a asp-action="Print" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-secondary" target="_blank">
+
+
+                                <!-- PRINT -->
+                                <a asp-action="Print"
+                                   asp-route-id="@item.RSTNumber"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   target="_blank"
+                                   title="Print RST">
+
                                     <i class="bi bi-printer"></i>
+
                                 </a>
+
                             </div>
+
                         </td>
+
                     </tr>
                 }
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>

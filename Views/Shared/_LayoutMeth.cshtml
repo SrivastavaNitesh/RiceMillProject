@@ -19,12 +19,12 @@
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
 
 
-    <!-- DataTables Bootstrap 5 -->
+    <!-- DataTables -->
     <link rel="stylesheet"
-          href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+          href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
 
 
     <!-- Site CSS -->
@@ -40,13 +40,13 @@
     <style>
 
         /* =========================================================
-           RESET / PAGE
+           RESET
            ========================================================= */
 
         html,
         body {
             width: 100%;
-            min-height: 100%;
+            height: 100%;
             margin: 0 !important;
             padding: 0 !important;
         }
@@ -56,9 +56,6 @@
         }
 
         body {
-            min-height: 100vh;
-            min-height: 100dvh;
-
             background: #f4f7fb !important;
 
             font-family:
@@ -73,7 +70,7 @@
 
 
         /* =========================================================
-           METH APP SHELL
+           APP SHELL
            ========================================================= */
 
         .meth-shell {
@@ -81,8 +78,7 @@
             height: 100vh;
             height: 100dvh;
 
-            min-height: 100vh;
-            min-height: 100dvh;
+            display: flex;
 
             background: #f4f7fb;
 
@@ -107,13 +103,10 @@
             height: 100vh;
             height: 100dvh;
 
-            min-height: 100vh;
-            min-height: 100dvh;
-
             display: flex;
             flex-direction: column;
 
-            color: #fff;
+            color: #ffffff;
 
             background:
                 linear-gradient(
@@ -149,15 +142,13 @@
 
 
         .meth-sidebar::-webkit-scrollbar-thumb {
-            background:
-                rgba(255,255,255,.30);
-
+            background: rgba(255,255,255,.30);
             border-radius: 10px;
         }
 
 
         /* =========================================================
-           SIDEBAR LOGO
+           LOGO
            ========================================================= */
 
         .meth-sidebar-logo {
@@ -194,14 +185,14 @@
 
             font-size: 29px;
 
-            color: #fff;
+            color: #ffffff;
         }
 
 
         .meth-sidebar-logo h5 {
             margin: 0;
 
-            color: #fff;
+            color: #ffffff;
 
             font-size: 18px;
 
@@ -222,14 +213,13 @@
 
 
         /* =========================================================
-           SIDEBAR NAVIGATION
+           SIDEBAR MENU
            ========================================================= */
 
         .meth-sidebar-menu {
             flex: 1;
 
-            padding:
-                14px 0 20px;
+            padding: 14px 0 20px;
 
             margin: 0;
 
@@ -281,7 +271,7 @@
 
 
         .meth-sidebar-menu a:hover {
-            color: #fff;
+            color: #ffffff;
 
             background:
                 rgba(255,255,255,.13);
@@ -291,7 +281,7 @@
 
 
         .meth-sidebar-menu a.active {
-            color: #fff;
+            color: #ffffff;
 
             background:
                 rgba(255,255,255,.18);
@@ -301,8 +291,7 @@
 
 
         .meth-sidebar-section {
-            margin:
-                20px 20px 7px;
+            margin: 20px 20px 7px;
 
             color:
                 rgba(255,255,255,.58);
@@ -314,6 +303,8 @@
             letter-spacing: .8px;
 
             text-transform: uppercase;
+
+            list-style: none;
         }
 
 
@@ -333,19 +324,19 @@
 
 
         /* =========================================================
-           RIGHT SIDE
+           MAIN AREA
            ========================================================= */
 
         .meth-main {
             margin-left: 265px;
 
-            width: calc(100% - 265px);
+            width:
+                calc(100% - 265px);
 
             height: 100vh;
             height: 100dvh;
 
-            min-height: 100vh;
-            min-height: 100dvh;
+            min-width: 0;
 
             display: flex;
 
@@ -358,7 +349,7 @@
 
 
         /* =========================================================
-           TOP HEADER
+           HEADER
            ========================================================= */
 
         .meth-top-header {
@@ -376,7 +367,7 @@
 
             flex-shrink: 0;
 
-            background: #fff;
+            background: #ffffff;
 
             border-bottom:
                 1px solid #e8ecf2;
@@ -421,7 +412,7 @@
 
 
         /* =========================================================
-           USER
+           USER MENU
            ========================================================= */
 
         .meth-user-toggle {
@@ -535,11 +526,6 @@
         }
 
 
-        /*
-           Important:
-           RenderBody ke content ki height kam ho tab bhi
-           remaining area light background hi rahega.
-        */
         .meth-page-content::after {
             content: "";
 
@@ -569,8 +555,7 @@
 
 
             .meth-top-header {
-                padding:
-                    12px 18px;
+                padding: 12px 18px;
             }
 
 
@@ -601,8 +586,7 @@
 
 
             .meth-sidebar-logo {
-                padding:
-                    16px 10px;
+                padding: 16px 10px;
             }
 
 
@@ -620,19 +604,16 @@
 
 
             .meth-sidebar-menu a {
-                margin:
-                    3px 8px;
+                margin: 3px 8px;
 
-                padding:
-                    10px 10px;
+                padding: 10px 10px;
 
                 font-size: 13px;
             }
 
 
             .meth-top-header {
-                padding:
-                    10px 14px;
+                padding: 10px 14px;
             }
 
 
@@ -651,12 +632,91 @@
             }
         }
 
+
+        /* =========================================================
+           PRINT
+           Other developer code preserved
+           ========================================================= */
+
+        @@media print {
+
+            .meth-sidebar,
+            .meth-top-header {
+                display: none !important;
+            }
+
+
+            .meth-main {
+                margin-left: 0 !important;
+
+                width: 100% !important;
+
+                height: auto !important;
+
+                overflow: visible !important;
+            }
+
+
+            .meth-page-content {
+                padding: 0 !important;
+
+                overflow: visible !important;
+
+                background: #ffffff !important;
+            }
+
+
+            body {
+                overflow: visible !important;
+
+                background: #ffffff !important;
+            }
+        }
+
     </style>
 
 </head>
 
 
 <body>
+
+    @{
+        var currentController =
+            ViewContext.RouteData.Values["controller"]
+                ?.ToString()
+                ?.ToLower()
+            ?? "";
+
+        var currentAction =
+            ViewContext.RouteData.Values["action"]
+                ?.ToString()
+                ?.ToLower()
+            ?? "";
+
+
+        string MethActive(
+            string controller,
+            string action = "")
+        {
+            bool controllerMatch =
+                currentController
+                ==
+                controller.ToLower();
+
+            bool actionMatch =
+                string.IsNullOrWhiteSpace(action)
+                ||
+                currentAction
+                ==
+                action.ToLower();
+
+            return
+                controllerMatch && actionMatch
+                    ? "active"
+                    : "";
+        }
+    }
+
 
     <div class="meth-shell">
 
@@ -665,7 +725,8 @@
              SIDEBAR
              ===================================================== -->
 
-        <aside class="meth-sidebar">
+        <aside class="meth-sidebar"
+               aria-label="Meth navigation">
 
 
             <!-- LOGO -->
@@ -692,15 +753,20 @@
 
 
 
-            <!-- MENU -->
+            <!-- =================================================
+                 MENU
+                 ================================================= -->
 
             <ul class="meth-sidebar-menu">
 
 
+                <!-- DASHBOARD -->
+
                 <li class="nav-item">
 
                     <a asp-controller="Meth"
-                       asp-action="Index">
+                       asp-action="Index"
+                       class="@MethActive("Meth", "Index")">
 
                         <i class="bi bi-speedometer2"></i>
 
@@ -713,10 +779,21 @@
                 </li>
 
 
+
+                <!-- =================================================
+                     WORK
+                     ================================================= -->
+
+                <li class="meth-sidebar-section">
+                    Work
+                </li>
+
+
                 <li class="nav-item">
 
                     <a asp-controller="Meth"
-                       asp-action="Index">
+                       asp-action="Index"
+                       class="@MethActive("Meth", "Index")">
 
                         <i class="bi bi-truck-flatbed"></i>
 
@@ -729,18 +806,11 @@
                 </li>
 
 
-
-                <li class="meth-sidebar-section">
-
-                    Work
-
-                </li>
-
-
                 <li class="nav-item">
 
                     <a asp-controller="Meth"
-                       asp-action="Index">
+                       asp-action="Index"
+                       class="@MethActive("Meth", "Index")">
 
                         <i class="bi bi-list-check"></i>
 
@@ -754,10 +824,35 @@
 
 
 
+                <!-- =================================================
+                     OTHER DEVELOPER:
+                     UNLOADING REPORT PRESERVED
+                     ================================================= -->
+
+                <li class="nav-item">
+
+                    <a asp-controller="Report"
+                       asp-action="UnloadSummaryReport"
+                       class="@MethActive("Report", "UnloadSummaryReport")">
+
+                        <i class="bi bi-file-earmark-text"></i>
+
+                        <span>
+                            Unloading Report
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+
+                <!-- =================================================
+                     ACCOUNT
+                     ================================================= -->
+
                 <li class="meth-sidebar-section">
-
                     Account
-
                 </li>
 
 
@@ -776,7 +871,6 @@
                     </a>
 
                 </li>
-
 
             </ul>
 
@@ -832,89 +926,112 @@
 
 
 
-                    <!-- USER MENU -->
+                    <!-- USER -->
 
-                    <div class="dropdown">
-
-                        <a href="#"
-                           class="meth-user-toggle dropdown-toggle"
-                           id="methUserDropdown"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
-
-
-                            <div class="meth-user-avatar">
-
-                                <i class="bi bi-person-fill"></i>
-
-                            </div>
+                    @if (
+                        User.Identity != null
+                        &&
+                        User.Identity.IsAuthenticated
+                    )
+                    {
+                        <div class="dropdown">
 
 
-                            <div>
-
-                                <strong class="meth-user-name">
-
-                                    @User.Identity?.Name
-
-                                </strong>
+                            <a href="#"
+                               class="meth-user-toggle dropdown-toggle"
+                               id="methUserDropdown"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
 
 
-                                <small class="meth-user-role">
+                                <div class="meth-user-avatar">
 
-                                    Meth
+                                    <i class="bi bi-person-fill"></i>
 
-                                </small>
-
-                            </div>
-
-                        </a>
+                                </div>
 
 
+                                <div>
 
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                            aria-labelledby="methUserDropdown">
+                                    <strong class="meth-user-name">
 
+                                        @User.Identity.Name
 
-                            <li>
-
-                                <a class="dropdown-item"
-                                   asp-controller="Meth"
-                                   asp-action="Index">
-
-                                    <i class="bi bi-speedometer2 me-2"></i>
-
-                                    Dashboard
-
-                                </a>
-
-                            </li>
+                                    </strong>
 
 
-                            <li>
+                                    <small class="meth-user-role">
 
-                                <hr class="dropdown-divider" />
+                                        Meth (Labour Head)
 
-                            </li>
+                                    </small>
 
+                                </div>
 
-                            <li>
-
-                                <a class="dropdown-item text-danger fw-semibold"
-                                   asp-controller="Account"
-                                   asp-action="Logout">
-
-                                    <i class="bi bi-power me-2"></i>
-
-                                    Sign Out
-
-                                </a>
-
-                            </li>
+                            </a>
 
 
-                        </ul>
 
-                    </div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                                aria-labelledby="methUserDropdown">
+
+
+                                <li>
+
+                                    <a class="dropdown-item"
+                                       asp-controller="Meth"
+                                       asp-action="Index">
+
+                                        <i class="bi bi-speedometer2 me-2"></i>
+
+                                        Dashboard
+
+                                    </a>
+
+                                </li>
+
+
+                                <li>
+
+                                    <a class="dropdown-item"
+                                       asp-controller="Report"
+                                       asp-action="UnloadSummaryReport">
+
+                                        <i class="bi bi-file-earmark-text me-2"></i>
+
+                                        Unloading Report
+
+                                    </a>
+
+                                </li>
+
+
+                                <li>
+
+                                    <hr class="dropdown-divider" />
+
+                                </li>
+
+
+                                <li>
+
+                                    <a class="dropdown-item text-danger fw-semibold"
+                                       asp-controller="Account"
+                                       asp-action="Logout">
+
+                                        <i class="bi bi-power me-2"></i>
+
+                                        Sign Out
+
+                                    </a>
+
+                                </li>
+
+
+                            </ul>
+
+                        </div>
+                    }
 
                 </div>
 
@@ -941,7 +1058,6 @@
     <!-- =========================================================
          JAVASCRIPT
          ========================================================= -->
-
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
@@ -1006,7 +1122,6 @@
         );
 
     </script>
-
 
 
     @await RenderSectionAsync(
