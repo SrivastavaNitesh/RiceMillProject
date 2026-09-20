@@ -1,148 +1,286 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
+using RiceMillProject.BAL;
 using RiceMillProject.Models;
 using System.Data;
+using System.Linq;
+using System.Security.Claims;
 
 namespace RiceMillProject.Controllers
 {
     [Authorize]
-    public class DashboardController : Controller
+    public class GateEntryController : Controller
     {
-        private readonly string _connectionString;
+        private readonly GateEntryBAL _gateBal;
+        private readonly VehicleBAL _vehicleBal;
+        private readonly PersonBAL _personBal;
+        private readonly OfficeBAL _officeBal;
+        private readonly BusinessLayer _busLayer;
 
-        public DashboardController(IConfiguration configuration)
+        public GateEntryController(IConfiguration configuration)
         {
-            _connectionString =
-                configuration.GetConnectionString("DefaultConnection") ?? "";
+            _gateBal = new GateEntryBAL(configuration);
+            _vehicleBal = new VehicleBAL(configuration);
+            _personBal = new PersonBAL(configuration);
+            _officeBal = new OfficeBAL(configuration);
+            _busLayer = new BusinessLayer(configuration);
         }
 
         public IActionResult Index()
         {
-            // =====================================================
-            // GATEMAN
-            // Existing code + other developer code BOTH preserved
-            // =====================================================
-
-            bool isGatemanOnly =
-                (
-                    User.IsInRole("Gate Man")
-                    || User.IsInRole("Gateman")
-                    || User.FindFirst("PostId")?.Value == "1"
-                )
-                && !User.IsInRole("Admin")
-                && !(User.Identity?.Name ?? "")
-                    .ToLower()
-                    .Contains("admin");
-
-
-            if (User.IsGatemanUser() || isGatemanOnly)
+            try
             {
-                return RedirectToAction(
-                    "Dashboard",
-                    "Gateman"
-                );
+                var entries = _gateBal.GetAllGateEntries();
+                return View(entries);
             }
-
-
-            // =====================================================
-            // WEIGHTMAN
-            // =====================================================
-
-            if (User.IsWeightmanUser())
+            catch (Exception ex)
             {
-                return RedirectToAction(
-                    "Dashboard",
-                    "GateEntry"
-                );
+                TempData["ErrorMessage"] = "An error occurred while loading entries: " + ex.Message;
+                return View(new List<GateEntry>());
             }
+        }
 
-
-            // =====================================================
-            // SUPERVISOR
-            // =====================================================
-
-            if (User.IsSupervisorUser())
+        [HttpGet]
+        public IActionResult Dashboard()
+        {
+            try
             {
-                return RedirectToAction(
-                    "Index",
-                    "Unload"
-                );
+                var entries = _gateBal.GetAllGateEntries();
+                ViewBag.TotalEntries = entries.Count;
+                ViewBag.TodayEntries = entries.Count(e => e.GateEntryTime.Date == DateTime.Today);
+                ViewBag.PendingTare = entries.Count(e => !e.TareWeight.HasValue);
+                ViewBag.CompletedEntries = entries.Count(e => e.NetWeight.HasValue);
+                return View(entries);
             }
-
-
-            // =====================================================
-            // METH
-            // =====================================================
-
-            if (User.IsMethUser())
+            catch (Exception ex)
             {
-                return RedirectToAction(
-                    "Index",
-                    "Meth"
-                );
+                ViewBag.ErrorMessage = "An error occurred while loading Weightman dashboard: " + ex.Message;
+                ViewBag.TotalEntries = 0;
+                ViewBag.TodayEntries = 0;
+                ViewBag.PendingTare = 0;
+                ViewBag.CompletedEntries = 0;
+                return View(new List<GateEntry>());
             }
+        }
 
-
-            // =====================================================
-            // LAB
-            // =====================================================
-
-            if (User.IsLabUser())
+        [HttpGet]
+        public IActionResult Create(int? inwardId = null)
+        {
+            try
             {
-                return RedirectToAction(
-                    "Index",
-                    "Lab"
-                );
-            }
-
-
-            // =====================================================
-            // ADMIN / GENERAL DASHBOARD
-            // =====================================================
-
-            var stats = new DashboardStats();
-
-            using (SqlConnection con =
-                   new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd =
-                       new SqlCommand(
-                           "sp_GetDashboardStats",
-                           con))
+                var entry = new GateEntry();
+                if (inwardId.HasValue)
                 {
-                    cmd.CommandType =
-                        CommandType.StoredProcedure;
-
-                    con.Open();
-
-                    using (SqlDataReader reader =
-                           cmd.ExecuteReader())
+                    var details = _gateBal.GetInwardDetailsById(inwardId.Value);
+                    if (details.Rows.Count == 0)
                     {
-                        if (reader.Read())
-                        {
-                            stats.TotalEntered =
-                                Convert.ToInt32(
-                                    reader["TotalEntered"]);
+                        TempData["ErrorMessage"] = "Selected inward entry is unavailable or its RST is already generated.";
+                        return RedirectToAction("Report", "Gateman");
+                    }
 
-                            stats.PendingUnload =
-                                Convert.ToInt32(
-                                    reader["PendingUnload"]);
+                    var row = details.Rows[0];
+                    entry.InwardNo = row["InwardNo"]?.ToString() ?? string.Empty;
+                    entry.PartyId = row["PartyId"] != DBNull.Value ? Convert.ToInt32(row["PartyId"]) : 0;
+                    entry.VehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : 0;
+                    entry.DriverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : 0;
+                    ViewBag.LockInward = true;
+                    ViewBag.InwardId = inwardId.Value;
+                    ViewBag.PartyName = row["PartyName"]?.ToString() ?? "-";
+                    ViewBag.VehicleNo = row["VehicleNo"]?.ToString() ?? "-";
+                    ViewBag.DriverName = row["DriverName"]?.ToString() ?? "-";
+                    ViewBag.DriverMobile = row["DriverMobile"]?.ToString() ?? "-";
+                    ViewBag.TotalBags = row["ApproxNoOfBags"] != DBNull.Value ? Convert.ToInt32(row["ApproxNoOfBags"]) : 0;
+                }
+                PopulateDropdowns(entry);
+                return View(entry);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while loading the page: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
 
-                            stats.PendingLab =
-                                Convert.ToInt32(
-                                    reader["PendingLab"]);
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(GateEntry entry)
+        {
+            try
+            {
+                entry.CreatedBy = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (!string.IsNullOrWhiteSpace(entry.InwardNo))
+                {
+                    var inward = _gateBal.GetInwardDetails(entry.InwardNo);
+                    if (inward.Rows.Count == 0)
+                    {
+                        throw new InvalidOperationException("The selected inward entry could not be verified.");
+                    }
 
-                            stats.PendingSettlement =
-                                Convert.ToInt32(
-                                    reader["PendingSettlement"]);
-                        }
+                    var row = inward.Rows[0];
+                    entry.PartyId = row["PartyId"] != DBNull.Value ? Convert.ToInt32(row["PartyId"]) : 0;
+                    entry.VehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : 0;
+                    entry.DriverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : 0;
+                }
+                if (ModelState.IsValid || entry.GrossWeight > 0)
+                {
+                    string generatedRST = _gateBal.CreateGateEntry(entry);
+                    TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {generatedRST}";
+                    return RedirectToAction("Dashboard");
+                }
+
+                PopulateDropdowns(entry);
+                return View(entry);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while saving entry: " + ex.Message;
+                return RedirectToAction("Create");
+            }
+        }
+
+        private void PopulateDropdowns(GateEntry entry)
+        {
+            ViewBag.PendingInwards = new List<PendingRstInward>();
+            ViewBag.Offices = Enumerable.Empty<SelectListItem>();
+            try { ViewBag.PendingInwards = _gateBal.GetPendingRstInwards(); }
+            catch (Exception) { ModelState.AddModelError("", "Pending inwards could not be loaded. Check the database connection and GateEntry_Inward_Workflow.sql migration."); }
+            try { ViewBag.Offices = new SelectList(_officeBal.GetAllOffices().Where(x => x.IsActive), "OfficeId", "OfficeName", entry.TargetOfficeId); }
+            catch (Exception) { ModelState.AddModelError("", "Company names could not be loaded."); }
+        }
+        [HttpGet]
+        public IActionResult Outbound(string id)
+        {
+            try
+            {
+                var entry = _gateBal.GetAllGateEntries().Find(e => e.RSTNumber == id);
+                if (entry == null) return NotFound();
+                return View(entry);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Outbound(string rstNumber, decimal tareWeight)
+        {
+            try
+            {
+                _gateBal.CompleteGateExit(rstNumber, tareWeight);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Print(string id)
+        {
+            try
+            {
+                var entry = _gateBal.GetAllGateEntries().Find(e => e.RSTNumber == id);
+                if (entry == null) return NotFound();
+                return View(entry);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetInwardDetails(string inwardNo)
+        {
+            try
+            {
+                var dt = _gateBal.GetInwardDetails(inwardNo);
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    var row = dt.Rows[0];
+                    return Json(new
+                    {
+                        success = true,
+                        inwardNo = row["InwardNo"]?.ToString(),
+                        partyId = row["PartyId"] != DBNull.Value ? Convert.ToInt32(row["PartyId"]) : (int?)null,
+                        partyName = row["PartyName"]?.ToString(),
+                        vehicleId = row["VehicleId"] != DBNull.Value ? Convert.ToInt32(row["VehicleId"]) : (int?)null,
+                        vehicleNo = row["VehicleNo"]?.ToString(),
+                        driverId = row["DriverId"] != DBNull.Value ? Convert.ToInt32(row["DriverId"]) : (int?)null,
+                        driverName = row["DriverName"]?.ToString(),
+                        driverMobile = row["DriverMobile"]?.ToString()
+                    });
+                }
+                return Json(new { success = false, message = "Inward details not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetLinkageByParty(int partyId)
+        {
+            try
+            {
+                var data = _gateBal.GetLinkageByParty(partyId);
+                return Json(new { success = true, vehicleId = data.vehicleId, driverId = data.driverId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetPartyOptions(int partyId)
+        {
+            try
+            {
+                var vehicles = _gateBal.GetVehiclesByParty(partyId);
+                var drivers = _gateBal.GetDriversByParty(partyId);
+                
+                int defaultVehicleId = 0;
+                int defaultDriverId = 0;
+                
+                foreach (dynamic v in vehicles)
+                {
+                    if (v.IsLinked)
+                    {
+                        defaultVehicleId = v.VehicleId;
+                        break;
                     }
                 }
-            }
+                foreach (dynamic d in drivers)
+                {
+                    if (d.IsLinked)
+                    {
+                        defaultDriverId = d.DriverId;
+                        break;
+                    }
+                }
 
-            return View(stats);
+                return Json(new
+                {
+                    success = true,
+                    vehicles = vehicles,
+                    drivers = drivers,
+                    defaultVehicleId = defaultVehicleId,
+                    defaultDriverId = defaultDriverId
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

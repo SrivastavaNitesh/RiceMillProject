@@ -9,110 +9,28 @@ namespace RiceMillProject.Controllers
     {
         public IActionResult Index()
         {
-            if (User.Identity != null &&
-                User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated != true) return View();
+
+            // Use the same access rules as the dashboard and layouts.
+            if (User.IsAdminUser()) return RedirectToAction("Index", "Dashboard");
+            if (User.IsGatemanUser()) return RedirectToAction("Dashboard", "Gateman");
+            if (User.IsWeightmanUser()) return RedirectToAction("Dashboard", "GateEntry");
+            if (User.IsSupervisorUser()) return RedirectToAction("Index", "Unload");
+            if (User.IsLabUser()) return RedirectToAction("Index", "Lab");
+            if (User.IsMethUser()) return RedirectToAction("Index", "Meth");
+
+            // Support existing login cookies containing only PostId.
+            return User.FindFirst("PostId")?.Value switch
             {
-                // ================================================
-                // EXISTING USER ACCESS HELPERS
-                // ================================================
-
-                if (User.IsGatemanUser())
-                {
-                    return RedirectToAction(
-                        "Dashboard",
-                        "Gateman"
-                    );
-                }
-
-                if (User.IsWeightmanUser())
-                {
-                    return RedirectToAction(
-                        "Dashboard",
-                        "GateEntry"
-                    );
-                }
-
-                if (User.IsLabUser())
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Lab"
-                    );
-                }
-
-                if (User.IsMethUser())
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Meth"
-                    );
-                }
-
-                if (User.IsSupervisorUser())
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Unload"
-                    );
-                }
-
-
-                // ================================================
-                // FALLBACK - POST ID
-                // Existing fallback preserved
-                // ================================================
-
-                if (User.HasClaim("PostId", "5"))
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Lab"
-                    );
-                }
-                else if (User.HasClaim("PostId", "6"))
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Meth"
-                    );
-                }
-                else if (User.HasClaim("PostId", "1"))
-                {
-                    return RedirectToAction(
-                        "Dashboard",
-                        "Gateman"
-                    );
-                }
-                else if (User.HasClaim("PostId", "2"))
-                {
-                    return RedirectToAction(
-                        "Dashboard",
-                        "GateEntry"
-                    );
-                }
-                else if (User.HasClaim("PostId", "3"))
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Unload"
-                    );
-                }
-
-
-                // ================================================
-                // ADMIN / OTHER USERS
-                // ================================================
-
-                return RedirectToAction(
-                    "Index",
-                    "Dashboard"
-                );
-            }
-
-            return View();
+                "1" => RedirectToAction("Dashboard", "Gateman"),
+                "2" => RedirectToAction("Dashboard", "GateEntry"),
+                "3" => RedirectToAction("Index", "Unload"),
+                "4" => RedirectToAction("Index", "Dashboard"),
+                "5" => RedirectToAction("Index", "Lab"),
+                "6" => RedirectToAction("Index", "Meth"),
+                _ => View()
+            };
         }
-
-
         public IActionResult Privacy()
         {
             return View();
