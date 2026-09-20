@@ -1,10 +1,20 @@
 namespace RiceMillProject.Models
 {
+    using System.ComponentModel.DataAnnotations;
+
     public class GateMaster
     {
         public int GateId { get; set; }
         public string GateCode { get; set; } = string.Empty;
+
+        [Range(1, int.MaxValue, ErrorMessage = "Company selection is required")]
+        public int OfficeId { get; set; }
+        public string? OfficeName { get; set; }
+
+        [Required(ErrorMessage = "Gate Name is required")]
         public string GateName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Gate Type is required")]
         public string GateType { get; set; } = "Main Gate"; // Main Gate, Dispatch Gate, Staff Gate, Gate-1, etc.
         public string? LocationArea { get; set; }
         public int? DepartmentId { get; set; }

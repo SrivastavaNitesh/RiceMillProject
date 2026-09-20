@@ -7,6 +7,12 @@ namespace RiceMillProject.Models
     {
         public int LocationId { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "Company selection is required")]
+        [Display(Name = "Company")]
+        public int OfficeId { get; set; }
+
+        public string? OfficeName { get; set; }
+
         [Display(Name = "Location Code")]
         public string? LocationCode { get; set; }
 
@@ -41,8 +47,8 @@ namespace RiceMillProject.Models
     {
         public int MappingId { get; set; }
 
-        [Required(ErrorMessage = "Office selection is required")]
-        [Display(Name = "Office")]
+        [Required(ErrorMessage = "Company selection is required")]
+        [Display(Name = "Company")]
         public int OfficeId { get; set; }
 
         public string? OfficeName { get; set; }
@@ -63,5 +69,12 @@ namespace RiceMillProject.Models
 
         [Display(Name = "Status")]
         public bool IsActive { get; set; } = true;
+    }
+
+    public class LocationTypeOption
+    {
+        public int LocationTypeId { get; set; }
+        public string LocationTypeName { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
     }
 }

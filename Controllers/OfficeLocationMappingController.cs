@@ -11,12 +11,10 @@ namespace RiceMillProject.Controllers
     public class OfficeLocationMappingController : Controller
     {
         private readonly LocationMasterBAL _locationBal;
-        private readonly PostBAL _postBal;
 
         public OfficeLocationMappingController(IConfiguration configuration)
         {
             _locationBal = new LocationMasterBAL(configuration);
-            _postBal = new PostBAL(configuration);
         }
 
         public IActionResult Index()
@@ -32,11 +30,19 @@ namespace RiceMillProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                _locationBal.SaveOfficeLocationMapping(model);
-                TempData["SuccessMessage"] = "Office-Location mapping saved successfully!";
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _locationBal.SaveOfficeLocationMapping(model);
+                    TempData["SuccessMessage"] = "Company-Location mapping saved successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Mapping could not be saved: " + ex.Message;
+                }
             }
-            PopulateDropdowns();
+            TempData["ErrorMessage"] ??= "Please select Company and Location.";
+            PopulateDropdowns(model.OfficeId, model.LocationId);
             var mappings = _locationBal.GetAllOfficeLocationMappings();
             ViewBag.NewMapping = model;
             return View("Index", mappings);
@@ -50,13 +56,13 @@ namespace RiceMillProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private void PopulateDropdowns()
+        private void PopulateDropdowns(int? selectedOfficeId = null, int? selectedLocationId = null)
         {
-            var offices = _postBal.GetAllPosts();
+            var offices = _locationBal.GetActiveOffices();
             var locations = _locationBal.GetAllLocations();
 
-            ViewBag.Offices = new SelectList(offices, "PostId", "PostName");
-            ViewBag.Locations = new SelectList(locations, "LocationId", "LocationName");
+            ViewBag.Offices = new SelectList(offices, "OfficeId", "OfficeName", selectedOfficeId);
+            ViewBag.Locations = new SelectList(locations, "LocationId", "LocationName", selectedLocationId);
         }
     }
 }
