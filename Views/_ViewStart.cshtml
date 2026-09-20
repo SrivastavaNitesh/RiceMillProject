@@ -1,12 +1,15 @@
-@{
+@* @{
     var layoutClaim = User.FindFirst("LayoutName")?.Value;
     if (User.HasClaim("PostId", "6")) { Layout = "_LayoutMeth"; }
     else if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
     {
-        Layout = layoutClaim;
+        Layout = null;
     }
     else
     {
         Layout = "_Layout";
     }
+} *@
+@{
+    Layout = "_Layout";
 }
