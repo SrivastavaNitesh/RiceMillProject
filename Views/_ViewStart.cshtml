@@ -1,6 +1,7 @@
 @{
     var layoutClaim = User.FindFirst("LayoutName")?.Value;
-    if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
+    if (User.HasClaim("PostId", "6")) { Layout = "_LayoutMeth"; }
+    else if (!string.IsNullOrEmpty(layoutClaim) && layoutClaim != "_LayoutDefault")
     {
         Layout = layoutClaim;
     }

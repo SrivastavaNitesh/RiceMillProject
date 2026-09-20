@@ -20,6 +20,8 @@ namespace RiceMillProject.BAL
             return _gateDal.GetAllGateEntries();
         }
 
+        public List<PendingRstInward> GetPendingRstInwards() => _gateDal.GetPendingRstInwards();
+
         public string CreateGateEntry(GateEntry entry)
         {
             return _gateDal.CreateGateEntry(entry);

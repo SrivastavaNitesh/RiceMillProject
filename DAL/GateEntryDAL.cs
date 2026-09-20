@@ -56,49 +56,33 @@ namespace RiceMillProject.DAL
             return entries;
         }
 
-        public string CreateGateEntry(GateEntry entry)
+        public List<PendingRstInward> GetPendingRstInwards()
         {
-            string rstNumber = "";
-            using (SqlConnection con = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("sp_CreateGateEntry", con))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@InwardNo", (object?)entry.InwardNo ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@VehicleId", entry.VehicleId > 0 ? entry.VehicleId : 1);
-                    cmd.Parameters.AddWithValue("@PartyId", entry.PartyId > 0 ? entry.PartyId : 1);
-                    cmd.Parameters.AddWithValue("@DriverId", entry.DriverId > 0 ? entry.DriverId : 1);
-                    cmd.Parameters.AddWithValue("@GrossWeight", entry.GrossWeight);
-                    cmd.Parameters.AddWithValue("@TargetOfficeId", (object?)entry.TargetOfficeId ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CreatedBy", entry.CreatedBy > 0 ? entry.CreatedBy : 1);
-                    
-                    con.Open();
-                    object? result = cmd.ExecuteScalar();
-                    if (result != null)
-                    {
-                        rstNumber = result.ToString() ?? "";
-                        entry.RSTNumber = rstNumber;
-                        
-                        // Insert multiple locations
-                        if (entry.TargetLocationIds != null && rstNumber != "")
-                        {
-                            foreach (int locId in entry.TargetLocationIds)
-                            {
-                                using (SqlCommand locCmd = new SqlCommand("sp_InsertGateEntryLocation", con))
-                                {
-                                    locCmd.CommandType = CommandType.StoredProcedure;
-                                    locCmd.Parameters.AddWithValue("@RSTNumber", rstNumber);
-                                    locCmd.Parameters.AddWithValue("@LocationId", locId);
-                                    locCmd.ExecuteNonQuery();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return rstNumber;
+            var rows = new List<PendingRstInward>();
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_GetPendingRstInwards", con) { CommandType = CommandType.StoredProcedure };
+            con.Open();
+            using var r = cmd.ExecuteReader();
+            while (r.Read()) rows.Add(new PendingRstInward {
+                InwardNo = r["InwardNo"].ToString()!, PartyId = r["PartyId"] == DBNull.Value ? 0 : Convert.ToInt32(r["PartyId"]),
+                PartyName = r["PartyName"].ToString()!, VehicleNumber = r["VehicleNo"].ToString()!,
+                DriverName = r["DriverName"].ToString()!, DriverMobile = r["DriverMobile"].ToString()!
+            });
+            return rows;
         }
 
+        public string CreateGateEntry(GateEntry entry)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_CreateRstFromInward", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.Add("@InwardNo", SqlDbType.NVarChar, 50).Value = entry.InwardNo;
+            cmd.Parameters.AddWithValue("@GrossWeight", entry.GrossWeight);
+            cmd.Parameters.AddWithValue("@TargetOfficeId", (object?)entry.TargetOfficeId ?? DBNull.Value);
+            con.Open();
+            var rst = cmd.ExecuteScalar()?.ToString();
+            if (string.IsNullOrWhiteSpace(rst)) throw new InvalidOperationException("RST was not generated.");
+            return rst;
+        }
         public List<dynamic> GetDriversWithMobile()
         {
             var list = new List<dynamic>();

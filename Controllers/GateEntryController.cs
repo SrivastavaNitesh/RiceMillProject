@@ -55,55 +55,37 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(GateEntry entry)
         {
-            try
+            if (string.IsNullOrWhiteSpace(entry.InwardNo)) ModelState.AddModelError("InwardNo", "Select a pending inward number.");
+            if (entry.GrossWeight <= 0) ModelState.AddModelError("GrossWeight", "Enter a positive gross weight.");
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid || entry.GrossWeight > 0)
+                try
                 {
-                    string generatedRST = _gateBal.CreateGateEntry(entry);
-                    TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {generatedRST}";
-                    return RedirectToAction("Create");
+                    string rst = _gateBal.CreateGateEntry(entry);
+                    TempData["SuccessMessage"] = $"RST Generated Successfully! RST Number: {rst}";
+                    return RedirectToAction(nameof(Create));
                 }
-                
-                PopulateDropdowns(entry);
-                return View(entry);
+                catch (Microsoft.Data.SqlClient.SqlException ex)
+                {
+                    ModelState.AddModelError("", ex.Number == 50001 ? ex.Message : "Unable to generate RST. Please reload and try again.");
+                }
             }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "An error occurred while saving entry: " + ex.Message;
-                return RedirectToAction("Create");
-            }
+            PopulateDropdowns(entry);
+            return View(entry);
         }
 
         private void PopulateDropdowns(GateEntry entry)
         {
-            try
-            {
-                DataTable dtInward = _busLayer.GetActiveInwardEntriesForDropdown();
-                ViewBag.InwardEntries = Allclass.CreateDropdown(dtInward);
-
-                ViewBag.Vehicles = new SelectList(_vehicleBal.GetAllVehicles(), "VehicleId", "VehicleNumber", entry.VehicleId);
-                
-                var allPersons = _personBal.GetAllPersons();
-                ViewBag.Parties = new SelectList(allPersons, "PersonId", "PersonName", entry.PartyId);
-                
-                var driversList = _gateBal.GetDriversWithMobile();
-                ViewBag.Drivers = new SelectList(driversList, "DriverId", "DriverNameMobile", entry.DriverId);
-                
-                DataTable dtOffice = _busLayer.GetAllMainoffice();
-                ViewBag.Offices = Allclass.CreateDropdown(dtOffice);
-            }
-            catch (Exception)
-            {
-                ViewBag.InwardEntries = Enumerable.Empty<SelectListItem>();
-                ViewBag.Vehicles = Enumerable.Empty<SelectListItem>();
-                ViewBag.Parties = Enumerable.Empty<SelectListItem>();
-                ViewBag.Drivers = Enumerable.Empty<SelectListItem>();
-                ViewBag.Offices = Enumerable.Empty<SelectListItem>();
-            }
+            ViewBag.PendingInwards = new List<PendingRstInward>();
+            ViewBag.Offices = Enumerable.Empty<SelectListItem>();
+            try { ViewBag.PendingInwards = _gateBal.GetPendingRstInwards(); }
+            catch (Exception) { ModelState.AddModelError("", "Pending inwards could not be loaded. Check the database connection and GateEntry_Inward_Workflow.sql migration."); }
+            try { ViewBag.Offices = new SelectList(_officeBal.GetAllOffices().Where(x => x.IsActive), "OfficeId", "OfficeName", entry.TargetOfficeId); }
+            catch (Exception) { ModelState.AddModelError("", "Company names could not be loaded."); }
         }
-
         [HttpGet]
         public IActionResult Outbound(string id)
         {

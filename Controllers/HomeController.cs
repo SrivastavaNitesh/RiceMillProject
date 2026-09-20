@@ -8,10 +8,13 @@ namespace RiceMillProject.Controllers
     public class HomeController : Controller
     {
         public IActionResult Index()
-        {
+            {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 if (User.HasClaim("PostId", "5")) return RedirectToAction("Index", "Lab");
+                else if (User.HasClaim("PostId", "6")) return RedirectToAction("Index", "Meth");
+                else if (User.HasClaim("PostId", "1")) return RedirectToAction("Dashboard", "Gateman");
+                else if (User.HasClaim("PostId", "2")) return RedirectToAction("Index", "GateEntry");
                 return RedirectToAction("Index", "Dashboard");
             }
             return View();

@@ -19,6 +19,7 @@
     </a>
 </div>
 
+@if (TempData["ErrorMessage"] is string errorMessage) { <div class="alert alert-danger" role="alert">@errorMessage</div> }
 <div class="erp-table-container">
     <div class="table-responsive">
         <table class="erp-table">
@@ -86,7 +87,7 @@
                             <div class="btn-group" role="group">
                                 @if (item.Status == "Entered")
                                 {
-                                    <a asp-controller="Unload" asp-action="Create" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-success fw-bold">
+                                    <a asp-controller="Unload" asp-action="Assign" asp-route-rstNumber="@item.RSTNumber" class="btn btn-sm btn-outline-success fw-bold">
                                         <i class="bi bi-truck me-1"></i> Unload
                                     </a>
                                     <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-sm btn-outline-danger fw-bold">

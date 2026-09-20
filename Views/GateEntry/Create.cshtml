@@ -1,286 +1,55 @@
 @model RiceMillProject.Models.GateEntry
+@using System.Text.Json
 @{
     ViewData["Title"] = "Weightman Entry & RST Generation";
+    var pending = (List<RiceMillProject.Models.PendingRstInward>)ViewBag.PendingInwards;
 }
-
-@try
-{
-<!-- Page Header -->
-<div class="erp-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-    <div class="erp-page-title-group">
-        <div class="erp-page-icon">
-            <i class="bi bi-speedometer2"></i>
-        </div>
-        <div>
-            <h3 class="erp-page-title">WEIGHTMAN ENTRY & RST GENERATION</h3>
-            <p class="erp-page-subtitle">Phase 2: Inbound vehicle gross weighment and backend RST number sequence</p>
-        </div>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-        <div class="bg-white border rounded px-3 py-2 text-end shadow-sm">
-            <small class="text-muted d-block fw-bold" style="font-size: 0.75rem;">LIVE SYSTEM DATE & TIME</small>
-            <span class="fw-bold text-primary" id="headerLiveClock">@DateTime.Now.ToString("dd MMM yyyy - hh:mm tt")</span>
-        </div>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Register
-        </a>
-    </div>
+<div class="erp-page-header">
+    <div><h3>WEIGHTMAN ENTRY & RST GENERATION</h3><p>Select a pending inward to record gross weight and generate its RST.</p></div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to Register</a>
 </div>
-
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="erp-card shadow-sm border-0 mb-4">
-            <div class="erp-card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-truck-front-fill me-2"></i> Inbound Weighbridge Form (Gross Weight)</span>
-                <span class="badge bg-white text-primary fw-bold">RST Auto Sequence</span>
-            </div>
-            <div class="erp-card-body p-4">
-                <form id="weighbridgeForm" asp-action="Create" method="post" class="row g-3" novalidate>
-                    
-                    <!-- Link Gate Inward Entry (Optional) -->
-                    <div class="col-12 bg-light p-3 rounded border mb-2">
-                        <label class="form-label fw-bold text-dark mb-1">
-                            <i class="bi bi-link-45deg me-1 text-primary"></i> Link Gate Inward Entry (Optional)
-                        </label>
-                        <select asp-for="InwardNo" class="form-select border-primary-subtle" asp-items="@(ViewBag.InwardEntries as SelectList)" id="ddlInwardNo">
-                            <option value="">-- Select Pending Gate Inward (Optional) --</option>
-                        </select>
-                        <small class="text-muted">Select an active Inward No from Gateman entry to auto-link vehicle & supplier</small>
-                    </div>
-
-                    <!-- Party / Supplier Dropdown (Master Data) -->
-                    <div class="col-md-6">
-                        <label asp-for="PartyId" class="form-label fw-bold text-dark">
-                            Select Party / Supplier <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="PartyId" class="form-select border-primary-subtle" asp-items="@(ViewBag.Parties as SelectList)" id="ddlParty" required>
-                            <option value="">-- Select Party / Supplier Master --</option>
-                        </select>
-                    </div>
-
-                    <!-- Vehicle Dropdown -->
-                    <div class="col-md-6">
-                        <label asp-for="VehicleId" class="form-label fw-bold text-dark">
-                            Select Vehicle <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="VehicleId" class="form-select border-primary-subtle" asp-items="@(ViewBag.Vehicles as SelectList)" id="ddlVehicle" required>
-                            <option value="">-- Select Vehicle --</option>
-                        </select>
-                    </div>
-
-                    <!-- Driver & Driver Mobile Combined Dropdown -->
-                    <div class="col-md-6">
-                        <label asp-for="DriverId" class="form-label fw-bold text-dark">
-                            Select Driver / Mobile No. <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="DriverId" class="form-select border-primary-subtle" asp-items="@(ViewBag.Drivers as SelectList)" id="ddlDriver" required>
-                            <option value="">-- Select Driver (Name / Mobile No) --</option>
-                        </select>
-                    </div>
-
-                    <!-- Gross Weight (Loaded Truck Weight in KG) -->
-                    <div class="col-md-6">
-                        <label asp-for="GrossWeight" class="form-label fw-bold text-dark">
-                            Gross Weight (Loaded Truck) <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <input asp-for="GrossWeight" type="number" step="0.01" id="txtGrossWeight" class="form-control form-control-lg fw-bold text-primary border-primary-subtle" placeholder="Enter Gross Weight in KG" required />
-                            <span class="input-group-text bg-primary text-white fw-bold">KG</span>
-                        </div>
-                    </div>
-
-                    <!-- Target Office -->
-                    <div class="col-md-6">
-                        <label asp-for="TargetOfficeId" class="form-label fw-semibold text-dark">Target Office Location</label>
-                        <select asp-for="TargetOfficeId" class="form-select" asp-items="@(ViewBag.Offices as SelectList)" id="gateOfficeDropdown">
-                            <option value="">-- Select Target Office --</option>
-                        </select>
-                    </div>
-
-                    <!-- Target Sub-Locations (Multiple) -->
-                    <div class="col-md-6">
-                        <label asp-for="TargetLocationIds" class="form-label fw-semibold text-dark">Target Unloading Locations</label>
-                        <select asp-for="TargetLocationIds" class="form-select" asp-items="@(ViewBag.Locations as SelectList)" multiple="multiple" style="height: 100px;">
-                        </select>
-                        <small class="text-muted d-block mt-1">Hold Ctrl / Cmd key to select multiple locations</small>
-                    </div>
-
-                    <!-- Form Action Buttons -->
-                    <div class="col-12 pt-3 border-top d-flex gap-2">
-                        <button type="submit" class="btn btn-primary px-4 py-2 shadow-sm">
-                            <i class="bi bi-check-circle-fill me-1"></i> GENERATE RST & SAVE
-                        </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
-                            <i class="bi bi-x-circle me-1"></i> CANCEL
-                        </a>
-                    </div>
-                </form>
-            </div>
+@if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+<form asp-action="Create" method="post" id="weighbridgeForm" class="erp-card p-4">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    @if (pending.Count == 0) { <div class="alert alert-info">No pending inward entries requiring RST are available.</div> }
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="InwardNo" class="form-label">Pending Inward Number *</label>
+            <select asp-for="InwardNo" id="ddlInwardNo" class="form-select" required>
+                <option value="">-- Select Pending Inward --</option>
+                @foreach (var inward in pending) { <option value="@inward.InwardNo">@inward.InwardNo (@inward.VehicleNumber)</option> }
+            </select>
+            <span asp-validation-for="InwardNo" class="text-danger"></span>
         </div>
+        <div class="col-md-6">
+            <label for="ddlVehicle" class="form-label">Vehicle Number *</label>
+            <select id="ddlVehicle" class="form-select"><option value="">-- Select Vehicle --</option></select>
+        </div>
+        <div class="col-md-6">
+            <label for="ddlDriver" class="form-label">Driver / Mobile Number *</label>
+            <select id="ddlDriver" class="form-select"><option value="">-- Select Driver --</option></select>
+        </div>
+        <div class="col-md-6">
+            <label for="inwardParty" class="form-label">Party / Supplier</label>
+            <input id="inwardParty" class="form-control" readonly />
+        </div>
+        <div class="col-12"><p id="inward-link-message" class="text-muted mb-0" aria-live="polite"></p></div>
+        <div class="col-md-6">
+            <label asp-for="GrossWeight" class="form-label">Gross Weight (KG) *</label>
+            <input asp-for="GrossWeight" id="txtGrossWeight" class="form-control" type="number" min="0.01" step="0.01" required />
+            <span asp-validation-for="GrossWeight" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="TargetOfficeId" class="form-label">Company Name</label>
+            <select asp-for="TargetOfficeId" asp-items="ViewBag.Offices" class="form-select">
+                <option value="">-- Select Company --</option>
+            </select>
+        </div>
+        <div class="col-12"><button type="submit" id="generate-rst" class="btn btn-primary" disabled>GENERATE RST &amp; SAVE</button></div>
     </div>
-</div>
-
-}
-catch (Exception ex)
-{
-    <div class="alert alert-danger mt-4">
-        <h4>View Render Error</h4>
-        <pre>@ex.ToString()</pre>
-    </div>
-}
-
-<!-- SweetAlert2 Script -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+</form>
+<script id="pending-inward-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(pending))</script>
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script>
-        function updateLiveClocks() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const dateString = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            
-            const headerClock = document.getElementById('headerLiveClock');
-            if (headerClock) {
-                headerClock.innerText = dateString + ' - ' + timeString;
-            }
-        }
-        setInterval(updateLiveClocks, 1000);
-        updateLiveClocks();
-
-        document.addEventListener('DOMContentLoaded', function () {
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <text>
-                Swal.fire({
-                    title: 'RST Generated!',
-                    text: '@TempData["SuccessMessage"]',
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#0d6efd'
-                });
-                </text>
-            }
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <text>
-                Swal.fire({
-                    title: 'Error!',
-                    text: '@TempData["ErrorMessage"]',
-                    icon: 'error',
-                    confirmButtonText: 'Close',
-                    confirmButtonColor: '#dc3545'
-                });
-                </text>
-            }
-
-            // Function to load vehicles and drivers dynamically for selected party
-            function loadPartyOptions(partyId, targetVehicleId, targetDriverId) {
-                if (!partyId) return;
-
-                fetch('/GateEntry/GetPartyOptions?partyId=' + partyId)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Populate Vehicle Dropdown
-                            const ddlVehicle = document.getElementById('ddlVehicle');
-                            if (ddlVehicle && data.vehicles) {
-                                ddlVehicle.innerHTML = '<option value="">-- Select Vehicle --</option>';
-                                data.vehicles.forEach(v => {
-                                    const opt = document.createElement('option');
-                                    opt.value = v.vehicleId;
-                                    opt.textContent = v.isLinked ? `${v.vehicleNumber} (Linked)` : v.vehicleNumber;
-                                    if (v.isLinked) opt.style.fontWeight = 'bold';
-                                    ddlVehicle.appendChild(opt);
-                                });
-                                
-                                const selectVehicle = targetVehicleId || data.defaultVehicleId;
-                                if (selectVehicle && selectVehicle > 0) {
-                                    ddlVehicle.value = selectVehicle;
-                                }
-                            }
-
-                            // Populate Driver Dropdown
-                            const ddlDriver = document.getElementById('ddlDriver');
-                            if (ddlDriver && data.drivers) {
-                                ddlDriver.innerHTML = '<option value="">-- Select Driver (Name / Mobile No) --</option>';
-                                data.drivers.forEach(d => {
-                                    const opt = document.createElement('option');
-                                    opt.value = d.driverId;
-                                    opt.textContent = d.isLinked ? `${d.driverNameMobile} (Linked)` : d.driverNameMobile;
-                                    if (d.isLinked) opt.style.fontWeight = 'bold';
-                                    ddlDriver.appendChild(opt);
-                                });
-
-                                const selectDriver = targetDriverId || data.defaultDriverId;
-                                if (selectDriver && selectDriver > 0) {
-                                    ddlDriver.value = selectDriver;
-                                }
-                            }
-                        }
-                    })
-                    .catch(err => console.error(err));
-            }
-
-            // Party Dropdown Change Event
-            const ddlParty = document.getElementById('ddlParty');
-            if (ddlParty) {
-                ddlParty.addEventListener('change', function () {
-                    loadPartyOptions(this.value);
-                });
-            }
-
-            // Inward Dropdown Change Event
-            const ddlInward = document.getElementById('ddlInwardNo');
-            if (ddlInward) {
-                ddlInward.addEventListener('change', function () {
-                    const inwardNo = this.value;
-                    if (!inwardNo) return;
-
-                    fetch('/GateEntry/GetInwardDetails?inwardNo=' + encodeURIComponent(inwardNo))
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                if (data.partyId) {
-                                    if (ddlParty) ddlParty.value = data.partyId;
-                                    loadPartyOptions(data.partyId, data.vehicleId, data.driverId);
-                                }
-                            }
-                        })
-                        .catch(err => console.error(err));
-                });
-            }
-
-            // Form Submit Validation
-            const form = document.getElementById('weighbridgeForm');
-            if (form) {
-                form.addEventListener('submit', function (e) {
-                    const party = document.getElementById('ddlParty')?.value;
-                    const vehicle = document.getElementById('ddlVehicle')?.value;
-                    const driver = document.getElementById('ddlDriver')?.value;
-                    const grossWt = parseFloat(document.getElementById('txtGrossWeight')?.value || '0');
-
-                    let missing = [];
-                    if (!party) missing.push('Party / Supplier Master');
-                    if (!vehicle) missing.push('Vehicle Selection');
-                    if (!driver) missing.push('Driver / Mobile Number');
-                    if (!grossWt || grossWt <= 0) missing.push('Gross Weight (KG)');
-
-                    if (missing.length > 0) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Validation Error!',
-                            html: '<div class="text-start"><strong>Kripya sabhi mandatory fields ko fill karein:</strong><ul class="mt-2 text-danger">' +
-                                  missing.map(m => '<li>' + m + '</li>').join('') + 
-                                  '</ul></div>',
-                            icon: 'warning',
-                            confirmButtonText: 'Okay, I will fill them',
-                            confirmButtonColor: '#0d6efd'
-                        });
-                        return false;
-                    }
-                });
-            }
-        });
-    </script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/gate-entry.js" asp-append-version="true"></script>
 }

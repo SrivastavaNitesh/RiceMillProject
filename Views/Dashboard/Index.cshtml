@@ -36,8 +36,8 @@
                     </div>
                     <h2 class="display-6 fw-extrabold mb-1 text-dark">@Model.TotalEntered</h2>
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
-                        <span class="small text-muted">Gate Inward / Outward</span>
-                        <a asp-controller="Gateman" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">View Log <i class="bi bi-arrow-right"></i></a>
+                        <span class="small text-muted">Inward trips (including RST)</span>
+                        <a asp-controller="Gateman" asp-action="Report" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">View Log <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -126,7 +126,7 @@
 
                 <!-- Weighbridge RST -->
                 <div class="col-md-4 col-sm-6">
-                    <a asp-controller="DhermKata" asp-action="Index" class="text-decoration-none">
+                    <a asp-controller="GateEntry" asp-action="Index" class="text-decoration-none">
                         <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
                             <div class="p-3 rounded-circle bg-info text-white me-3">
                                 <i class="bi bi-speedometer fs-3"></i>

@@ -19,7 +19,7 @@ namespace RiceMillProject.Controllers
 
         public IActionResult Index()
         {
-            bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "2")
+            bool isGatemanOnly = (User.IsInRole("Gate Man") || User.IsInRole("Gateman") || User.FindFirst("PostId")?.Value == "1")
                                 && !User.IsInRole("Admin") 
                                 && !(User.Identity?.Name ?? "").ToLower().Contains("admin");
             if (isGatemanOnly)

@@ -11,7 +11,7 @@
         </div>
         <div>
             <h3 class="erp-page-title">EMPLOYEE & STAFF REGISTER</h3>
-            <p class="erp-page-subtitle">Manage internal employees, supervisors, drivers, and worker profiles</p>
+            
         </div>
     </div>
     <a asp-action="Employee" class="btn-erp-primary">
@@ -79,7 +79,7 @@
                 <text>
                 Swal.fire({
                     title: 'Registration Successful!',
-                    text: '@TempData["SuccessMessage"]',
+                    //text: '@TempData["SuccessMessage"]',
                     icon: 'success',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#0d6efd'
@@ -90,8 +90,8 @@
             {
                 <text>
                 Swal.fire({
-                    title: 'Error!',
-                    text: '@TempData["ErrorMessage"]',
+                    title: 'Error Occured!',
+                    //text: '@TempData["ErrorMessage"]',
                     icon: 'error',
                     confirmButtonText: 'Close',
                     confirmButtonColor: '#dc3545'
