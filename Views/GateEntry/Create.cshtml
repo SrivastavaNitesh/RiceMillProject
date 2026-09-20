@@ -1,7 +1,7 @@
-﻿@model RiceMillProject.Models.GateEntry
+@model RiceMillProject.Models.GateEntry
 @{
     ViewData["Title"] = "Weightman Entry & RST Generation";
-    bool isWeightman = User.IsWeightmanUser();
+    bool isWeightman = User.HasClaim("PostId", "2");
     bool lockInward = ViewBag.LockInward == true;
 }
 
@@ -111,17 +111,6 @@
                                 <option value="">-- Select Driver (Name / Mobile No) --</option>
                             </select>
                         }
-                    </div>
-
-                    <div class="col-md-6">
-                        <label asp-for="ItemId" class="form-label fw-bold text-dark">
-                            Material / Variety <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="ItemId" class="form-select border-primary-subtle" asp-items="ViewBag.Items" id="ddlItem" required>
-                            <option value="">-- Select Material / Variety --</option>
-                        </select>
-                        <span asp-validation-for="ItemId" class="text-danger small"></span>
-                        <small class="text-muted">Every variety will receive a separate RST number.</small>
                     </div>
 
                     <!-- Gross Weight (Loaded Truck Weight in KG) -->
