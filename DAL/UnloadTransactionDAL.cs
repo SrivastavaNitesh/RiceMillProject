@@ -835,5 +835,228 @@ ORDER BY u.UnloadId DESC;";
 
             cmd.ExecuteNonQuery();
         }
+        public int SaveSupervisorUnloadAction(
+    int unloadId,
+    int supervisorId,
+    int stackPP,
+    int stackJute,
+    int haudiPP,
+    int haudiJute,
+    List<SupervisorUnloadCategoryRow> categoryRows)
+        {
+            string detailJson =
+                JsonSerializer.Serialize(categoryRows);
+
+            using SqlConnection con =
+                new SqlConnection(_connectionString);
+
+            using SqlCommand cmd =
+                new SqlCommand(
+                    "sp_SaveSupervisorUnloadAction",
+                    con
+                );
+
+            cmd.CommandType =
+                CommandType.StoredProcedure;
+
+
+            // =====================================================
+            // PARAMETERS
+            // =====================================================
+
+            cmd.Parameters.Add(
+                "@UnloadId",
+                SqlDbType.Int
+            ).Value = unloadId;
+
+
+            cmd.Parameters.Add(
+                "@SupervisorId",
+                SqlDbType.Int
+            ).Value = supervisorId;
+
+
+            cmd.Parameters.Add(
+                "@StackPP",
+                SqlDbType.Int
+            ).Value = stackPP;
+
+
+            cmd.Parameters.Add(
+                "@StackJute",
+                SqlDbType.Int
+            ).Value = stackJute;
+
+
+            cmd.Parameters.Add(
+                "@HaudiPP",
+                SqlDbType.Int
+            ).Value = haudiPP;
+
+
+            cmd.Parameters.Add(
+                "@HaudiJute",
+                SqlDbType.Int
+            ).Value = haudiJute;
+
+
+            cmd.Parameters.Add(
+                "@DetailJson",
+                SqlDbType.NVarChar,
+                -1
+            ).Value = detailJson;
+
+
+            // =====================================================
+            // EXECUTE
+            // =====================================================
+
+            con.Open();
+
+            object? result =
+                cmd.ExecuteScalar();
+
+
+            if (
+                result == null
+                ||
+                result == DBNull.Value
+            )
+            {
+                throw new InvalidOperationException(
+                    "Supervisor unloading details could not be saved."
+                );
+            }
+
+
+            return Convert.ToInt32(result);
+        }
+        public List<UnloadTransaction> GetSupervisorMethWorkRegister(
+    int supervisorId)
+        {
+            var list =
+                new List<UnloadTransaction>();
+
+            using SqlConnection con =
+                new SqlConnection(_connectionString);
+
+            using SqlCommand cmd =
+                new SqlCommand(
+                    "sp_GetSupervisorMethWorkRegister",
+                    con
+                );
+
+            cmd.CommandType =
+                CommandType.StoredProcedure;
+
+            cmd.Parameters.Add(
+                "@SupervisorId",
+                SqlDbType.Int
+            ).Value =
+                supervisorId;
+
+            con.Open();
+
+            using SqlDataReader reader =
+                cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                list.Add(
+                    new UnloadTransaction
+                    {
+                        UnloadId =
+                            Convert.ToInt32(
+                                reader["UnloadId"]
+                            ),
+
+                        RSTNumber =
+                            reader["RSTNumber"]
+                                ?.ToString()
+                            ?? "",
+
+                        SupervisorId =
+                            reader["SupervisorId"]
+                                != DBNull.Value
+                                ? Convert.ToInt32(
+                                    reader["SupervisorId"]
+                                )
+                                : 0,
+
+                        MethId =
+                            reader["MethId"]
+                                != DBNull.Value
+                                ? Convert.ToInt32(
+                                    reader["MethId"]
+                                )
+                                : 0,
+
+                        LocationId =
+                            reader["LocationId"]
+                                != DBNull.Value
+                                ? Convert.ToInt32(
+                                    reader["LocationId"]
+                                )
+                                : 0,
+
+                        ItemId =
+                            reader["ItemId"]
+                                != DBNull.Value
+                                ? Convert.ToInt32(
+                                    reader["ItemId"]
+                                )
+                                : 0,
+
+                        NumberOfBags =
+                            reader["NumberOfBags"]
+                                != DBNull.Value
+                                ? Convert.ToInt32(
+                                    reader["NumberOfBags"]
+                                )
+                                : null,
+
+                        Status =
+                            reader["Status"]
+                                ?.ToString()
+                            ?? "",
+
+                        MethName =
+                            reader["MethName"]
+                                ?.ToString()
+                            ?? "",
+
+                        LocationName =
+                            reader["LocationName"]
+                                ?.ToString()
+                            ?? "",
+
+                        VehicleNumber =
+                            reader["VehicleNumber"]
+                                ?.ToString()
+                            ?? "",
+
+                        PartyName =
+                            reader["PartyName"]
+                                ?.ToString()
+                            ?? "",
+
+                        ItemName =
+                            reader["ItemName"]
+                                ?.ToString()
+                            ?? "",
+
+                        IsSupervisorActionCompleted =
+                            reader["IsSupervisorActionCompleted"]
+                                != DBNull.Value
+                                &&
+                                Convert.ToBoolean(
+                                    reader["IsSupervisorActionCompleted"]
+                                )
+                    }
+                );
+            }
+
+            return list;
+        }
     }
 }

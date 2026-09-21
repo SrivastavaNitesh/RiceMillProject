@@ -85,5 +85,61 @@ namespace RiceMillProject.DAL
             }
             return rowsAffected > 0;
         }
+        public DataTable GetActiveItemCategories()
+        {
+            DataTable dt = new DataTable();
+
+            using (SqlConnection con =
+                   new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd =
+                       new SqlCommand(
+                           "sp_GetActiveItemCategories",
+                           con))
+                {
+                    cmd.CommandType =
+                        CommandType.StoredProcedure;
+
+                    using (SqlDataAdapter da =
+                           new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+
+            return dt;
+        }
+        public DataTable GetItemsByCategory(int categoryId)
+        {
+            DataTable dt = new DataTable();
+
+            using (SqlConnection con =
+                   new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd =
+                       new SqlCommand(
+                           "sp_GetItemsByCategory",
+                           con))
+                {
+                    cmd.CommandType =
+                        CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(
+                        "@CategoryId",
+                        SqlDbType.Int
+                    ).Value = categoryId;
+
+                    using (SqlDataAdapter da =
+                           new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+
+            return dt;
+        }
+
     }
 }

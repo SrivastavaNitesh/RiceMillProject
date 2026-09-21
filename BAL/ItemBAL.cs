@@ -1,7 +1,8 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.DAL;
 using RiceMillProject.Models;
+using System.Collections.Generic;
+using System.Data;
 
 namespace RiceMillProject.BAL
 {
@@ -18,7 +19,10 @@ namespace RiceMillProject.BAL
         {
             return _itemDal.GetAllItems();
         }
-
+        public DataTable GetItemsByCategory(int categoryId)
+        {
+            return _itemDal.GetItemsByCategory(categoryId);
+        }
         public int AddItem(Item item)
         {
             return _itemDal.InsertItem(item);
@@ -27,6 +31,10 @@ namespace RiceMillProject.BAL
         public bool UpdateItem(Item item)
         {
             return _itemDal.UpdateItem(item);
+        }
+        public DataTable GetActiveItemCategories()
+        {
+            return _itemDal.GetActiveItemCategories();
         }
     }
 }

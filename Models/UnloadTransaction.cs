@@ -5,7 +5,7 @@ namespace RiceMillProject.Models
     public class UnloadTransaction
     {
         public int? LocationId { get; set; }
-
+        public bool IsSupervisorActionCompleted { get; set; }
         public string? VehicleNumber { get; set; }
 
         public string? PartyName { get; set; }

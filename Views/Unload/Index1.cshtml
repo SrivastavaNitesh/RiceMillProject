@@ -1,0 +1,860 @@
+﻿@model RiceMillProject.Models.SupervisorUnloadActionViewModel
+
+@{
+    ViewData["Title"] = "Supervisor Unloading Action";
+}
+
+<div style="max-width:1200px;margin:0 auto;padding:10px 0 30px 0;">
+
+    <!-- HEADER -->
+    <div style="
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        padding:20px 24px;
+        margin-bottom:18px;
+        box-shadow:0 3px 12px rgba(0,0,0,.05);">
+
+        <div style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:15px;
+            flex-wrap:wrap;">
+
+            <div>
+                <h3 style="
+                    margin:0;
+                    color:#173b6c;
+                    font-weight:700;">
+                    Supervisor Unloading Verification
+                </h3>
+
+                <div style="
+                    margin-top:5px;
+                    color:#6b7280;
+                    font-size:14px;">
+                    Category-wise unloading details
+                </div>
+            </div>
+
+            <div style="
+                background:#eef5ff;
+                border:1px solid #cfe1ff;
+                color:#1769e0;
+                padding:9px 16px;
+                border-radius:8px;
+                font-weight:700;">
+
+                RST: @Model.RSTNumber
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- RST DETAILS -->
+    <div style="
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        padding:22px;
+        margin-bottom:18px;
+        box-shadow:0 3px 12px rgba(0,0,0,.04);">
+
+        <h5 style="
+            color:#173b6c;
+            font-weight:700;
+            margin-bottom:18px;">
+            <i class="bi bi-info-circle me-2"></i>
+            RST & Unloading Details
+        </h5>
+
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#6b7280;font-weight:700;">
+                    VEHICLE
+                </div>
+
+                <div style="font-size:16px;font-weight:700;color:#111827;">
+                    @Model.VehicleNumber
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#6b7280;font-weight:700;">
+                    PARTY
+                </div>
+
+                <div style="font-size:16px;font-weight:700;color:#111827;">
+                    @Model.PartyName
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#6b7280;font-weight:700;">
+                    COMPANY
+                </div>
+
+                <div style="font-size:16px;font-weight:700;color:#111827;">
+                    @Model.CompanyName
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#6b7280;font-weight:700;">
+                    MATERIAL
+                </div>
+
+                <div style="font-size:16px;font-weight:700;color:#111827;">
+                    @Model.ItemName
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#6b7280;font-weight:700;">
+                    LOCATION
+                </div>
+
+                <div style="font-size:16px;font-weight:700;color:#111827;">
+                    @Model.LocationName
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#6b7280;font-weight:700;">
+                    METH
+                </div>
+
+                <div style="font-size:16px;font-weight:700;color:#111827;">
+                    @Model.MethName
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- METH TOTAL -->
+    <div style="
+        background:#ecfdf3;
+        border:1px solid #b7ebc6;
+        border-radius:14px;
+        padding:20px 24px;
+        margin-bottom:18px;">
+
+        <div style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:10px;">
+
+            <div>
+                <div style="
+                    font-size:13px;
+                    color:#39734c;
+                    font-weight:700;">
+                    TOTAL BAGS REPORTED BY METH
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    color:#667085;
+                    margin-top:4px;">
+                    This value is read-only
+                </div>
+            </div>
+
+            <div style="
+                font-size:30px;
+                color:#15803d;
+                font-weight:800;">
+
+                @Model.MethTotalBags
+
+                <span style="
+                    font-size:14px;
+                    font-weight:600;">
+                    Bags
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- FORM -->
+    <form asp-action="SupervisorAction"
+          asp-controller="Unload"
+          method="post"
+          id="supervisorForm">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="UnloadId" />
+
+        <input type="hidden"
+               asp-for="RSTNumber" />
+
+        <input type="hidden"
+               asp-for="MethTotalBags" />
+
+
+        <!-- STACK / HAUDI -->
+        <div style="
+            background:#ffffff;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:22px;
+            margin-bottom:18px;
+            box-shadow:0 3px 12px rgba(0,0,0,.04);">
+
+            <h5 style="
+                color:#173b6c;
+                font-weight:700;
+                margin-bottom:18px;">
+
+                <i class="bi bi-box-seam me-2"></i>
+                Storage / Bag Placement Details
+
+            </h5>
+
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+                        Stack PP
+                    </label>
+
+                    <input asp-for="StackPP"
+                           type="text"
+                           inputmode="numeric"
+                           class="form-control bag-number"
+                           placeholder="Enter bags" />
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+                        Stack Jute
+                    </label>
+
+                    <input asp-for="StackJute"
+                           type="text"
+                           inputmode="numeric"
+                           class="form-control bag-number"
+                           placeholder="Enter bags" />
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+                        Haudi PP
+                    </label>
+
+                    <input asp-for="HaudiPP"
+                           type="text"
+                           inputmode="numeric"
+                           class="form-control bag-number"
+                           placeholder="Enter bags" />
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-bold">
+                        Haudi Jute
+                    </label>
+
+                    <input asp-for="HaudiJute"
+                           type="text"
+                           inputmode="numeric"
+                           class="form-control bag-number"
+                           placeholder="Enter bags" />
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- CATEGORY BREAKUP -->
+        <div style="
+            background:#ffffff;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:22px;
+            margin-bottom:18px;
+            box-shadow:0 3px 12px rgba(0,0,0,.04);">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:10px;
+                flex-wrap:wrap;
+                margin-bottom:18px;">
+
+                <div>
+
+                    <h5 style="
+                        color:#173b6c;
+                        font-weight:700;
+                        margin:0;">
+
+                        <i class="bi bi-ui-checks-grid me-2"></i>
+                        Category / Variety Wise Details
+
+                    </h5>
+
+                    <div style="
+                        color:#6b7280;
+                        font-size:13px;
+                        margin-top:5px;">
+
+                        Supervisor will enter bag breakup category-wise
+
+                    </div>
+
+                </div>
+
+
+                <button type="button"
+                        id="addCategoryBtn"
+                        class="btn btn-outline-primary">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Add Category
+
+                </button>
+
+            </div>
+
+
+            <div id="categoryContainer">
+
+                <!-- First row -->
+
+                <div class="category-row"
+                     style="
+                    border:1px solid #e5e7eb;
+                    border-radius:10px;
+                    padding:15px;
+                    margin-bottom:12px;
+                    background:#fafcff;">
+
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-7">
+
+                            <label class="form-label fw-bold">
+                                Category / Variety
+                            </label>
+
+                            <input type="text"
+                                   name="CategoryRows[0].ItemName"
+                                   class="form-control category-name"
+                                   placeholder="Enter category / variety name"
+                                   required />
+
+                        </div>
+
+
+                        <div class="col-md-3">
+
+                            <label class="form-label fw-bold">
+                                Bag Count
+                            </label>
+
+                            <input type="text"
+                                   inputmode="numeric"
+                                   name="CategoryRows[0].BagCount"
+                                   class="form-control category-count bag-number"
+                                   placeholder="Bags"
+                                   required />
+
+                        </div>
+
+
+                        <div class="col-md-2">
+
+                            <button type="button"
+                                    class="btn btn-outline-danger w-100 remove-category">
+
+                                <i class="bi bi-trash"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- TOTAL MATCH -->
+        <div style="
+            background:#ffffff;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:22px;
+            margin-bottom:18px;">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div style="
+                        background:#f4f7fb;
+                        border-radius:10px;
+                        padding:15px;">
+
+                        <div style="
+                            font-size:12px;
+                            font-weight:700;
+                            color:#667085;">
+
+                            METH TOTAL
+
+                        </div>
+
+                        <div style="
+                            font-size:24px;
+                            font-weight:800;
+                            color:#173b6c;">
+
+                            @Model.MethTotalBags
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div style="
+                        background:#f4f7fb;
+                        border-radius:10px;
+                        padding:15px;">
+
+                        <div style="
+                            font-size:12px;
+                            font-weight:700;
+                            color:#667085;">
+
+                            SUPERVISOR TOTAL
+
+                        </div>
+
+                        <div id="supervisorTotal"
+                             style="
+                            font-size:24px;
+                            font-weight:800;
+                            color:#173b6c;">
+
+                            0
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div id="differenceBox"
+                         style="
+                        background:#fff7ed;
+                        border-radius:10px;
+                        padding:15px;">
+
+                        <div style="
+                            font-size:12px;
+                            font-weight:700;
+                            color:#667085;">
+
+                            DIFFERENCE
+
+                        </div>
+
+                        <div id="differenceTotal"
+                             style="
+                            font-size:24px;
+                            font-weight:800;
+                            color:#c2410c;">
+
+                            @Model.MethTotalBags
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div id="matchMessage"
+                 style="
+                margin-top:15px;
+                padding:12px 15px;
+                border-radius:8px;
+                background:#fff7ed;
+                color:#c2410c;
+                font-weight:700;">
+
+                Category total must match Meth total bags.
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTION BUTTONS -->
+        <div style="
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            flex-wrap:wrap;">
+
+            <a asp-action="Index"
+               asp-controller="Unload"
+               class="btn btn-outline-secondary px-4">
+
+                Back
+
+            </a>
+
+
+            <button type="submit"
+                    id="submitBtn"
+                    class="btn btn-success px-4"
+                    disabled>
+
+                <i class="bi bi-check-circle me-1"></i>
+
+                Submit Supervisor Details
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts
+{
+    <script>
+
+        let categoryIndex = 1;
+
+        const methTotal = @Model.MethTotalBags;
+
+
+        function onlyNumbers(input)
+        {
+            input.value =
+                input.value.replace(
+                    /[^0-9]/g,
+                    ''
+                );
+        }
+
+
+        function calculateTotals()
+        {
+            let supervisorTotal = 0;
+
+            document
+                .querySelectorAll('.category-count')
+                .forEach(function (input)
+                {
+                    const value =
+                        parseInt(
+                            input.value || '0'
+                        );
+
+                    supervisorTotal +=
+                        isNaN(value)
+                            ? 0
+                            : value;
+                });
+
+
+            const difference =
+                methTotal - supervisorTotal;
+
+
+            document.getElementById(
+                'supervisorTotal'
+            ).innerText =
+                supervisorTotal;
+
+
+            document.getElementById(
+                'differenceTotal'
+            ).innerText =
+                difference;
+
+
+            const matchMessage =
+                document.getElementById(
+                    'matchMessage'
+                );
+
+
+            const differenceBox =
+                document.getElementById(
+                    'differenceBox'
+                );
+
+
+            const submitBtn =
+                document.getElementById(
+                    'submitBtn'
+                );
+
+
+            if (
+                supervisorTotal === methTotal
+                &&
+                methTotal > 0
+            )
+            {
+                matchMessage.innerHTML =
+                    '<i class="bi bi-check-circle-fill me-1"></i> Bag totals matched successfully.';
+
+                matchMessage.style.background =
+                    '#ecfdf3';
+
+                matchMessage.style.color =
+                    '#15803d';
+
+
+                differenceBox.style.background =
+                    '#ecfdf3';
+
+
+                document.getElementById(
+                    'differenceTotal'
+                ).style.color =
+                    '#15803d';
+
+
+                submitBtn.disabled =
+                    false;
+            }
+            else
+            {
+                matchMessage.innerHTML =
+                    'Category total must match Meth total bags.';
+
+                matchMessage.style.background =
+                    '#fff7ed';
+
+                matchMessage.style.color =
+                    '#c2410c';
+
+
+                differenceBox.style.background =
+                    '#fff7ed';
+
+
+                document.getElementById(
+                    'differenceTotal'
+                ).style.color =
+                    '#c2410c';
+
+
+                submitBtn.disabled =
+                    true;
+            }
+        }
+
+
+        document.addEventListener(
+            'input',
+            function (e)
+            {
+                if (
+                    e.target.classList.contains(
+                        'bag-number'
+                    )
+                )
+                {
+                    onlyNumbers(
+                        e.target
+                    );
+                }
+
+
+                if (
+                    e.target.classList.contains(
+                        'category-count'
+                    )
+                )
+                {
+                    calculateTotals();
+                }
+            }
+        );
+
+
+        document
+            .getElementById(
+                'addCategoryBtn'
+            )
+            .addEventListener(
+                'click',
+                function ()
+                {
+                    const container =
+                        document.getElementById(
+                            'categoryContainer'
+                        );
+
+
+                    const row =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    row.className =
+                        'category-row';
+
+
+                    row.style.cssText =
+                        'border:1px solid #e5e7eb;'
+                        + 'border-radius:10px;'
+                        + 'padding:15px;'
+                        + 'margin-bottom:12px;'
+                        + 'background:#fafcff;';
+
+
+                    row.innerHTML = `
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-md-7">
+
+                                <label class="form-label fw-bold">
+                                    Category / Variety
+                                </label>
+
+                                <input type="text"
+                                       name="CategoryRows[${categoryIndex}].ItemName"
+                                       class="form-control category-name"
+                                       placeholder="Enter category / variety name"
+                                       required />
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <label class="form-label fw-bold">
+                                    Bag Count
+                                </label>
+
+                                <input type="text"
+                                       inputmode="numeric"
+                                       name="CategoryRows[${categoryIndex}].BagCount"
+                                       class="form-control category-count bag-number"
+                                       placeholder="Bags"
+                                       required />
+
+                            </div>
+
+                            <div class="col-md-2">
+
+                                <button type="button"
+                                        class="btn btn-outline-danger w-100 remove-category">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `;
+
+
+                    container.appendChild(
+                        row
+                    );
+
+
+                    categoryIndex++;
+                }
+            );
+
+
+        document.addEventListener(
+            'click',
+            function (e)
+            {
+                const removeButton =
+                    e.target.closest(
+                        '.remove-category'
+                    );
+
+
+                if (!removeButton)
+                {
+                    return;
+                }
+
+
+                const rows =
+                    document.querySelectorAll(
+                        '.category-row'
+                    );
+
+
+                if (rows.length <= 1)
+                {
+                    return;
+                }
+
+
+                removeButton
+                    .closest(
+                        '.category-row'
+                    )
+                    .remove();
+
+
+                calculateTotals();
+            }
+        );
+
+
+        calculateTotals();
+
+    </script>
+}

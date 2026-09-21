@@ -1,0 +1,1637 @@
+﻿@model RiceMillProject.Models.SupervisorUnloadActionViewModel
+
+@{
+    ViewData["Title"] = "Supervisor Unloading Action";
+
+    var itemCategories =
+        ViewBag.ItemCategories
+        as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>
+        ?? System.Array.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+
+    var bagTypes =
+        ViewBag.BagTypes
+        as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>
+        ?? System.Array.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+}
+
+
+<style>
+
+    /* =========================================================
+       SUPERVISOR ACTION PAGE
+       ========================================================= */
+
+    .sua-page {
+        max-width: 1250px;
+        margin: 0 auto;
+        padding: 10px 0 35px 0;
+    }
+
+
+    .sua-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.04);
+    }
+
+
+    .sua-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+
+    .sua-title {
+        margin: 0;
+        color: #173b6c;
+        font-size: 24px;
+        font-weight: 750;
+    }
+
+
+    .sua-subtitle {
+        margin-top: 5px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+
+    .sua-rst-badge {
+        background: #eef5ff;
+        border: 1px solid #cfe1ff;
+        color: #1769e0;
+        padding: 10px 17px;
+        border-radius: 9px;
+        font-weight: 750;
+    }
+
+
+    .sua-section-title {
+        margin: 0 0 18px 0;
+        color: #173b6c;
+        font-size: 17px;
+        font-weight: 750;
+    }
+
+
+    .sua-detail-box {
+        background: #f8fafc;
+        border: 1px solid #edf0f4;
+        border-radius: 9px;
+        padding: 12px 14px;
+        min-height: 72px;
+    }
+
+
+    .sua-detail-label {
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        margin-bottom: 5px;
+    }
+
+
+    .sua-detail-value {
+        color: #111827;
+        font-size: 15px;
+        font-weight: 700;
+        word-break: break-word;
+    }
+
+
+    .sua-meth-total {
+        background: #ecfdf3;
+        border: 1px solid #b7ebc6;
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-bottom: 18px;
+    }
+
+
+    .sua-meth-total-number {
+        color: #15803d;
+        font-size: 32px;
+        font-weight: 800;
+    }
+
+
+    .sua-form-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+
+    .sua-category-row {
+        background: #fafcff;
+        border: 1px solid #dfe5ed;
+        border-radius: 11px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+
+    .sua-row-number {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #eaf2ff;
+        color: #1769e0;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+
+    .sua-total-card {
+        background: #f4f7fb;
+        border: 1px solid #e7ebf0;
+        border-radius: 10px;
+        padding: 15px;
+        height: 100%;
+    }
+
+
+    .sua-total-label {
+        color: #667085;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .4px;
+    }
+
+
+    .sua-total-number {
+        color: #173b6c;
+        font-size: 25px;
+        font-weight: 800;
+        margin-top: 4px;
+    }
+
+
+    .sua-match-message {
+        margin-top: 15px;
+        padding: 12px 15px;
+        border-radius: 8px;
+        background: #fff7ed;
+        color: #c2410c;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+
+    .sua-add-btn {
+        white-space: nowrap;
+    }
+
+
+    @@media (max-width: 767px) {
+
+        .sua-card {
+            padding: 16px;
+        }
+
+        .sua-title {
+            font-size: 20px;
+        }
+
+        .sua-meth-total-number {
+            font-size: 27px;
+        }
+    }
+
+</style>
+
+
+<div class="sua-page">
+
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="sua-card">
+
+        <div class="sua-header">
+
+            <div>
+
+                <h3 class="sua-title">
+                    Supervisor Unloading Verification
+                </h3>
+
+                <div class="sua-subtitle">
+                    Fill category, item and bag-type wise unloading details
+                </div>
+
+            </div>
+
+
+            <div class="sua-rst-badge">
+
+                <i class="bi bi-receipt me-1"></i>
+
+                RST:
+                @Model.RSTNumber
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         ERROR / VALIDATION
+         ========================================================= -->
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+
+            <div asp-validation-summary="All"></div>
+
+        </div>
+    }
+
+
+
+    <!-- =========================================================
+         RST DETAILS
+         ========================================================= -->
+
+    <div class="sua-card">
+
+        <h5 class="sua-section-title">
+
+            <i class="bi bi-info-circle me-2"></i>
+
+            RST & Unloading Details
+
+        </h5>
+
+
+        <div class="row g-3">
+
+
+            <!-- RST -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        RST Number
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @Model.RSTNumber
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- VEHICLE -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        Vehicle
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.VehicleNumber)
+                            ? "-"
+                            : Model.VehicleNumber)
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PARTY -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        Party
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.PartyName)
+                            ? "-"
+                            : Model.PartyName)
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMPANY -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        Company
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.CompanyName)
+                            ? "-"
+                            : Model.CompanyName)
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- MATERIAL -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        Assigned Material
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.ItemName)
+                            ? "-"
+                            : Model.ItemName)
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- LOCATION -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        Unloading Location
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.LocationName)
+                            ? "-"
+                            : Model.LocationName)
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- METH -->
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <div class="sua-detail-box">
+
+                    <div class="sua-detail-label">
+                        Labour Meth
+                    </div>
+
+                    <div class="sua-detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.MethName)
+                            ? "-"
+                            : Model.MethName)
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         METH RESPONSE TOTAL
+         ========================================================= -->
+
+    <div class="sua-meth-total">
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+
+            <div>
+
+                <div style="
+                    color:#39734c;
+                    font-size:12px;
+                    font-weight:800;">
+
+                    TOTAL BAGS REPORTED BY METH
+
+                </div>
+
+
+                <div style="
+                    color:#667085;
+                    font-size:12px;
+                    margin-top:4px;">
+
+                    Meth response se automatically calculated.
+                    Supervisor ise edit nahi kar sakta.
+
+                </div>
+
+            </div>
+
+
+            <div class="sua-meth-total-number">
+
+                @Model.MethTotalBags
+
+                <span style="
+                    font-size:14px;
+                    font-weight:650;">
+
+                    Bags
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         SUPERVISOR FORM
+         ========================================================= -->
+
+    <form asp-controller="Unload"
+          asp-action="SupervisorAction"
+          method="post"
+          id="supervisorActionForm">
+
+        @Html.AntiForgeryToken()
+
+
+        <!-- IMPORTANT IDs -->
+
+        <input type="hidden"
+               asp-for="UnloadId" />
+
+        <input type="hidden"
+               asp-for="RSTNumber" />
+
+        <input type="hidden"
+               asp-for="MethTotalBags" />
+
+
+
+        <!-- =====================================================
+             STACK / HAUDI DETAILS
+             ===================================================== -->
+
+        <div class="sua-card">
+
+            <h5 class="sua-section-title">
+
+                <i class="bi bi-box-seam me-2"></i>
+
+                Storage / Placement Details
+
+            </h5>
+
+
+            <div class="row g-3">
+
+
+                <!-- STACK PP -->
+
+                <div class="col-lg-3 col-md-6">
+
+                    <label class="sua-form-label">
+                        Stack PP
+                    </label>
+
+                    <input type="text"
+                           inputmode="numeric"
+                           name="StackPP"
+                           value="@(Model.StackPP > 0 ? Model.StackPP.ToString() : "")"
+                           class="form-control sua-number-input"
+                           placeholder="Enter bag count" />
+
+                </div>
+
+
+                <!-- STACK JUTE -->
+
+                <div class="col-lg-3 col-md-6">
+
+                    <label class="sua-form-label">
+                        Stack Jute
+                    </label>
+
+                    <input type="text"
+                           inputmode="numeric"
+                           name="StackJute"
+                           value="@(Model.StackJute > 0 ? Model.StackJute.ToString() : "")"
+                           class="form-control sua-number-input"
+                           placeholder="Enter bag count" />
+
+                </div>
+
+
+                <!-- HAUDI PP -->
+
+                <div class="col-lg-3 col-md-6">
+
+                    <label class="sua-form-label">
+                        Haudi PP
+                    </label>
+
+                    <input type="text"
+                           inputmode="numeric"
+                           name="HaudiPP"
+                           value="@(Model.HaudiPP > 0 ? Model.HaudiPP.ToString() : "")"
+                           class="form-control sua-number-input"
+                           placeholder="Enter bag count" />
+
+                </div>
+
+
+                <!-- HAUDI JUTE -->
+
+                <div class="col-lg-3 col-md-6">
+
+                    <label class="sua-form-label">
+                        Haudi Jute
+                    </label>
+
+                    <input type="text"
+                           inputmode="numeric"
+                           name="HaudiJute"
+                           value="@(Model.HaudiJute > 0 ? Model.HaudiJute.ToString() : "")"
+                           class="form-control sua-number-input"
+                           placeholder="Enter bag count" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             CATEGORY / ITEM / BAG TYPE DETAILS
+             ===================================================== -->
+
+        <div class="sua-card">
+
+
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+
+
+                <div>
+
+                    <h5 class="sua-section-title mb-1">
+
+                        <i class="bi bi-ui-checks-grid me-2"></i>
+
+                        Category / Item Wise Bag Details
+
+                    </h5>
+
+
+                    <div style="
+                        color:#6b7280;
+                        font-size:12px;">
+
+                        Category, Item and Bag Type database master se aayenge.
+
+                    </div>
+
+                </div>
+
+
+                <button type="button"
+                        id="addCategoryRow"
+                        class="btn btn-outline-primary sua-add-btn">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+
+                    Add Row
+
+                </button>
+
+            </div>
+
+
+
+            <div id="categoryRowsContainer">
+
+
+                <!-- =================================================
+                     FIRST ROW
+                     ================================================= -->
+
+                <div class="sua-category-row category-row">
+
+
+                    <div class="sua-row-number">
+                        1
+                    </div>
+
+
+                    <div class="row g-3 align-items-end">
+
+
+                        <!-- CATEGORY -->
+
+                        <div class="col-lg-3 col-md-6">
+
+                            <label class="sua-form-label">
+
+                                Item Category
+                                <span class="text-danger">*</span>
+
+                            </label>
+
+
+                            <select name="CategoryRows[0].CategoryId"
+                                    class="form-select category-dropdown"
+                                    required>
+
+                                <option value="">
+                                    -- Select Category --
+                                </option>
+
+
+                                @foreach (var category in itemCategories)
+                                {
+                                    <option value="@category.Value">
+
+                                        @category.Text
+
+                                    </option>
+                                }
+
+                            </select>
+
+                        </div>
+
+
+
+                        <!-- ITEM -->
+
+                        <div class="col-lg-3 col-md-6">
+
+                            <label class="sua-form-label">
+
+                                Item
+                                <span class="text-danger">*</span>
+
+                            </label>
+
+
+                            <select name="CategoryRows[0].ItemId"
+                                    class="form-select item-dropdown"
+                                    required
+                                    disabled>
+
+                                <option value="">
+                                    -- Select Category First --
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+
+                        <!-- BAG TYPE -->
+
+                        <div class="col-lg-2 col-md-4">
+
+                            <label class="sua-form-label">
+
+                                Bag Type
+                                <span class="text-danger">*</span>
+
+                            </label>
+
+
+                            <select name="CategoryRows[0].BagTypeId"
+                                    class="form-select bagtype-dropdown"
+                                    required>
+
+                                <option value="">
+                                    -- Select --
+                                </option>
+
+
+                                @foreach (var bag in bagTypes)
+                                {
+                                    <option value="@bag.Value">
+
+                                        @bag.Text
+
+                                    </option>
+                                }
+
+                            </select>
+
+                        </div>
+
+
+
+                        <!-- BAG COUNT -->
+
+                        <div class="col-lg-2 col-md-4">
+
+                            <label class="sua-form-label">
+
+                                Bag Count
+                                <span class="text-danger">*</span>
+
+                            </label>
+
+
+                            <input type="text"
+                                   inputmode="numeric"
+                                   name="CategoryRows[0].BagCount"
+                                   class="form-control category-count sua-number-input"
+                                   placeholder="Bags"
+                                   required />
+
+                        </div>
+
+
+
+                        <!-- REMOVE -->
+
+                        <div class="col-lg-2 col-md-4">
+
+                            <button type="button"
+                                    class="btn btn-outline-danger w-100 remove-category-row">
+
+                                <i class="bi bi-trash me-1"></i>
+
+                                Remove
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             TOTAL VERIFICATION
+             ===================================================== -->
+
+        <div class="sua-card">
+
+
+            <h5 class="sua-section-title">
+
+                <i class="bi bi-calculator me-2"></i>
+
+                Bag Total Verification
+
+            </h5>
+
+
+            <div class="row g-3">
+
+
+                <!-- METH TOTAL -->
+
+                <div class="col-md-4">
+
+                    <div class="sua-total-card">
+
+                        <div class="sua-total-label">
+
+                            METH TOTAL
+
+                        </div>
+
+
+                        <div class="sua-total-number">
+
+                            @Model.MethTotalBags
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- SUPERVISOR TOTAL -->
+
+                <div class="col-md-4">
+
+                    <div class="sua-total-card">
+
+                        <div class="sua-total-label">
+
+                            SUPERVISOR CATEGORY TOTAL
+
+                        </div>
+
+
+                        <div id="supervisorTotal"
+                             class="sua-total-number">
+
+                            0
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- DIFFERENCE -->
+
+                <div class="col-md-4">
+
+                    <div id="differenceBox"
+                         class="sua-total-card"
+                         style="background:#fff7ed;">
+
+                        <div class="sua-total-label">
+
+                            DIFFERENCE
+
+                        </div>
+
+
+                        <div id="differenceTotal"
+                             class="sua-total-number"
+                             style="color:#c2410c;">
+
+                            @Model.MethTotalBags
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div id="matchMessage"
+                 class="sua-match-message">
+
+                <i class="bi bi-exclamation-circle me-1"></i>
+
+                Category-wise total must match Meth total bags.
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             ACTIONS
+             ===================================================== -->
+
+        <div class="d-flex justify-content-end flex-wrap gap-2">
+
+
+            <a asp-controller="Unload"
+               asp-action="Index"
+               class="btn btn-outline-secondary px-4">
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Back
+
+            </a>
+
+
+            <button type="submit"
+                    id="submitSupervisorAction"
+                    class="btn btn-success px-4"
+                    disabled>
+
+                <i class="bi bi-check-circle-fill me-1"></i>
+
+                Submit Supervisor Details
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+
+@section Scripts
+{
+    <script>
+
+        // =========================================================
+        // GLOBAL
+        // =========================================================
+
+        const methTotalBags =
+            @Model.MethTotalBags;
+
+
+        const rowsContainer =
+            document.getElementById(
+                'categoryRowsContainer'
+            );
+
+
+        const addRowButton =
+            document.getElementById(
+                'addCategoryRow'
+            );
+
+
+        const submitButton =
+            document.getElementById(
+                'submitSupervisorAction'
+            );
+
+
+
+        // =========================================================
+        // NUMERIC INPUT ONLY
+        // =========================================================
+
+        function cleanNumericInput(input)
+        {
+            input.value =
+                input.value.replace(
+                    /[^0-9]/g,
+                    ''
+                );
+        }
+
+
+
+        // =========================================================
+        // LOAD ITEM BY CATEGORY
+        // =========================================================
+
+        function loadItemsByCategory(
+            categoryDropdown)
+        {
+            const categoryId =
+                categoryDropdown.value;
+
+
+            const row =
+                categoryDropdown.closest(
+                    '.category-row'
+                );
+
+
+            const itemDropdown =
+                row.querySelector(
+                    '.item-dropdown'
+                );
+
+
+            itemDropdown.innerHTML =
+                '<option value="">-- Select Item --</option>';
+
+
+            itemDropdown.disabled =
+                true;
+
+
+            if (!categoryId)
+            {
+                itemDropdown.innerHTML =
+                    '<option value="">-- Select Category First --</option>';
+
+                return;
+            }
+
+
+            itemDropdown.innerHTML =
+                '<option value="">Loading...</option>';
+
+
+            fetch(
+                '/Unload/GetItemsByCategory?categoryId='
+                +
+                encodeURIComponent(
+                    categoryId
+                )
+            )
+            .then(
+                response =>
+                    response.json()
+            )
+            .then(
+                data =>
+                {
+                    itemDropdown.innerHTML =
+                        '<option value="">-- Select Item --</option>';
+
+
+                    if (
+                        !data.success
+                        ||
+                        !data.items
+                    )
+                    {
+                        itemDropdown.disabled =
+                            true;
+
+                        return;
+                    }
+
+
+                    data.items.forEach(
+                        function (item)
+                        {
+                            const option =
+                                document.createElement(
+                                    'option'
+                                );
+
+
+                            option.value =
+                                item.itemId;
+
+
+                            option.textContent =
+                                item.itemName;
+
+
+                            itemDropdown.appendChild(
+                                option
+                            );
+                        }
+                    );
+
+
+                    itemDropdown.disabled =
+                        false;
+                }
+            )
+            .catch(
+                function (error)
+                {
+                    console.error(
+                        'Unable to load items:',
+                        error
+                    );
+
+
+                    itemDropdown.innerHTML =
+                        '<option value="">Unable to load items</option>';
+
+
+                    itemDropdown.disabled =
+                        true;
+                }
+            );
+        }
+
+
+
+        // =========================================================
+        // REINDEX ROWS
+        // Important for ASP.NET model binding
+        // =========================================================
+
+        function reindexRows()
+        {
+            const rows =
+                rowsContainer.querySelectorAll(
+                    '.category-row'
+                );
+
+
+            rows.forEach(
+                function (row, index)
+                {
+                    const rowNumber =
+                        row.querySelector(
+                            '.sua-row-number'
+                        );
+
+
+                    if (rowNumber)
+                    {
+                        rowNumber.textContent =
+                            index + 1;
+                    }
+
+
+                    const category =
+                        row.querySelector(
+                            '.category-dropdown'
+                        );
+
+
+                    const item =
+                        row.querySelector(
+                            '.item-dropdown'
+                        );
+
+
+                    const bagType =
+                        row.querySelector(
+                            '.bagtype-dropdown'
+                        );
+
+
+                    const bagCount =
+                        row.querySelector(
+                            '.category-count'
+                        );
+
+
+                    category.name =
+                        `CategoryRows[${index}].CategoryId`;
+
+
+                    item.name =
+                        `CategoryRows[${index}].ItemId`;
+
+
+                    bagType.name =
+                        `CategoryRows[${index}].BagTypeId`;
+
+
+                    bagCount.name =
+                        `CategoryRows[${index}].BagCount`;
+                }
+            );
+        }
+
+
+
+        // =========================================================
+        // CALCULATE TOTALS
+        // =========================================================
+
+        function calculateTotals()
+        {
+            let supervisorTotal =
+                0;
+
+
+            document
+                .querySelectorAll(
+                    '.category-count'
+                )
+                .forEach(
+                    function (input)
+                    {
+                        const count =
+                            parseInt(
+                                input.value || '0'
+                            );
+
+
+                        if (!isNaN(count))
+                        {
+                            supervisorTotal +=
+                                count;
+                        }
+                    }
+                );
+
+
+            const difference =
+                methTotalBags
+                -
+                supervisorTotal;
+
+
+            document
+                .getElementById(
+                    'supervisorTotal'
+                )
+                .textContent =
+                    supervisorTotal;
+
+
+            document
+                .getElementById(
+                    'differenceTotal'
+                )
+                .textContent =
+                    difference;
+
+
+            const message =
+                document.getElementById(
+                    'matchMessage'
+                );
+
+
+            const differenceBox =
+                document.getElementById(
+                    'differenceBox'
+                );
+
+
+            const differenceTotal =
+                document.getElementById(
+                    'differenceTotal'
+                );
+
+
+            if (
+                methTotalBags > 0
+                &&
+                supervisorTotal === methTotalBags
+            )
+            {
+                message.innerHTML =
+                    '<i class="bi bi-check-circle-fill me-1"></i>'
+                    +
+                    'Bag totals matched successfully.';
+
+
+                message.style.background =
+                    '#ecfdf3';
+
+
+                message.style.color =
+                    '#15803d';
+
+
+                differenceBox.style.background =
+                    '#ecfdf3';
+
+
+                differenceTotal.style.color =
+                    '#15803d';
+
+
+                submitButton.disabled =
+                    false;
+            }
+            else
+            {
+                message.innerHTML =
+                    '<i class="bi bi-exclamation-circle me-1"></i>'
+                    +
+                    'Category-wise total must match Meth total bags.';
+
+
+                message.style.background =
+                    '#fff7ed';
+
+
+                message.style.color =
+                    '#c2410c';
+
+
+                differenceBox.style.background =
+                    '#fff7ed';
+
+
+                differenceTotal.style.color =
+                    '#c2410c';
+
+
+                submitButton.disabled =
+                    true;
+            }
+        }
+
+
+
+        // =========================================================
+        // ADD NEW ROW
+        // =========================================================
+
+        addRowButton.addEventListener(
+            'click',
+            function ()
+            {
+                const firstRow =
+                    rowsContainer.querySelector(
+                        '.category-row'
+                    );
+
+
+                const newRow =
+                    firstRow.cloneNode(
+                        true
+                    );
+
+
+                // Category reset
+                const category =
+                    newRow.querySelector(
+                        '.category-dropdown'
+                    );
+
+                category.value =
+                    '';
+
+
+                // Item reset
+                const item =
+                    newRow.querySelector(
+                        '.item-dropdown'
+                    );
+
+                item.innerHTML =
+                    '<option value="">-- Select Category First --</option>';
+
+                item.disabled =
+                    true;
+
+
+                // Bag Type reset
+                const bagType =
+                    newRow.querySelector(
+                        '.bagtype-dropdown'
+                    );
+
+                bagType.value =
+                    '';
+
+
+                // Count reset
+                const bagCount =
+                    newRow.querySelector(
+                        '.category-count'
+                    );
+
+                bagCount.value =
+                    '';
+
+
+                rowsContainer.appendChild(
+                    newRow
+                );
+
+
+                reindexRows();
+
+                calculateTotals();
+            }
+        );
+
+
+
+        // =========================================================
+        // PAGE EVENTS
+        // =========================================================
+
+        document.addEventListener(
+            'change',
+            function (event)
+            {
+                if (
+                    event.target
+                        .classList
+                        .contains(
+                            'category-dropdown'
+                        )
+                )
+                {
+                    loadItemsByCategory(
+                        event.target
+                    );
+                }
+            }
+        );
+
+
+
+        document.addEventListener(
+            'input',
+            function (event)
+            {
+                if (
+                    event.target
+                        .classList
+                        .contains(
+                            'sua-number-input'
+                        )
+                )
+                {
+                    cleanNumericInput(
+                        event.target
+                    );
+                }
+
+
+                if (
+                    event.target
+                        .classList
+                        .contains(
+                            'category-count'
+                        )
+                )
+                {
+                    calculateTotals();
+                }
+            }
+        );
+
+
+
+        // =========================================================
+        // REMOVE ROW
+        // =========================================================
+
+        document.addEventListener(
+            'click',
+            function (event)
+            {
+                const removeButton =
+                    event.target.closest(
+                        '.remove-category-row'
+                    );
+
+
+                if (!removeButton)
+                {
+                    return;
+                }
+
+
+                const rows =
+                    rowsContainer.querySelectorAll(
+                        '.category-row'
+                    );
+
+
+                // At least one row must remain
+                if (rows.length <= 1)
+                {
+                    const firstRow =
+                        rows[0];
+
+
+                    firstRow
+                        .querySelector(
+                            '.category-dropdown'
+                        )
+                        .value =
+                            '';
+
+
+                    const itemDropdown =
+                        firstRow.querySelector(
+                            '.item-dropdown'
+                        );
+
+
+                    itemDropdown.innerHTML =
+                        '<option value="">-- Select Category First --</option>';
+
+
+                    itemDropdown.disabled =
+                        true;
+
+
+                    firstRow
+                        .querySelector(
+                            '.bagtype-dropdown'
+                        )
+                        .value =
+                            '';
+
+
+                    firstRow
+                        .querySelector(
+                            '.category-count'
+                        )
+                        .value =
+                            '';
+
+
+                    calculateTotals();
+
+                    return;
+                }
+
+
+                removeButton
+                    .closest(
+                        '.category-row'
+                    )
+                    .remove();
+
+
+                reindexRows();
+
+                calculateTotals();
+            }
+        );
+
+
+
+        // =========================================================
+        // FINAL CLIENT-SIDE CHECK
+        // =========================================================
+
+        document
+            .getElementById(
+                'supervisorActionForm'
+            )
+            .addEventListener(
+                'submit',
+                function (event)
+                {
+                    let total =
+                        0;
+
+
+                    document
+                        .querySelectorAll(
+                            '.category-count'
+                        )
+                        .forEach(
+                            function (input)
+                            {
+                                total +=
+                                    parseInt(
+                                        input.value || '0'
+                                    )
+                                    || 0;
+                            }
+                        );
+
+
+                    if (
+                        total !== methTotalBags
+                    )
+                    {
+                        event.preventDefault();
+
+
+                        alert(
+                            'Supervisor category total must match Meth total bags.'
+                        );
+
+
+                        return false;
+                    }
+                }
+            );
+
+
+
+        // =========================================================
+        // INITIAL
+        // =========================================================
+
+        reindexRows();
+
+        calculateTotals();
+
+    </script>
+}

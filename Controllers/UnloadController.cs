@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Data;
 
 namespace RiceMillProject.Controllers
 {
@@ -588,6 +590,410 @@ namespace RiceMillProject.Controllers
             }
 
             return _officeBal.GetOfficeIdByPersonId(personId);
+        }
+
+        [HttpGet]
+        public IActionResult SupervisorAction(int id)
+        {
+            try
+            {
+                int supervisorId = GetCurrentPersonId();
+
+                if (supervisorId <= 0)
+                {
+                    return Forbid();
+                }
+
+                var unload = _unloadBal
+                    .GetAllUnloading()
+                    .FirstOrDefault(x => x.UnloadId == id);
+
+                if (unload == null)
+                {
+                    return NotFound();
+                }
+
+                // Meth ka work complete hone ke baad hi
+                // Supervisor action lega
+                if (unload.Status != "Unloaded")
+                {
+                    TempData["ErrorMessage"] =
+                        "This RST is not ready for Supervisor action.";
+
+                    return RedirectToAction("Index");
+                }
+
+                var model = new SupervisorUnloadActionViewModel
+                {
+                    UnloadId = unload.UnloadId,
+
+                    RSTNumber = unload.RSTNumber ?? "",
+
+                    VehicleNumber = unload.VehicleNumber ?? "",
+
+                    PartyName = unload.PartyName ?? "",
+
+                    CompanyName = unload.OfficeName ?? "",
+
+                    ItemName = unload.ItemName ?? "",
+
+                    LocationName = unload.LocationName ?? "",
+
+                    MethName = unload.MethName ?? "",
+
+                    MethTotalBags = unload.NumberOfBags ?? 0
+                };
+
+
+                // =====================================================
+                // ITEM CATEGORY - DATABASE
+                // =====================================================
+
+                var categoryTable =
+                    _itemBal.GetActiveItemCategories();
+
+                ViewBag.ItemCategories =
+                    new SelectList(
+                        categoryTable.DefaultView,
+                        "CategoryId",
+                        "CategoryName"
+                    );
+
+
+                // =====================================================
+                // BAG TYPE - DATABASE
+                // =====================================================
+
+                var bagTypeTable =
+                    _bagBal.GetActiveBagTypes();
+
+                ViewBag.BagTypes =
+                    new SelectList(
+                        bagTypeTable.DefaultView,
+                        "BagTypeId",
+                        "BagTypeName"
+                    );
+
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] =
+                    "Unable to load Supervisor action page: "
+                    + ex.Message;
+
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SupervisorAction(
+    SupervisorUnloadActionViewModel model)
+        {
+            try
+            {
+                int supervisorId =
+                    GetCurrentPersonId();
+
+                if (supervisorId <= 0)
+                {
+                    return Forbid();
+                }
+
+
+                // =====================================================
+                // UNLOAD CHECK
+                // =====================================================
+
+                var unload = _unloadBal
+                    .GetAllUnloading()
+                    .FirstOrDefault(
+                        x => x.UnloadId == model.UnloadId
+                    );
+
+                if (unload == null)
+                {
+                    TempData["ErrorMessage"] =
+                        "Unloading record was not found.";
+
+                    return RedirectToAction("Index");
+                }
+
+
+                // =====================================================
+                // ONLY ASSIGNED SUPERVISOR CAN SAVE
+                // =====================================================
+
+                if (unload.SupervisorId != supervisorId)
+                {
+                    return Forbid();
+                }
+
+
+                // =====================================================
+                // METH WORK MUST BE COMPLETE
+                // =====================================================
+
+                if (unload.Status != "Unloaded")
+                {
+                    TempData["ErrorMessage"] =
+                        "Meth work is not completed for this RST.";
+
+                    return RedirectToAction("Index");
+                }
+
+
+                // =====================================================
+                // CLEAN CATEGORY ROWS
+                // =====================================================
+
+                var rows =
+                    model.CategoryRows?
+                        .Where(x =>
+                            x.CategoryId > 0
+                            &&
+                            x.ItemId > 0
+                            &&
+                            x.BagTypeId > 0
+                            &&
+                            x.BagCount > 0
+                        )
+                        .ToList()
+                    ??
+                    new List<SupervisorUnloadCategoryRow>();
+
+
+                if (rows.Count == 0)
+                {
+                    TempData["ErrorMessage"] =
+                        "Please enter at least one category/item bag detail.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorAction),
+                        new
+                        {
+                            id = model.UnloadId
+                        }
+                    );
+                }
+
+
+                // =====================================================
+                // DUPLICATE COMBINATION CHECK
+                // =====================================================
+
+                bool duplicateExists =
+                    rows
+                        .GroupBy(x => new
+                        {
+                            x.CategoryId,
+                            x.ItemId,
+                            x.BagTypeId
+                        })
+                        .Any(g => g.Count() > 1);
+
+
+                if (duplicateExists)
+                {
+                    TempData["ErrorMessage"] =
+                        "Same Category, Item and Bag Type cannot be entered twice.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorAction),
+                        new
+                        {
+                            id = model.UnloadId
+                        }
+                    );
+                }
+
+
+                // =====================================================
+                // SUPERVISOR TOTAL
+                // =====================================================
+
+                int supervisorTotal =
+                    rows.Sum(x => x.BagCount);
+
+
+                // Hidden MethTotalBags par trust nahi kar rahe
+                // DB ki value use hogi
+                int methTotal =
+                    unload.NumberOfBags ?? 0;
+
+
+                if (methTotal <= 0)
+                {
+                    TempData["ErrorMessage"] =
+                        "Meth bag total is not available.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorAction),
+                        new
+                        {
+                            id = model.UnloadId
+                        }
+                    );
+                }
+
+
+                if (supervisorTotal != methTotal)
+                {
+                    TempData["ErrorMessage"] =
+                        $"Supervisor total ({supervisorTotal}) must match Meth total ({methTotal}).";
+
+                    return RedirectToAction(
+                        nameof(SupervisorAction),
+                        new
+                        {
+                            id = model.UnloadId
+                        }
+                    );
+                }
+
+
+                // =====================================================
+                // SAVE
+                // =====================================================
+
+                int supervisorActionId =
+                    _unloadBal.SaveSupervisorUnloadAction(
+                        model.UnloadId,
+                        supervisorId,
+                        model.StackPP,
+                        model.StackJute,
+                        model.HaudiPP,
+                        model.HaudiJute,
+                        rows
+                    );
+
+
+                if (supervisorActionId <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "Supervisor unloading details could not be saved."
+                    );
+                }
+
+
+                // =====================================================
+                // SUCCESS
+                // =====================================================
+
+                TempData["SuccessMessage"] =
+                    $"RST {unload.RSTNumber} Supervisor details saved successfully.";
+
+                return RedirectToAction("Index");
+            }
+            catch (SqlException ex)
+            {
+                TempData["ErrorMessage"] =
+                    ex.Message;
+
+                return RedirectToAction(
+                    nameof(SupervisorAction),
+                    new
+                    {
+                        id = model.UnloadId
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] =
+                    "Unable to save Supervisor details: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    nameof(SupervisorAction),
+                    new
+                    {
+                        id = model.UnloadId
+                    }
+                );
+            }
+        }
+
+        [HttpGet]
+        public IActionResult MethWorkRegister()
+        {
+            try
+            {
+                int supervisorId =
+                    GetCurrentPersonId();
+
+                if (supervisorId <= 0)
+                {
+                    return Forbid();
+                }
+
+                var records =
+                    _unloadBal
+                        .GetSupervisorMethWorkRegister(
+                            supervisorId
+                        );
+
+                return View(records);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] =
+                    "Unable to load Labour Mates register: "
+                    + ex.Message;
+
+                return View(
+                    new List<UnloadTransaction>()
+                );
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult GetItemsByCategory(int categoryId)
+        {
+            try
+            {
+                if (categoryId <= 0)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        items = Array.Empty<object>()
+                    });
+                }
+
+                var itemTable =
+                    _itemBal.GetItemsByCategory(categoryId);
+
+                var items = itemTable
+                    .AsEnumerable()
+                    .Select(row => new
+                    {
+                        itemId =
+                            row.Field<int>("ItemId"),
+
+                        itemName =
+                            row.Field<string>("ItemName") ?? ""
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    items = items
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    items = Array.Empty<object>()
+                });
+            }
         }
     }
 }

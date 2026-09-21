@@ -84,5 +84,30 @@ namespace RiceMillProject.DAL
             }
             return rowsAffected > 0;
         }
+        public DataTable GetActiveBagTypes()
+        {
+            DataTable dt = new DataTable();
+
+            using (SqlConnection con =
+                   new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd =
+                       new SqlCommand(
+                           "sp_GetActiveBagTypes",
+                           con))
+                {
+                    cmd.CommandType =
+                        CommandType.StoredProcedure;
+
+                    using (SqlDataAdapter da =
+                           new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
+            }
+
+            return dt;
+        }
     }
 }

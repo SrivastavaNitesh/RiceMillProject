@@ -78,5 +78,32 @@ namespace RiceMillProject.BAL
                 workerRows
             );
         }
+        public int SaveSupervisorUnloadAction(
+    int unloadId,
+    int supervisorId,
+    int stackPP,
+    int stackJute,
+    int haudiPP,
+    int haudiJute,
+    List<SupervisorUnloadCategoryRow> categoryRows)
+        {
+            return _unloadDal.SaveSupervisorUnloadAction(
+                unloadId,
+                supervisorId,
+                stackPP,
+                stackJute,
+                haudiPP,
+                haudiJute,
+                categoryRows
+            );
+        }
+        public List<UnloadTransaction> GetSupervisorMethWorkRegister(
+    int supervisorId)
+        {
+            return _unloadDal
+                .GetSupervisorMethWorkRegister(
+                    supervisorId
+                );
+        }
     }
 }
