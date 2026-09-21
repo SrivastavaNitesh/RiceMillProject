@@ -1,0 +1,357 @@
+﻿@model IEnumerable<RiceMillProject.Models.UnloadTransaction>
+
+@{
+    ViewData["Title"] = "Labour Mates (Meth)";
+}
+
+<div class="container-fluid px-0">
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+                    <h4 class="mb-1 fw-bold text-primary">
+
+                        <i class="bi bi-person-badge me-2"></i>
+                        Labour Mates (Meth)
+
+                    </h4>
+
+                    <div class="text-muted small">
+                        Meth assignment and unloading response register
+                    </div>
+                </div>
+
+                <div class="badge bg-primary-subtle text-primary fs-6 px-3 py-2">
+
+                    Total RST:
+                    @(Model?.Count() ?? 0)
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">
+                                RST Number
+                            </th>
+
+                            <th>
+                                Vehicle
+                            </th>
+
+                            <th>
+                                Party
+                            </th>
+
+                            <th>
+                                Material
+                            </th>
+
+                            <th>
+                                Meth
+                            </th>
+
+                            <th>
+                                Location
+                            </th>
+
+                            <th class="text-center">
+                                Meth Bags
+                            </th>
+
+                            <th class="text-center">
+                                Status
+                            </th>
+
+                            <th class="text-center pe-4">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                bool methCompleted =
+                                    string.Equals(
+                                        item.Status,
+                                        "Unloaded",
+                                        StringComparison.OrdinalIgnoreCase
+                                    );
+
+                                bool supervisorCompleted =
+                                    item.IsSupervisorActionCompleted;
+
+
+                                <tr>
+
+                                    <!-- RST -->
+
+                                    <td class="ps-4">
+
+                                        <span class="fw-bold text-primary">
+
+                                            @item.RSTNumber
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- VEHICLE -->
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(item.VehicleNumber)
+                                            ? "-"
+                                            : item.VehicleNumber)
+
+                                    </td>
+
+
+                                    <!-- PARTY -->
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(item.PartyName)
+                                            ? "-"
+                                            : item.PartyName)
+
+                                    </td>
+
+
+                                    <!-- MATERIAL -->
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(item.ItemName)
+                                            ? "-"
+                                            : item.ItemName)
+
+                                    </td>
+
+
+                                    <!-- METH -->
+
+                                    <td>
+
+                                        <span class="fw-semibold">
+
+                                            @(string.IsNullOrWhiteSpace(item.MethName)
+                                                ? "-"
+                                                : item.MethName)
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- LOCATION -->
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(item.LocationName)
+                                            ? "-"
+                                            : item.LocationName)
+
+                                    </td>
+
+
+                                    <!-- METH TOTAL BAGS -->
+
+                                    <td class="text-center">
+
+                                        @if (methCompleted)
+                                        {
+                                            <span class="badge bg-success-subtle text-success px-3 py-2">
+
+                                                @(item.NumberOfBags ?? 0)
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- STATUS -->
+
+                                    <td class="text-center">
+
+                                        @if (supervisorCompleted)
+                                        {
+                                            <span class="badge bg-success px-3 py-2">
+
+                                                <i class="bi bi-check-circle-fill me-1"></i>
+
+                                                Completed
+
+                                            </span>
+                                        }
+                                        else if (methCompleted)
+                                        {
+                                            <span class="badge bg-info-subtle text-info-emphasis px-3 py-2">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Response Received
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2">
+
+                                                <i class="bi bi-hourglass-split me-1"></i>
+
+                                                Waiting for Meth
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ACTION -->
+
+                                    <td class="text-center pe-4">
+
+                                        @if (supervisorCompleted)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success"
+                                                    disabled>
+
+                                                <i class="bi bi-check-circle-fill me-1"></i>
+
+                                                Completed
+
+                                            </button>
+                                        }
+                                        else if (methCompleted)
+                                        {
+                                            <a asp-controller="Unload"
+                                               asp-action="SupervisorAction"
+                                               asp-route-id="@item.UnloadId"
+                                               class="btn btn-sm btn-primary">
+
+                                                <i class="bi bi-pencil-square me-1"></i>
+
+                                                Take Action
+
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-secondary"
+                                                    disabled>
+
+                                                <i class="bi bi-clock me-1"></i>
+
+                                                Awaiting Meth
+
+                                            </button>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="9"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+
+                                    <div class="mt-2 text-muted">
+
+                                        No Meth assignments found.
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

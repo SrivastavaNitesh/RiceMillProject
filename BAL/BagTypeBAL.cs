@@ -1,7 +1,8 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.DAL;
 using RiceMillProject.Models;
+using System.Collections.Generic;
+using System.Data;
 
 namespace RiceMillProject.BAL
 {
@@ -27,6 +28,11 @@ namespace RiceMillProject.BAL
         public bool UpdateBagType(BagType bag)
         {
             return _bagDal.UpdateBagType(bag);
+        }
+      
+        public DataTable GetActiveBagTypes()
+        {
+            return _bagDal.GetActiveBagTypes();
         }
     }
 }
