@@ -1,4 +1,4 @@
-@{
+@* @{
     var layoutClaim = User.FindFirst("LayoutName")?.Value;
 
     // Existing helper based checks
@@ -54,7 +54,7 @@
         && layoutClaim != "_Layout"
     )
     {
-        Layout = layoutClaim;
+        Layout = null;
     }
 
     // =========================================================
@@ -64,4 +64,7 @@
     {
         Layout = "_LayoutAdmin";
     }
+} *@
+@{
+    Layout = "_Layout";
 }

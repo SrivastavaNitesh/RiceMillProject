@@ -22,14 +22,27 @@ namespace RiceMillProject.Controllers
         private readonly ItemBAL _itemBal;
         private readonly BusinessLayer _busLayer;
 
-        public GateEntryController(IConfiguration configuration)
+
+        public GateEntryController(
+            IConfiguration configuration)
         {
-            _gateBal = new GateEntryBAL(configuration);
-            _vehicleBal = new VehicleBAL(configuration);
-            _personBal = new PersonBAL(configuration);
-            _officeBal = new OfficeBAL(configuration);
-            _itemBal = new ItemBAL(configuration);
-            _busLayer = new BusinessLayer(configuration);
+            _gateBal =
+                new GateEntryBAL(configuration);
+
+            _vehicleBal =
+                new VehicleBAL(configuration);
+
+            _personBal =
+                new PersonBAL(configuration);
+
+            _officeBal =
+                new OfficeBAL(configuration);
+
+            _itemBal =
+                new ItemBAL(configuration);
+
+            _busLayer =
+                new BusinessLayer(configuration);
         }
 
 
@@ -130,14 +143,15 @@ namespace RiceMillProject.Controllers
                 if (inwardId.HasValue)
                 {
                     var details =
-                        _gateBal.GetInwardDetailsById(
-                            inwardId.Value
-                        );
+                        _gateBal
+                            .GetInwardDetailsById(
+                                inwardId.Value
+                            );
 
                     if (details.Rows.Count == 0)
                     {
                         TempData["ErrorMessage"] =
-                            "Selected inward entry is unavailable or closed for new RST entries.";
+                            "Selected inward entry is unavailable, closed, or its RST is already generated.";
 
                         return RedirectToAction(
                             "Report",
@@ -145,13 +159,16 @@ namespace RiceMillProject.Controllers
                         );
                     }
 
+
                     var row =
                         details.Rows[0];
+
 
                     entry.InwardNo =
                         row["InwardNo"]
                             ?.ToString()
                         ?? string.Empty;
+
 
                     entry.PartyId =
                         row["PartyId"]
@@ -161,6 +178,7 @@ namespace RiceMillProject.Controllers
                             )
                             : 0;
 
+
                     entry.VehicleId =
                         row["VehicleId"]
                             != DBNull.Value
@@ -168,6 +186,7 @@ namespace RiceMillProject.Controllers
                                 row["VehicleId"]
                             )
                             : 0;
+
 
                     entry.DriverId =
                         row["DriverId"]
@@ -177,31 +196,38 @@ namespace RiceMillProject.Controllers
                             )
                             : 0;
 
+
                     ViewBag.LockInward =
                         true;
 
+
                     ViewBag.InwardId =
                         inwardId.Value;
+
 
                     ViewBag.PartyName =
                         row["PartyName"]
                             ?.ToString()
                         ?? "-";
 
+
                     ViewBag.VehicleNo =
                         row["VehicleNo"]
                             ?.ToString()
                         ?? "-";
+
 
                     ViewBag.DriverName =
                         row["DriverName"]
                             ?.ToString()
                         ?? "-";
 
+
                     ViewBag.DriverMobile =
                         row["DriverMobile"]
                             ?.ToString()
                         ?? "-";
+
 
                     ViewBag.TotalBags =
                         row["ApproxNoOfBags"]
@@ -211,6 +237,7 @@ namespace RiceMillProject.Controllers
                             )
                             : 0;
                 }
+
 
                 PopulateDropdowns(entry);
 
@@ -248,6 +275,12 @@ namespace RiceMillProject.Controllers
                         ?? "0"
                     );
 
+
+                // -------------------------------------------------
+                // Re-check inward data from DB
+                // Do not trust posted party/vehicle/driver
+                // -------------------------------------------------
+
                 if (
                     !string.IsNullOrWhiteSpace(
                         entry.InwardNo
@@ -255,19 +288,27 @@ namespace RiceMillProject.Controllers
                 )
                 {
                     var inward =
-                        _gateBal.GetInwardDetails(
-                            entry.InwardNo
-                        );
+                        _gateBal
+                            .GetInwardDetails(
+                                entry.InwardNo
+                            );
 
-                    if (inward.Rows.Count == 0)
+
+                    if (
+                        inward == null
+                        ||
+                        inward.Rows.Count == 0
+                    )
                     {
                         throw new InvalidOperationException(
                             "The selected inward entry could not be verified."
                         );
                     }
 
+
                     var row =
                         inward.Rows[0];
+
 
                     entry.PartyId =
                         row["PartyId"]
@@ -277,6 +318,7 @@ namespace RiceMillProject.Controllers
                             )
                             : 0;
 
+
                     entry.VehicleId =
                         row["VehicleId"]
                             != DBNull.Value
@@ -284,6 +326,7 @@ namespace RiceMillProject.Controllers
                                 row["VehicleId"]
                             )
                             : 0;
+
 
                     entry.DriverId =
                         row["DriverId"]
@@ -294,12 +337,15 @@ namespace RiceMillProject.Controllers
                             : 0;
                 }
 
+
                 if (ModelState.IsValid)
                 {
                     string generatedRST =
-                        _gateBal.CreateGateEntry(
-                            entry
-                        );
+                        _gateBal
+                            .CreateGateEntry(
+                                entry
+                            );
+
 
                     if (
                         string.IsNullOrWhiteSpace(
@@ -312,13 +358,16 @@ namespace RiceMillProject.Controllers
                         );
                     }
 
+
                     TempData["SuccessMessage"] =
                         $"RST Generated Successfully! RST Number: {generatedRST}";
+
 
                     return RedirectToAction(
                         "Dashboard"
                     );
                 }
+
 
                 PopulateDropdowns(entry);
 
@@ -331,6 +380,7 @@ namespace RiceMillProject.Controllers
                     "Entry could not be saved: "
                     + ex.Message
                 );
+
 
                 PopulateDropdowns(entry);
 
@@ -346,113 +396,58 @@ namespace RiceMillProject.Controllers
         private void PopulateDropdowns(
             GateEntry entry)
         {
+            // -----------------------------------------------------
+            // Defaults
+            // -----------------------------------------------------
+
+            ViewBag.InwardEntries =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.PendingInwards =
+                new List<PendingRstInward>();
+
+            ViewBag.Vehicles =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.Parties =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.Drivers =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.Offices =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.Items =
+                Enumerable.Empty<SelectListItem>();
+
+
+            // -----------------------------------------------------
+            // ACTIVE INWARD DROPDOWN
+            // -----------------------------------------------------
+
             try
             {
                 DataTable dtInward =
                     _busLayer
                         .GetActiveInwardEntriesForDropdown();
 
+
                 ViewBag.InwardEntries =
                     Allclass.CreateDropdown(
                         dtInward
-                    );
-
-
-                ViewBag.Vehicles =
-                    new SelectList(
-                        _vehicleBal
-                            .GetAllVehicles(),
-                        "VehicleId",
-                        "VehicleNumber",
-                        entry.VehicleId
-                    );
-
-
-                var parties =
-                    _personBal
-                        .GetActivePersonsByPost(
-                            8
-                        );
-
-                ViewBag.Parties =
-                    new SelectList(
-                        parties,
-                        "PersonId",
-                        "PersonName",
-                        entry.PartyId
-                    );
-
-
-                var driversList =
-                    _gateBal
-                        .GetDriversWithMobile();
-
-                ViewBag.Drivers =
-                    new SelectList(
-                        driversList,
-                        "DriverId",
-                        "DriverNameMobile",
-                        entry.DriverId
-                    );
-
-
-                DataTable dtOffice =
-                    _busLayer
-                        .GetAllMainoffice();
-
-                ViewBag.Offices =
-                    Allclass.CreateDropdown(
-                        dtOffice
-                    );
-
-
-                ViewBag.Items =
-                    new SelectList(
-                        _itemBal
-                            .GetAllItems()
-                            .Where(
-                                i => i.IsActive
-                            ),
-                        "ItemId",
-                        "ItemName",
-                        entry.ItemId
                     );
             }
             catch (Exception)
             {
                 ViewBag.InwardEntries =
-                    Enumerable
-                        .Empty<SelectListItem>();
-
-                ViewBag.Vehicles =
-                    Enumerable
-                        .Empty<SelectListItem>();
-
-                ViewBag.Parties =
-                    Enumerable
-                        .Empty<SelectListItem>();
-
-                ViewBag.Drivers =
-                    Enumerable
-                        .Empty<SelectListItem>();
-
-                ViewBag.Offices =
-                    Enumerable
-                        .Empty<SelectListItem>();
-
-                ViewBag.Items =
-                    Enumerable
-                        .Empty<SelectListItem>();
+                    Enumerable.Empty<SelectListItem>();
             }
 
 
-            ViewBag.PendingInwards =
-                new List<PendingRstInward>();
-
-            ViewBag.Offices =
-                Enumerable
-                    .Empty<SelectListItem>();
-
+            // -----------------------------------------------------
+            // PENDING RST INWARDS
+            // -----------------------------------------------------
 
             try
             {
@@ -469,6 +464,87 @@ namespace RiceMillProject.Controllers
             }
 
 
+            // -----------------------------------------------------
+            // VEHICLES
+            // -----------------------------------------------------
+
+            try
+            {
+                ViewBag.Vehicles =
+                    new SelectList(
+                        _vehicleBal
+                            .GetAllVehicles(),
+                        "VehicleId",
+                        "VehicleNumber",
+                        entry.VehicleId
+                    );
+            }
+            catch (Exception)
+            {
+                ViewBag.Vehicles =
+                    Enumerable.Empty<SelectListItem>();
+            }
+
+
+            // -----------------------------------------------------
+            // PARTIES
+            // PostId = 8
+            // -----------------------------------------------------
+
+            try
+            {
+                var parties =
+                    _personBal
+                        .GetActivePersonsByPost(
+                            8
+                        );
+
+
+                ViewBag.Parties =
+                    new SelectList(
+                        parties,
+                        "PersonId",
+                        "PersonName",
+                        entry.PartyId
+                    );
+            }
+            catch (Exception)
+            {
+                ViewBag.Parties =
+                    Enumerable.Empty<SelectListItem>();
+            }
+
+
+            // -----------------------------------------------------
+            // DRIVERS
+            // -----------------------------------------------------
+
+            try
+            {
+                var driversList =
+                    _gateBal
+                        .GetDriversWithMobile();
+
+
+                ViewBag.Drivers =
+                    new SelectList(
+                        driversList,
+                        "DriverId",
+                        "DriverNameMobile",
+                        entry.DriverId
+                    );
+            }
+            catch (Exception)
+            {
+                ViewBag.Drivers =
+                    Enumerable.Empty<SelectListItem>();
+            }
+
+
+            // -----------------------------------------------------
+            // OFFICES / COMPANIES
+            // -----------------------------------------------------
+
             try
             {
                 ViewBag.Offices =
@@ -476,7 +552,8 @@ namespace RiceMillProject.Controllers
                         _officeBal
                             .GetAllOffices()
                             .Where(
-                                x => x.IsActive
+                                x =>
+                                    x.IsActive
                             ),
                         "OfficeId",
                         "OfficeName",
@@ -485,10 +562,39 @@ namespace RiceMillProject.Controllers
             }
             catch (Exception)
             {
+                ViewBag.Offices =
+                    Enumerable.Empty<SelectListItem>();
+
                 ModelState.AddModelError(
                     "",
                     "Company names could not be loaded."
                 );
+            }
+
+
+            // -----------------------------------------------------
+            // ITEMS
+            // -----------------------------------------------------
+
+            try
+            {
+                ViewBag.Items =
+                    new SelectList(
+                        _itemBal
+                            .GetAllItems()
+                            .Where(
+                                i =>
+                                    i.IsActive
+                            ),
+                        "ItemId",
+                        "ItemName",
+                        entry.ItemId
+                    );
+            }
+            catch (Exception)
+            {
+                ViewBag.Items =
+                    Enumerable.Empty<SelectListItem>();
             }
         }
 
@@ -513,10 +619,12 @@ namespace RiceMillProject.Controllers
                                 id
                         );
 
+
                 if (entry == null)
                 {
                     return NotFound();
                 }
+
 
                 return View(entry);
             }
@@ -525,6 +633,7 @@ namespace RiceMillProject.Controllers
                 TempData["ErrorMessage"] =
                     "An error occurred: "
                     + ex.Message;
+
 
                 return RedirectToAction(
                     "Index"
@@ -544,10 +653,12 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                _gateBal.CompleteGateExit(
-                    rstNumber,
-                    tareWeight
-                );
+                _gateBal
+                    .CompleteGateExit(
+                        rstNumber,
+                        tareWeight
+                    );
+
 
                 return RedirectToAction(
                     "Index"
@@ -558,6 +669,7 @@ namespace RiceMillProject.Controllers
                 TempData["ErrorMessage"] =
                     "An error occurred: "
                     + ex.Message;
+
 
                 return RedirectToAction(
                     "Index"
@@ -586,10 +698,12 @@ namespace RiceMillProject.Controllers
                                 id
                         );
 
+
                 if (entry == null)
                 {
                     return NotFound();
                 }
+
 
                 return View(entry);
             }
@@ -598,6 +712,7 @@ namespace RiceMillProject.Controllers
                 TempData["ErrorMessage"] =
                     "An error occurred: "
                     + ex.Message;
+
 
                 return RedirectToAction(
                     "Index"
@@ -617,9 +732,11 @@ namespace RiceMillProject.Controllers
             try
             {
                 var dt =
-                    _gateBal.GetInwardDetails(
-                        inwardNo
-                    );
+                    _gateBal
+                        .GetInwardDetails(
+                            inwardNo
+                        );
+
 
                 if (
                     dt != null
@@ -629,6 +746,7 @@ namespace RiceMillProject.Controllers
                 {
                     var row =
                         dt.Rows[0];
+
 
                     return Json(
                         new
@@ -682,6 +800,7 @@ namespace RiceMillProject.Controllers
                     );
                 }
 
+
                 return Json(
                     new
                     {
@@ -721,12 +840,15 @@ namespace RiceMillProject.Controllers
                             partyId
                         );
 
+
                 return Json(
                     new
                     {
                         success = true,
+
                         vehicleId =
                             data.vehicleId,
+
                         driverId =
                             data.driverId
                     }
@@ -762,6 +884,7 @@ namespace RiceMillProject.Controllers
                             partyId
                         );
 
+
                 var drivers =
                     _gateBal
                         .GetDriversByParty(
@@ -770,6 +893,7 @@ namespace RiceMillProject.Controllers
 
 
                 int defaultVehicleId = 0;
+
                 int defaultDriverId = 0;
 
 
@@ -822,6 +946,7 @@ namespace RiceMillProject.Controllers
                     new
                     {
                         success = false,
+
                         message =
                             ex.Message
                     }
