@@ -476,47 +476,99 @@ ORDER BY u.UnloadId DESC;";
         // OLD WORKER ALLOCATION
         // ============================================================
 
-        public bool SaveWorkerAllocation(
-            int unloadId,
-            int workerId,
-            decimal palledariAmount)
+        public int SaveWorkerAllocation(
+      int unloadId,
+      int workerId,
+      string workType,
+      int bagTypeId,
+      int bagCount,
+      decimal perBagCharge)
         {
             using SqlConnection con =
-                new SqlConnection(
-                    _connectionString);
+                new SqlConnection(_connectionString);
 
             using SqlCommand cmd =
                 new SqlCommand(
                     "sp_SaveWorkerAllocation",
-                    con);
+                    con
+                );
 
             cmd.CommandType =
                 CommandType.StoredProcedure;
 
+
             cmd.Parameters.Add(
                 "@UnloadId",
                 SqlDbType.Int
-            ).Value = unloadId;
+            ).Value =
+                unloadId;
+
 
             cmd.Parameters.Add(
                 "@WorkerId",
                 SqlDbType.Int
-            ).Value = workerId;
+            ).Value =
+                workerId;
+
 
             cmd.Parameters.Add(
-                "@PalledariAmount",
+                "@WorkType",
+                SqlDbType.NVarChar,
+                20
+            ).Value =
+                workType;
+
+
+            cmd.Parameters.Add(
+                "@BagTypeId",
+                SqlDbType.Int
+            ).Value =
+                bagTypeId;
+
+
+            cmd.Parameters.Add(
+                "@BagCount",
+                SqlDbType.Int
+            ).Value =
+                bagCount;
+
+
+            cmd.Parameters.Add(
+                "@PerBagCharge",
                 SqlDbType.Decimal
-            ).Value = palledariAmount;
+            ).Value =
+                perBagCharge;
+
+            cmd.Parameters["@PerBagCharge"]
+                .Precision = 18;
+
+            cmd.Parameters["@PerBagCharge"]
+                .Scale = 2;
+
 
             con.Open();
 
-            int rowsAffected =
-                cmd.ExecuteNonQuery();
 
-            return rowsAffected > 0;
+            object? result =
+                cmd.ExecuteScalar();
+
+
+            if (
+                result == null
+                ||
+                result == DBNull.Value
+            )
+            {
+                throw new InvalidOperationException(
+                    "Worker allocation could not be saved."
+                );
+            }
+
+
+            return Convert.ToInt32(
+                result
+            );
         }
-
-
         // ============================================================
         // SAVE UNLOAD LOCATION
         // ============================================================
@@ -1057,6 +1109,41 @@ ORDER BY u.UnloadId DESC;";
             }
 
             return list;
+        }
+        public void FinalizeSupervisorMethWork(
+    int unloadId,
+    int supervisorId)
+        {
+            using SqlConnection con =
+                new SqlConnection(_connectionString);
+
+            using SqlCommand cmd =
+                new SqlCommand(
+                    "sp_FinalizeSupervisorMethWork",
+                    con
+                );
+
+            cmd.CommandType =
+                CommandType.StoredProcedure;
+
+
+            cmd.Parameters.Add(
+                "@UnloadId",
+                SqlDbType.Int
+            ).Value =
+                unloadId;
+
+
+            cmd.Parameters.Add(
+                "@SupervisorId",
+                SqlDbType.Int
+            ).Value =
+                supervisorId;
+
+
+            con.Open();
+
+            cmd.ExecuteNonQuery();
         }
     }
 }

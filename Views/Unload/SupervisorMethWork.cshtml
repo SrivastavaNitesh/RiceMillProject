@@ -1,0 +1,1156 @@
+﻿@model RiceMillProject.Models.UnloadTransaction
+
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Enter Labour Work Details";
+
+    var bagTypes =
+        ViewBag.BagTypes as IEnumerable<SelectListItem>
+        ?? Enumerable.Empty<SelectListItem>();
+}
+
+<style>
+    .work-page {
+        max-width: 1450px;
+        margin: 0 auto;
+    }
+
+    .work-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.05);
+        margin-bottom: 18px;
+    }
+
+    .work-header {
+        padding: 20px 22px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .work-body {
+        padding: 20px 22px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 14px;
+        height: 100%;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        color: #1f2937;
+        font-weight: 700;
+        word-break: break-word;
+    }
+
+    .worker-card {
+        border: 1px solid #dbe3ec;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+
+    .worker-header {
+        background: #f8fafc;
+        padding: 12px 16px;
+        border-bottom: 1px solid #dbe3ec;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .worker-name {
+        font-weight: 750;
+        color: #173b6c;
+    }
+
+    .entry-table th {
+        font-size: 12px;
+        white-space: nowrap;
+        color: #4b5563;
+    }
+
+    .entry-table td {
+        vertical-align: middle;
+    }
+
+    .operation-box {
+        min-width: 190px;
+    }
+
+    .operation-choice {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-right: 12px;
+        white-space: nowrap;
+    }
+
+    .summary-box {
+        background: #f8fafc;
+        border: 1px solid #dbe3ec;
+        border-radius: 10px;
+        padding: 14px 18px;
+    }
+
+    .summary-number {
+        font-size: 20px;
+        font-weight: 800;
+        color: #173b6c;
+    }
+
+    .required-star {
+        color: #dc2626;
+    }
+
+    @@media (max-width: 768px) {
+        .work-body,
+        .work-header {
+            padding: 15px;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .btn {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+    }
+</style>
+
+
+<div class="work-page">
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <div class="work-card">
+
+        <div class="work-header">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h4 class="mb-1 fw-bold text-primary">
+
+                        <i class="bi bi-people-fill me-2"></i>
+
+                        Labour Work Entry
+
+                    </h4>
+
+                    <div class="text-muted small">
+
+                        Enter worker-wise loading / unloading details on behalf of Meth.
+
+                    </div>
+
+                </div>
+
+
+                <div class="page-actions">
+
+                    <a asp-controller="Unload"
+                       asp-action="MethWorkRegister"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+
+                        Back
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="work-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            RST Number
+                        </div>
+
+                        <div class="info-value text-primary">
+                            @Model.RSTNumber
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Meth
+                        </div>
+
+                        <div class="info-value">
+
+                            @(string.IsNullOrWhiteSpace(Model.MethName)
+                                ? "-"
+                                : Model.MethName)
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Unloading Location
+                        </div>
+
+                        <div class="info-value">
+
+                            @(string.IsNullOrWhiteSpace(Model.LocationName)
+                                ? "-"
+                                : Model.LocationName)
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Material
+                        </div>
+
+                        <div class="info-value">
+
+                            @(string.IsNullOrWhiteSpace(Model.ItemName)
+                                ? "-"
+                                : Model.ItemName)
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         FORM
+         ===================================================== -->
+
+    <form asp-controller="Unload"
+          asp-action="SupervisorMethWork"
+          method="post"
+          id="workForm">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="UnloadId" />
+
+        <input type="hidden"
+               asp-for="RSTNumber" />
+
+
+        <!-- =================================================
+             WORKERS
+             ================================================= -->
+
+        <div id="workersContainer">
+
+            @if (
+                Model.WorkerRows != null
+                &&
+                Model.WorkerRows.Any()
+            )
+            {
+                for (
+                    int workerIndex = 0;
+                    workerIndex < Model.WorkerRows.Count;
+                    workerIndex++
+                )
+                {
+                    var worker =
+                        Model.WorkerRows[workerIndex];
+
+                    <div class="work-card worker-card"
+                         data-worker-id="@worker.WorkerId"
+                         data-worker-name="@worker.WorkerName">
+
+                        <div class="worker-header">
+
+                            <div>
+
+                                <i class="bi bi-person-circle me-2 text-primary"></i>
+
+                                <span class="worker-name">
+
+                                    @worker.WorkerName
+
+                                </span>
+
+                            </div>
+
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary add-entry-btn">
+
+                                <i class="bi bi-plus-circle me-1"></i>
+
+                                Add Bag Type
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="table-responsive">
+
+                            <table class="table entry-table align-middle mb-0">
+
+                                <thead class="table-light">
+
+                                    <tr>
+
+                                        <th style="min-width:210px;">
+                                            Operation
+                                            <span class="required-star">*</span>
+                                        </th>
+
+                                        <th style="min-width:190px;">
+                                            Bag Type
+                                            <span class="required-star">*</span>
+                                        </th>
+
+                                        <th style="min-width:130px;">
+                                            Bag Count
+                                            <span class="required-star">*</span>
+                                        </th>
+
+                                        <th style="min-width:150px;">
+                                            Per Bag Charge
+                                            <span class="required-star">*</span>
+                                        </th>
+
+                                        <th style="min-width:130px;">
+                                            Amount
+                                        </th>
+
+                                        <th style="width:70px;"
+                                            class="text-center">
+                                            Remove
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody class="worker-entry-body">
+
+                                    <tr class="work-entry-row">
+
+                                        <td>
+
+                                            <input type="hidden"
+                                                   class="worker-id-input"
+                                                   value="@worker.WorkerId" />
+
+                                            <input type="hidden"
+                                                   class="worker-name-input"
+                                                   value="@worker.WorkerName" />
+
+
+                                            <div class="operation-box">
+
+                                                <label class="operation-choice">
+
+                                                    <input type="radio"
+                                                           class="form-check-input work-type-input"
+                                                           value="Loading" />
+
+                                                    <span>
+                                                        Loading
+                                                    </span>
+
+                                                </label>
+
+
+                                                <label class="operation-choice">
+
+                                                    <input type="radio"
+                                                           class="form-check-input work-type-input"
+                                                           value="Unloading" />
+
+                                                    <span>
+                                                        Unloading
+                                                    </span>
+
+                                                </label>
+
+                                            </div>
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <select class="form-select bag-type-input">
+
+                                                <option value="">
+                                                    -- Select Bag Type --
+                                                </option>
+
+                                                @foreach (var bag in bagTypes)
+                                                {
+                                                    <option value="@bag.Value">
+                                                        @bag.Text
+                                                    </option>
+                                                }
+
+                                            </select>
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <input type="number"
+                                                   class="form-control bag-count-input"
+                                                   min="1"
+                                                   step="1"
+                                                   placeholder="Bag Count"
+                                                   autocomplete="off" />
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <input type="number"
+                                                   class="form-control charge-input"
+                                                   min="0"
+                                                   step="0.01"
+                                                   placeholder="₹ Per Bag"
+                                                   autocomplete="off" />
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <span class="fw-bold row-amount">
+
+                                                ₹0.00
+
+                                            </span>
+
+                                        </td>
+
+
+                                        <td class="text-center">
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger remove-entry-btn"
+                                                    disabled>
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning">
+
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                    No workers are mapped under the assigned Meth.
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- =================================================
+             SUMMARY
+             ================================================= -->
+        @if (
+                    Model.WorkerRows != null
+                    &&
+                    Model.WorkerRows.Any()
+                )
+        {
+            <div class="work-card">
+
+                <div class="work-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+
+                            <div class="summary-box">
+
+                                <div class="text-muted small">
+                                    Total Workers
+                                </div>
+
+                                <div class="summary-number"
+                                     id="totalWorkers">
+
+                                    @Model.WorkerRows.Count
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <div class="summary-box">
+
+                                <div class="text-muted small">
+                                    Total Bags
+                                </div>
+
+                                <div class="summary-number"
+                                     id="totalBags">
+
+                                    0
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <div class="summary-box">
+
+                                <div class="text-muted small">
+                                    Total Labour Amount
+                                </div>
+
+                                <div class="summary-number"
+                                     id="totalAmount">
+
+                                    ₹0.00
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <hr class="my-4" />
+
+
+                    <div class="d-flex justify-content-end gap-2 flex-wrap">
+
+                        <a asp-controller="Unload"
+                           asp-action="MethWorkRegister"
+                           class="btn btn-outline-secondary">
+
+                            Cancel
+
+                        </a>
+
+
+                        <button type="submit"
+                                class="btn btn-primary px-4"
+                                id="saveBtn">
+
+                            <i class="bi bi-check-circle me-1"></i>
+
+                            Save Work Details
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </form>
+
+</div>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function ()
+        {
+            const workersContainer =
+                document.getElementById(
+                    "workersContainer"
+                );
+
+            const form =
+                document.getElementById(
+                    "workForm"
+                );
+
+
+            if (!workersContainer || !form)
+            {
+                return;
+            }
+
+
+            // =====================================================
+            // ADD BAG TYPE ROW
+            // =====================================================
+
+            workersContainer.addEventListener(
+                "click",
+                function (e)
+                {
+                    const addButton =
+                        e.target.closest(
+                            ".add-entry-btn"
+                        );
+
+
+                    if (addButton)
+                    {
+                        const workerCard =
+                            addButton.closest(
+                                ".worker-card"
+                            );
+
+                        const tbody =
+                            workerCard.querySelector(
+                                ".worker-entry-body"
+                            );
+
+                        const firstRow =
+                            tbody.querySelector(
+                                ".work-entry-row"
+                            );
+
+
+                        const newRow =
+                            firstRow.cloneNode(true);
+
+
+                        // Reset operation
+                        newRow
+                            .querySelectorAll(
+                                ".work-type-input"
+                            )
+                            .forEach(
+                                radio =>
+                                {
+                                    radio.checked =
+                                        false;
+                                }
+                            );
+
+
+                        // Reset bag type
+                        newRow.querySelector(
+                            ".bag-type-input"
+                        ).value = "";
+
+
+                        // Reset count
+                        newRow.querySelector(
+                            ".bag-count-input"
+                        ).value = "";
+
+
+                        // Reset charge
+                        newRow.querySelector(
+                            ".charge-input"
+                        ).value = "";
+
+
+                        // Reset amount
+                        newRow.querySelector(
+                            ".row-amount"
+                        ).innerText =
+                            "₹0.00";
+
+
+                        tbody.appendChild(
+                            newRow
+                        );
+
+
+                        updateRemoveButtons();
+
+                        reIndexRows();
+                    }
+
+
+                    // =================================================
+                    // REMOVE ROW
+                    // =================================================
+
+                    const removeButton =
+                        e.target.closest(
+                            ".remove-entry-btn"
+                        );
+
+
+                    if (removeButton)
+                    {
+                        const row =
+                            removeButton.closest(
+                                ".work-entry-row"
+                            );
+
+                        const tbody =
+                            row.closest(
+                                ".worker-entry-body"
+                            );
+
+
+                        if (
+                            tbody.querySelectorAll(
+                                ".work-entry-row"
+                            ).length > 1
+                        )
+                        {
+                            row.remove();
+
+                            updateRemoveButtons();
+
+                            reIndexRows();
+
+                            calculateTotals();
+                        }
+                    }
+                }
+            );
+
+
+            // =====================================================
+            // CALCULATIONS
+            // =====================================================
+
+            workersContainer.addEventListener(
+                "input",
+                function (e)
+                {
+                    if (
+                        e.target.classList.contains(
+                            "bag-count-input"
+                        )
+                        ||
+                        e.target.classList.contains(
+                            "charge-input"
+                        )
+                    )
+                    {
+                        calculateTotals();
+                    }
+                }
+            );
+
+
+            // =====================================================
+            // UPDATE REMOVE BUTTON
+            // =====================================================
+
+            function updateRemoveButtons()
+            {
+                document
+                    .querySelectorAll(
+                        ".worker-entry-body"
+                    )
+                    .forEach(
+                        tbody =>
+                        {
+                            const rows =
+                                tbody.querySelectorAll(
+                                    ".work-entry-row"
+                                );
+
+
+                            rows.forEach(
+                                row =>
+                                {
+                                    const button =
+                                        row.querySelector(
+                                            ".remove-entry-btn"
+                                        );
+
+
+                                    button.disabled =
+                                        rows.length === 1;
+                                }
+                            );
+                        }
+                    );
+            }
+
+
+            // =====================================================
+            // MODEL BINDING INDEX
+            // =====================================================
+
+            function reIndexRows()
+            {
+                const allRows =
+                    document.querySelectorAll(
+                        ".work-entry-row"
+                    );
+
+
+                allRows.forEach(
+                    (row, index) =>
+                    {
+                        const workerId =
+                            row.querySelector(
+                                ".worker-id-input"
+                            );
+
+
+                        const workerName =
+                            row.querySelector(
+                                ".worker-name-input"
+                            );
+
+
+                        const workTypes =
+                            row.querySelectorAll(
+                                ".work-type-input"
+                            );
+
+
+                        const bagType =
+                            row.querySelector(
+                                ".bag-type-input"
+                            );
+
+
+                        const bagCount =
+                            row.querySelector(
+                                ".bag-count-input"
+                            );
+
+
+                        const charge =
+                            row.querySelector(
+                                ".charge-input"
+                            );
+
+
+                        workerId.name =
+                            `WorkerRows[${index}].WorkerId`;
+
+
+                        workerName.name =
+                            `WorkerRows[${index}].WorkerName`;
+
+
+                        workTypes.forEach(
+                            radio =>
+                            {
+                                radio.name =
+                                    `WorkerRows[${index}].WorkType`;
+                            }
+                        );
+
+
+                        bagType.name =
+                            `WorkerRows[${index}].BagTypeId`;
+
+
+                        bagCount.name =
+                            `WorkerRows[${index}].BagCount`;
+
+
+                        charge.name =
+                            `WorkerRows[${index}].PerBagCharge`;
+                    }
+                );
+            }
+
+
+            // =====================================================
+            // TOTAL CALCULATION
+            // =====================================================
+
+            function calculateTotals()
+            {
+                let totalBags = 0;
+
+                let totalAmount = 0;
+
+
+                document
+                    .querySelectorAll(
+                        ".work-entry-row"
+                    )
+                    .forEach(
+                        row =>
+                        {
+                            const bagCount =
+                                parseInt(
+                                    row.querySelector(
+                                        ".bag-count-input"
+                                    ).value
+                                )
+                                || 0;
+
+
+                            const charge =
+                                parseFloat(
+                                    row.querySelector(
+                                        ".charge-input"
+                                    ).value
+                                )
+                                || 0;
+
+
+                            const amount =
+                                bagCount
+                                *
+                                charge;
+
+
+                            totalBags +=
+                                bagCount;
+
+
+                            totalAmount +=
+                                amount;
+
+
+                            row.querySelector(
+                                ".row-amount"
+                            ).innerText =
+                                "₹"
+                                +
+                                amount.toFixed(2);
+                        }
+                    );
+
+
+                const bagsElement =
+                    document.getElementById(
+                        "totalBags"
+                    );
+
+
+                const amountElement =
+                    document.getElementById(
+                        "totalAmount"
+                    );
+
+
+                if (bagsElement)
+                {
+                    bagsElement.innerText =
+                        totalBags;
+                }
+
+
+                if (amountElement)
+                {
+                    amountElement.innerText =
+                        "₹"
+                        +
+                        totalAmount.toFixed(2);
+                }
+            }
+
+
+            // =====================================================
+            // SUBMIT VALIDATION
+            // =====================================================
+
+            form.addEventListener(
+                "submit",
+                function (e)
+                {
+                    reIndexRows();
+
+
+                    const rows =
+                        document.querySelectorAll(
+                            ".work-entry-row"
+                        );
+
+
+                    if (rows.length === 0)
+                    {
+                        e.preventDefault();
+
+                        alert(
+                            "No worker entry is available."
+                        );
+
+                        return;
+                    }
+
+
+                    for (
+                        let i = 0;
+                        i < rows.length;
+                        i++
+                    )
+                    {
+                        const row =
+                            rows[i];
+
+
+                        const operation =
+                            row.querySelector(
+                                ".work-type-input:checked"
+                            );
+
+
+                        const bagType =
+                            row.querySelector(
+                                ".bag-type-input"
+                            ).value;
+
+
+                        const bagCount =
+                            parseInt(
+                                row.querySelector(
+                                    ".bag-count-input"
+                                ).value
+                            )
+                            || 0;
+
+
+                        const charge =
+                            parseFloat(
+                                row.querySelector(
+                                    ".charge-input"
+                                ).value
+                            );
+
+
+                        if (!operation)
+                        {
+                            e.preventDefault();
+
+                            alert(
+                                "Please select Loading or Unloading for every work row."
+                            );
+
+                            return;
+                        }
+
+
+                        if (!bagType)
+                        {
+                            e.preventDefault();
+
+                            alert(
+                                "Please select Bag Type for every work row."
+                            );
+
+                            return;
+                        }
+
+
+                        if (bagCount <= 0)
+                        {
+                            e.preventDefault();
+
+                            alert(
+                                "Bag Count must be greater than zero."
+                            );
+
+                            return;
+                        }
+
+
+                        if (
+                            isNaN(charge)
+                            ||
+                            charge < 0
+                        )
+                        {
+                            e.preventDefault();
+
+                            alert(
+                                "Please enter valid Per Bag Charge."
+                            );
+
+                            return;
+                        }
+                    }
+                }
+            );
+
+
+            updateRemoveButtons();
+
+            reIndexRows();
+
+            calculateTotals();
+        }
+    );
+
+</script>
