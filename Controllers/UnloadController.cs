@@ -741,7 +741,7 @@ namespace RiceMillProject.Controllers
                     TempData["ErrorMessage"] =
                         "Meth work is not completed for this RST.";
 
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(MethWorkRegister));
                 }
 
 
