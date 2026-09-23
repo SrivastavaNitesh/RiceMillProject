@@ -1,250 +1,233 @@
 ﻿@model RiceMillProject.Models.SupervisorUnloadActionViewModel
 
 @{
-    ViewData["Title"] = "Supervisor Unloading Action";
+    var vm = Model
+        ?? new RiceMillProject.Models.SupervisorUnloadActionViewModel();
 
-    var itemCategories =
-        ViewBag.ItemCategories
-        as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>
-        ?? System.Array.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
-
-    var bagTypes =
-        ViewBag.BagTypes
-        as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>
-        ?? System.Array.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+    int labourTotalBags = vm.MethTotalBags;
 }
 
-
 <style>
-
-    /* =========================================================
-       SUPERVISOR ACTION PAGE
-       ========================================================= */
-
-    .sua-page {
+    .sup-form-page {
         max-width: 1250px;
         margin: 0 auto;
-        padding: 10px 0 35px 0;
+        padding: 5px 0 35px 0;
     }
 
-
-    .sua-card {
+    .sup-card {
         background: #ffffff;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e2e8f0;
         border-radius: 14px;
-        padding: 22px;
         margin-bottom: 18px;
-        box-shadow: 0 3px 12px rgba(0,0,0,.04);
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, .06);
     }
 
-
-    .sua-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        flex-wrap: wrap;
+    .sup-top-line {
+        height: 7px;
+        background: linear-gradient(90deg, #1e3c72, #2a5298);
     }
 
+    .sup-main-header {
+        padding: 22px 24px;
+    }
 
-    .sua-title {
+    .sup-main-title {
         margin: 0;
         color: #173b6c;
-        font-size: 24px;
+        font-size: 25px;
         font-weight: 750;
     }
 
-
-    .sua-subtitle {
-        margin-top: 5px;
-        color: #6b7280;
+    .sup-subtitle {
+        color: #64748b;
         font-size: 13px;
+        margin-top: 6px;
     }
 
-
-    .sua-rst-badge {
-        background: #eef5ff;
-        border: 1px solid #cfe1ff;
-        color: #1769e0;
-        padding: 10px 17px;
-        border-radius: 9px;
-        font-weight: 750;
-    }
-
-
-    .sua-section-title {
-        margin: 0 0 18px 0;
-        color: #173b6c;
-        font-size: 17px;
-        font-weight: 750;
-    }
-
-
-    .sua-detail-box {
+    .sup-section-title {
+        padding: 14px 20px;
         background: #f8fafc;
-        border: 1px solid #edf0f4;
-        border-radius: 9px;
-        padding: 12px 14px;
-        min-height: 72px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #173b6c;
+        font-weight: 750;
+        font-size: 16px;
     }
 
+    .sup-section-body {
+        padding: 20px;
+    }
 
-    .sua-detail-label {
-        color: #6b7280;
-        font-size: 11px;
-        font-weight: 750;
-        text-transform: uppercase;
-        letter-spacing: .4px;
+    .sup-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
         margin-bottom: 5px;
     }
 
-
-    .sua-detail-value {
-        color: #111827;
-        font-size: 15px;
-        font-weight: 700;
-        word-break: break-word;
-    }
-
-
-    .sua-meth-total {
-        background: #ecfdf3;
-        border: 1px solid #b7ebc6;
-        border-radius: 14px;
-        padding: 20px 24px;
-        margin-bottom: 18px;
-    }
-
-
-    .sua-meth-total-number {
-        color: #15803d;
-        font-size: 32px;
-        font-weight: 800;
-    }
-
-
-    .sua-form-label {
-        font-size: 13px;
-        font-weight: 700;
-        color: #374151;
-        margin-bottom: 6px;
-    }
-
-
-    .sua-category-row {
-        background: #fafcff;
-        border: 1px solid #dfe5ed;
-        border-radius: 11px;
-        padding: 16px;
-        margin-bottom: 12px;
-    }
-
-
-    .sua-row-number {
-        width: 30px;
-        height: 30px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #eaf2ff;
-        color: #1769e0;
-        border-radius: 50%;
-        font-size: 12px;
-        font-weight: 800;
-        margin-bottom: 10px;
-    }
-
-
-    .sua-total-card {
-        background: #f4f7fb;
-        border: 1px solid #e7ebf0;
-        border-radius: 10px;
-        padding: 15px;
-        height: 100%;
-    }
-
-
-    .sua-total-label {
-        color: #667085;
-        font-size: 11px;
-        font-weight: 750;
-        letter-spacing: .4px;
-    }
-
-
-    .sua-total-number {
-        color: #173b6c;
-        font-size: 25px;
-        font-weight: 800;
-        margin-top: 4px;
-    }
-
-
-    .sua-match-message {
-        margin-top: 15px;
-        padding: 12px 15px;
+    .sup-readonly {
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #dbe3ec;
+        background: #f8fafc;
         border-radius: 8px;
-        background: #fff7ed;
-        color: #c2410c;
-        font-weight: 700;
-        font-size: 13px;
+        font-weight: 650;
+        color: #1f2937;
     }
 
+    .sup-rst {
+        color: #1769e0;
+        font-weight: 800;
+    }
 
-    .sua-add-btn {
+    .form-control,
+    .form-select {
+        min-height: 43px;
+        border-radius: 8px;
+        border: 1px solid #cfd8e3;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, .10);
+    }
+
+    .stack-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .stack-table th {
+        padding: 11px;
+        background: #f8fafc;
+        color: #475569;
+        text-align: center;
+        font-size: 12px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .stack-table td {
+        padding: 12px;
+    }
+
+    .stack-table input {
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .summary-box {
+        min-height: 82px;
+        background: #f8fafc;
+        border: 1px solid #dbe3ec;
+        border-radius: 10px;
+        padding: 13px 15px;
+    }
+
+    .summary-label {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .summary-value {
+        margin-top: 3px;
+        color: #173b6c;
+        font-size: 23px;
+        font-weight: 800;
+    }
+
+    .material-table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 12px;
+        vertical-align: middle;
         white-space: nowrap;
     }
 
-
-    @@media (max-width: 767px) {
-
-        .sua-card {
-            padding: 16px;
-        }
-
-        .sua-title {
-            font-size: 20px;
-        }
-
-        .sua-meth-total-number {
-            font-size: 27px;
-        }
+    .material-table td {
+        vertical-align: middle;
     }
 
+    .required {
+        color: #dc2626;
+    }
+
+    .total-status {
+        margin-top: 15px;
+        padding: 11px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .total-status-warning {
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fed7aa;
+    }
+
+    .total-status-success {
+        background: #ecfdf3;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .master-message {
+        margin-bottom: 15px;
+        padding: 10px 13px;
+        border-radius: 8px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1d4ed8;
+        font-size: 13px;
+    }
+
+    .master-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    @@media (max-width: 767px) {
+        .sup-main-header,
+        .sup-section-body {
+            padding: 15px;
+        }
+
+        .sup-main-title {
+            font-size: 21px;
+        }
+
+        .stack-table {
+            min-width: 650px;
+        }
+    }
 </style>
 
 
-<div class="sua-page">
+<div class="sup-form-page">
 
+    <!-- =====================================================
+         GOOGLE FORM STYLE HEADER
+         ===================================================== -->
 
-    <!-- =========================================================
-         HEADER
-         ========================================================= -->
+    <div class="sup-card">
 
-    <div class="sua-card">
+        <div class="sup-top-line"></div>
 
-        <div class="sua-header">
+        <div class="sup-main-header">
 
-            <div>
+            <h2 class="sup-main-title">
+                Purchase Entry Form
+            </h2>
 
-                <h3 class="sua-title">
-                    Supervisor Unloading Verification
-                </h3>
-
-                <div class="sua-subtitle">
-                    Fill category, item and bag-type wise unloading details
-                </div>
-
-            </div>
-
-
-            <div class="sua-rst-badge">
-
-                <i class="bi bi-receipt me-1"></i>
-
-                RST:
-                @Model.RSTNumber
-
+            <div class="sup-subtitle">
+                Supervisor unloading, Stack / Haudi and material bag entry
             </div>
 
         </div>
@@ -252,246 +235,36 @@
     </div>
 
 
+    <!-- =====================================================
+         MESSAGES
+         ===================================================== -->
 
-    <!-- =========================================================
-         ERROR / VALIDATION
-         ========================================================= -->
-
-    @if (!ViewData.ModelState.IsValid)
+    @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger">
 
-            <div asp-validation-summary="All"></div>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["ErrorMessage"]
+
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["SuccessMessage"]
 
         </div>
     }
 
 
-
-    <!-- =========================================================
-         RST DETAILS
-         ========================================================= -->
-
-    <div class="sua-card">
-
-        <h5 class="sua-section-title">
-
-            <i class="bi bi-info-circle me-2"></i>
-
-            RST & Unloading Details
-
-        </h5>
-
-
-        <div class="row g-3">
-
-
-            <!-- RST -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        RST Number
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @Model.RSTNumber
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- VEHICLE -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        Vehicle
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @(string.IsNullOrWhiteSpace(Model.VehicleNumber)
-                            ? "-"
-                            : Model.VehicleNumber)
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PARTY -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        Party
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @(string.IsNullOrWhiteSpace(Model.PartyName)
-                            ? "-"
-                            : Model.PartyName)
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- COMPANY -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        Company
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @(string.IsNullOrWhiteSpace(Model.CompanyName)
-                            ? "-"
-                            : Model.CompanyName)
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- MATERIAL -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        Assigned Material
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @(string.IsNullOrWhiteSpace(Model.ItemName)
-                            ? "-"
-                            : Model.ItemName)
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- LOCATION -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        Unloading Location
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @(string.IsNullOrWhiteSpace(Model.LocationName)
-                            ? "-"
-                            : Model.LocationName)
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- METH -->
-
-            <div class="col-lg-3 col-md-4 col-sm-6">
-
-                <div class="sua-detail-box">
-
-                    <div class="sua-detail-label">
-                        Labour Meth
-                    </div>
-
-                    <div class="sua-detail-value">
-                        @(string.IsNullOrWhiteSpace(Model.MethName)
-                            ? "-"
-                            : Model.MethName)
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- =========================================================
-         METH RESPONSE TOTAL
-         ========================================================= -->
-
-    <div class="sua-meth-total">
-
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-
-            <div>
-
-                <div style="
-                    color:#39734c;
-                    font-size:12px;
-                    font-weight:800;">
-
-                    TOTAL BAGS REPORTED BY METH
-
-                </div>
-
-
-                <div style="
-                    color:#667085;
-                    font-size:12px;
-                    margin-top:4px;">
-
-                    Meth response se automatically calculated.
-                    Supervisor ise edit nahi kar sakta.
-
-                </div>
-
-            </div>
-
-
-            <div class="sua-meth-total-number">
-
-                @Model.MethTotalBags
-
-                <span style="
-                    font-size:14px;
-                    font-weight:650;">
-
-                    Bags
-
-                </span>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- =========================================================
-         SUPERVISOR FORM
-         ========================================================= -->
+    <!-- =====================================================
+         FORM
+         ===================================================== -->
 
     <form asp-controller="Unload"
           asp-action="SupervisorAction"
@@ -501,105 +274,204 @@
         @Html.AntiForgeryToken()
 
 
-        <!-- IMPORTANT IDs -->
+        <input type="hidden"
+               name="UnloadId"
+               value="@vm.UnloadId" />
 
         <input type="hidden"
-               asp-for="UnloadId" />
+               name="RSTNumber"
+               value="@vm.RSTNumber" />
 
         <input type="hidden"
-               asp-for="RSTNumber" />
-
-        <input type="hidden"
-               asp-for="MethTotalBags" />
-
+               name="MethTotalBags"
+               id="labourTotalHidden"
+               value="@labourTotalBags" />
 
 
-        <!-- =====================================================
-             STACK / HAUDI DETAILS
-             ===================================================== -->
+        <!-- =================================================
+             RST DETAILS
+             ================================================= -->
 
-        <div class="sua-card">
+        <div class="sup-card">
 
-            <h5 class="sua-section-title">
+            <div class="sup-section-title">
 
-                <i class="bi bi-box-seam me-2"></i>
+                <i class="bi bi-receipt me-2"></i>
 
-                Storage / Placement Details
+                RST / Assignment Details
 
-            </h5>
-
-
-            <div class="row g-3">
+            </div>
 
 
-                <!-- STACK PP -->
+            <div class="sup-section-body">
 
-                <div class="col-lg-3 col-md-6">
+                <div class="row g-3">
 
-                    <label class="sua-form-label">
-                        Stack PP
-                    </label>
+                    <!-- RST -->
 
-                    <input type="text"
-                           inputmode="numeric"
-                           name="StackPP"
-                           value="@(Model.StackPP > 0 ? Model.StackPP.ToString() : "")"
-                           class="form-control sua-number-input"
-                           placeholder="Enter bag count" />
+                    <div class="col-lg-4 col-md-6">
 
-                </div>
+                        <label class="sup-label">
+                            RST Number
+                        </label>
 
+                        <div class="sup-readonly sup-rst">
 
-                <!-- STACK JUTE -->
+                            @(string.IsNullOrWhiteSpace(vm.RSTNumber)
+                                ? "-"
+                                : vm.RSTNumber)
 
-                <div class="col-lg-3 col-md-6">
+                        </div>
 
-                    <label class="sua-form-label">
-                        Stack Jute
-                    </label>
-
-                    <input type="text"
-                           inputmode="numeric"
-                           name="StackJute"
-                           value="@(Model.StackJute > 0 ? Model.StackJute.ToString() : "")"
-                           class="form-control sua-number-input"
-                           placeholder="Enter bag count" />
-
-                </div>
+                    </div>
 
 
-                <!-- HAUDI PP -->
+                    <!-- TRUCK -->
 
-                <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
 
-                    <label class="sua-form-label">
-                        Haudi PP
-                    </label>
+                        <label class="sup-label">
+                            Truck Number
+                        </label>
 
-                    <input type="text"
-                           inputmode="numeric"
-                           name="HaudiPP"
-                           value="@(Model.HaudiPP > 0 ? Model.HaudiPP.ToString() : "")"
-                           class="form-control sua-number-input"
-                           placeholder="Enter bag count" />
+                        <div class="sup-readonly">
 
-                </div>
+                            @(string.IsNullOrWhiteSpace(vm.VehicleNumber)
+                                ? "-"
+                                : vm.VehicleNumber)
+
+                        </div>
+
+                    </div>
 
 
-                <!-- HAUDI JUTE -->
+                    <!-- PARTY -->
 
-                <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
 
-                    <label class="sua-form-label">
-                        Haudi Jute
-                    </label>
+                        <label class="sup-label">
+                            Party Name
+                        </label>
 
-                    <input type="text"
-                           inputmode="numeric"
-                           name="HaudiJute"
-                           value="@(Model.HaudiJute > 0 ? Model.HaudiJute.ToString() : "")"
-                           class="form-control sua-number-input"
-                           placeholder="Enter bag count" />
+                        <div class="sup-readonly">
+
+                            @(string.IsNullOrWhiteSpace(vm.PartyName)
+                                ? "-"
+                                : vm.PartyName)
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- COMPANY -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="sup-label">
+                            Company
+                        </label>
+
+                        <div class="sup-readonly">
+
+                            @(string.IsNullOrWhiteSpace(vm.CompanyName)
+                                ? "-"
+                                : vm.CompanyName)
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- MATERIAL -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="sup-label">
+                            Material
+                        </label>
+
+                        <div class="sup-readonly">
+
+                            @(string.IsNullOrWhiteSpace(vm.ItemName)
+                                ? "-"
+                                : vm.ItemName)
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="sup-label">
+                            Entry Date
+                        </label>
+
+                        <div class="sup-readonly">
+
+                            @DateTime.Today.ToString("dd-MM-yyyy")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SUPERVISOR -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="sup-label">
+                            Supervisor
+                        </label>
+
+                        <div class="sup-readonly">
+
+                            @(User?.Identity?.Name ?? "-")
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- METH -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="sup-label">
+                            Meth
+                        </label>
+
+                        <div class="sup-readonly">
+
+                            @(string.IsNullOrWhiteSpace(vm.MethName)
+                                ? "-"
+                                : vm.MethName)
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- LOCATION -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="sup-label">
+                            Location
+                        </label>
+
+                        <div class="sup-readonly">
+
+                            @(string.IsNullOrWhiteSpace(vm.LocationName)
+                                ? "-"
+                                : vm.LocationName)
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -608,209 +480,392 @@
         </div>
 
 
+        <!-- =================================================
+             STACK / HAUDI
+             Original Google Form Section
+             ================================================= -->
 
-        <!-- =====================================================
-             CATEGORY / ITEM / BAG TYPE DETAILS
-             ===================================================== -->
+        <div class="sup-card">
 
-        <div class="sua-card">
+            <div class="sup-section-title">
 
+                <i class="bi bi-boxes me-2"></i>
 
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                Stack / Haudi Details
 
-
-                <div>
-
-                    <h5 class="sua-section-title mb-1">
-
-                        <i class="bi bi-ui-checks-grid me-2"></i>
-
-                        Category / Item Wise Bag Details
-
-                    </h5>
+            </div>
 
 
-                    <div style="
-                        color:#6b7280;
-                        font-size:12px;">
+            <div class="sup-section-body">
 
-                        Category, Item and Bag Type database master se aayenge.
+                <div class="table-responsive">
+
+                    <table class="stack-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Stack (PP)
+                                </th>
+
+                                <th>
+                                    Stack (Jute)
+                                </th>
+
+                                <th>
+                                    Haudi (PP)
+                                </th>
+
+                                <th>
+                                    Haudi (Jute)
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+
+                                <td>
+
+                                    <input type="number"
+                                           name="StackPP"
+                                           id="stackPP"
+                                           class="form-control stack-value"
+                                           min="0"
+                                           step="1"
+                                           placeholder="0"
+                                           value="@(vm.StackPP > 0 ? vm.StackPP.ToString() : "")" />
+
+                                </td>
+
+
+                                <td>
+
+                                    <input type="number"
+                                           name="StackJute"
+                                           id="stackJute"
+                                           class="form-control stack-value"
+                                           min="0"
+                                           step="1"
+                                           placeholder="0"
+                                           value="@(vm.StackJute > 0 ? vm.StackJute.ToString() : "")" />
+
+                                </td>
+
+
+                                <td>
+
+                                    <input type="number"
+                                           name="HaudiPP"
+                                           id="haudiPP"
+                                           class="form-control stack-value"
+                                           min="0"
+                                           step="1"
+                                           placeholder="0"
+                                           value="@(vm.HaudiPP > 0 ? vm.HaudiPP.ToString() : "")" />
+
+                                </td>
+
+
+                                <td>
+
+                                    <input type="number"
+                                           name="HaudiJute"
+                                           id="haudiJute"
+                                           class="form-control stack-value"
+                                           min="0"
+                                           step="1"
+                                           placeholder="0"
+                                           value="@(vm.HaudiJute > 0 ? vm.HaudiJute.ToString() : "")" />
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- TOTAL SUMMARY -->
+
+                <div class="row g-3 mt-2">
+
+                    <div class="col-md-4">
+
+                        <div class="summary-box">
+
+                            <div class="summary-label">
+                                Labour Total Bags
+                            </div>
+
+                            <div class="summary-value"
+                                 id="labourTotalDisplay">
+
+                                @labourTotalBags
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="summary-box">
+
+                            <div class="summary-label">
+                                Stack / Haudi Total
+                            </div>
+
+                            <div class="summary-value"
+                                 id="stackTotalDisplay">
+
+                                0
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="summary-box">
+
+                            <div class="summary-label">
+                                Material Total
+                            </div>
+
+                            <div class="summary-value"
+                                 id="materialTotalDisplay">
+
+                                0
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MATERIAL TYPE / ITEMS
+             ================================================= -->
+
+        <div class="sup-card">
+
+            <div class="sup-section-title
+                        d-flex
+                        justify-content-between
+                        align-items-center
+                        flex-wrap
+                        gap-2">
+
+                <span>
+
+                    <i class="bi bi-list-check me-2"></i>
+
+                    Material Type / Variety Details
+
+                </span>
+
 
                 <button type="button"
-                        id="addCategoryRow"
-                        class="btn btn-outline-primary sua-add-btn">
+                        id="addMaterialRow"
+                        class="btn btn-sm btn-outline-primary">
 
                     <i class="bi bi-plus-circle me-1"></i>
 
-                    Add Row
+                    Add Item
 
                 </button>
 
             </div>
 
 
+            <div class="sup-section-body">
 
-            <div id="categoryRowsContainer">
+                <!-- AJAX MASTER LOAD STATUS -->
 
+                <div id="masterLoadMessage"
+                     class="master-message">
 
-                <!-- =================================================
-                     FIRST ROW
-                     ================================================= -->
+                    <span class="spinner-border spinner-border-sm me-2"></span>
 
-                <div class="sua-category-row category-row">
+                    Loading Category and Bag Type masters...
 
+                </div>
 
-                    <div class="sua-row-number">
-                        1
-                    </div>
 
+                <div class="table-responsive">
 
-                    <div class="row g-3 align-items-end">
+                    <table class="table
+                                  table-bordered
+                                  material-table
+                                  mb-0">
 
+                        <thead>
 
-                        <!-- CATEGORY -->
+                            <tr>
 
-                        <div class="col-lg-3 col-md-6">
+                                <th style="min-width:190px;">
 
-                            <label class="sua-form-label">
+                                    Material Type / Category
 
-                                Item Category
-                                <span class="text-danger">*</span>
+                                    <span class="required">*</span>
 
-                            </label>
+                                </th>
 
 
-                            <select name="CategoryRows[0].CategoryId"
-                                    class="form-select category-dropdown"
-                                    required>
+                                <th style="min-width:220px;">
 
-                                <option value="">
-                                    -- Select Category --
-                                </option>
+                                    Item / Variety
 
+                                    <span class="required">*</span>
 
-                                @foreach (var category in itemCategories)
-                                {
-                                    <option value="@category.Value">
+                                </th>
 
-                                        @category.Text
 
-                                    </option>
-                                }
+                                <th style="min-width:180px;">
 
-                            </select>
+                                    Bag Type
 
-                        </div>
+                                    <span class="required">*</span>
 
+                                </th>
 
 
-                        <!-- ITEM -->
+                                <th style="min-width:130px;">
 
-                        <div class="col-lg-3 col-md-6">
+                                    No. of Bags
 
-                            <label class="sua-form-label">
+                                    <span class="required">*</span>
 
-                                Item
-                                <span class="text-danger">*</span>
+                                </th>
 
-                            </label>
 
+                                <th style="width:70px;"
+                                    class="text-center">
 
-                            <select name="CategoryRows[0].ItemId"
-                                    class="form-select item-dropdown"
-                                    required
-                                    disabled>
+                                    Remove
 
-                                <option value="">
-                                    -- Select Category First --
-                                </option>
+                                </th>
 
-                            </select>
+                            </tr>
 
-                        </div>
+                        </thead>
 
 
+                        <tbody id="materialRows">
 
-                        <!-- BAG TYPE -->
+                            <tr class="material-row">
 
-                        <div class="col-lg-2 col-md-4">
+                                <!-- CATEGORY -->
 
-                            <label class="sua-form-label">
+                                <td>
 
-                                Bag Type
-                                <span class="text-danger">*</span>
+                                    <select name="CategoryRows[0].CategoryId"
+                                            class="form-select category-select">
 
-                            </label>
+                                        <option value="">
+                                            -- Select Category --
+                                        </option>
 
+                                    </select>
 
-                            <select name="CategoryRows[0].BagTypeId"
-                                    class="form-select bagtype-dropdown"
-                                    required>
+                                </td>
 
-                                <option value="">
-                                    -- Select --
-                                </option>
 
+                                <!-- ITEM -->
 
-                                @foreach (var bag in bagTypes)
-                                {
-                                    <option value="@bag.Value">
+                                <td>
 
-                                        @bag.Text
+                                    <select name="CategoryRows[0].ItemId"
+                                            class="form-select item-select"
+                                            disabled>
 
-                                    </option>
-                                }
+                                        <option value="">
+                                            -- Select Item --
+                                        </option>
 
-                            </select>
+                                    </select>
 
-                        </div>
+                                </td>
 
 
+                                <!-- BAG TYPE -->
 
-                        <!-- BAG COUNT -->
+                                <td>
 
-                        <div class="col-lg-2 col-md-4">
+                                    <select name="CategoryRows[0].BagTypeId"
+                                            class="form-select bag-type-select">
 
-                            <label class="sua-form-label">
+                                        <option value="">
+                                            -- Select Bag Type --
+                                        </option>
 
-                                Bag Count
-                                <span class="text-danger">*</span>
+                                    </select>
 
-                            </label>
+                                </td>
 
 
-                            <input type="text"
-                                   inputmode="numeric"
-                                   name="CategoryRows[0].BagCount"
-                                   class="form-control category-count sua-number-input"
-                                   placeholder="Bags"
-                                   required />
+                                <!-- COUNT -->
 
-                        </div>
+                                <td>
 
+                                    <input type="number"
+                                           name="CategoryRows[0].BagCount"
+                                           class="form-control bag-count-input"
+                                           min="1"
+                                           step="1"
+                                           placeholder="Bags" />
 
+                                </td>
 
-                        <!-- REMOVE -->
 
-                        <div class="col-lg-2 col-md-4">
+                                <!-- REMOVE -->
 
-                            <button type="button"
-                                    class="btn btn-outline-danger w-100 remove-category-row">
+                                <td class="text-center">
 
-                                <i class="bi bi-trash me-1"></i>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger remove-material-row"
+                                            disabled>
 
-                                Remove
+                                        <i class="bi bi-trash"></i>
 
-                            </button>
+                                    </button>
 
-                        </div>
+                                </td>
 
-                    </div>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div id="totalStatus"
+                     class="total-status total-status-warning">
+
+                    Enter Stack / Haudi and Material bag details.
 
                 </div>
 
@@ -819,149 +874,45 @@
         </div>
 
 
+        <!-- =================================================
+             BUTTONS
+             ================================================= -->
 
-        <!-- =====================================================
-             TOTAL VERIFICATION
-             ===================================================== -->
+        <div class="sup-card">
 
-        <div class="sua-card">
+            <div class="sup-section-body">
 
+                <div class="d-flex
+                            justify-content-between
+                            align-items-center
+                            flex-wrap
+                            gap-2">
 
-            <h5 class="sua-section-title">
+                    <a asp-controller="Unload"
+                       asp-action="MethWorkRegister"
+                       class="btn btn-outline-secondary">
 
-                <i class="bi bi-calculator me-2"></i>
+                        <i class="bi bi-arrow-left me-1"></i>
 
-                Bag Total Verification
+                        Back
 
-            </h5>
-
-
-            <div class="row g-3">
-
-
-                <!-- METH TOTAL -->
-
-                <div class="col-md-4">
-
-                    <div class="sua-total-card">
-
-                        <div class="sua-total-label">
-
-                            METH TOTAL
-
-                        </div>
+                    </a>
 
 
-                        <div class="sua-total-number">
+                    <button type="submit"
+                            id="saveRecordButton"
+                            class="btn btn-primary px-4"
+                            disabled>
 
-                            @Model.MethTotalBags
+                        <i class="bi bi-check-circle me-1"></i>
 
-                        </div>
+                        Save Record
 
-                    </div>
-
-                </div>
-
-
-
-                <!-- SUPERVISOR TOTAL -->
-
-                <div class="col-md-4">
-
-                    <div class="sua-total-card">
-
-                        <div class="sua-total-label">
-
-                            SUPERVISOR CATEGORY TOTAL
-
-                        </div>
-
-
-                        <div id="supervisorTotal"
-                             class="sua-total-number">
-
-                            0
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- DIFFERENCE -->
-
-                <div class="col-md-4">
-
-                    <div id="differenceBox"
-                         class="sua-total-card"
-                         style="background:#fff7ed;">
-
-                        <div class="sua-total-label">
-
-                            DIFFERENCE
-
-                        </div>
-
-
-                        <div id="differenceTotal"
-                             class="sua-total-number"
-                             style="color:#c2410c;">
-
-                            @Model.MethTotalBags
-
-                        </div>
-
-                    </div>
+                    </button>
 
                 </div>
 
             </div>
-
-
-
-            <div id="matchMessage"
-                 class="sua-match-message">
-
-                <i class="bi bi-exclamation-circle me-1"></i>
-
-                Category-wise total must match Meth total bags.
-
-            </div>
-
-        </div>
-
-
-
-        <!-- =====================================================
-             ACTIONS
-             ===================================================== -->
-
-        <div class="d-flex justify-content-end flex-wrap gap-2">
-
-
-            <a asp-controller="Unload"
-               asp-action="Index"
-               class="btn btn-outline-secondary px-4">
-
-                <i class="bi bi-arrow-left me-1"></i>
-
-                Back
-
-            </a>
-
-
-            <button type="submit"
-                    id="submitSupervisorAction"
-                    class="btn btn-success px-4"
-                    disabled>
-
-                <i class="bi bi-check-circle-fill me-1"></i>
-
-                Submit Supervisor Details
-
-            </button>
 
         </div>
 
@@ -970,668 +921,970 @@
 </div>
 
 
-
-@section Scripts
-{
-    <script>
-
-        // =========================================================
-        // GLOBAL
-        // =========================================================
-
-        const methTotalBags =
-            @Model.MethTotalBags;
-
-
-        const rowsContainer =
-            document.getElementById(
-                'categoryRowsContainer'
-            );
-
-
-        const addRowButton =
-            document.getElementById(
-                'addCategoryRow'
-            );
-
-
-        const submitButton =
-            document.getElementById(
-                'submitSupervisorAction'
-            );
-
-
-
-        // =========================================================
-        // NUMERIC INPUT ONLY
-        // =========================================================
-
-        function cleanNumericInput(input)
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function ()
         {
-            input.value =
-                input.value.replace(
-                    /[^0-9]/g,
-                    ''
-                );
-        }
+            "use strict";
 
 
+            // =====================================================
+            // DOM
+            // =====================================================
 
-        // =========================================================
-        // LOAD ITEM BY CATEGORY
-        // =========================================================
-
-        function loadItemsByCategory(
-            categoryDropdown)
-        {
-            const categoryId =
-                categoryDropdown.value;
-
-
-            const row =
-                categoryDropdown.closest(
-                    '.category-row'
+            const form =
+                document.getElementById(
+                    "supervisorActionForm"
                 );
 
 
-            const itemDropdown =
-                row.querySelector(
-                    '.item-dropdown'
+            const rowsContainer =
+                document.getElementById(
+                    "materialRows"
                 );
 
 
-            itemDropdown.innerHTML =
-                '<option value="">-- Select Item --</option>';
+            const addButton =
+                document.getElementById(
+                    "addMaterialRow"
+                );
 
 
-            itemDropdown.disabled =
-                true;
+            const saveButton =
+                document.getElementById(
+                    "saveRecordButton"
+                );
 
 
-            if (!categoryId)
+            const statusBox =
+                document.getElementById(
+                    "totalStatus"
+                );
+
+
+            const masterMessage =
+                document.getElementById(
+                    "masterLoadMessage"
+                );
+
+
+            const labourTotal =
+                parseInt(
+                    document.getElementById(
+                        "labourTotalHidden"
+                    ).value
+                ) || 0;
+
+
+            // =====================================================
+            // MASTER ARRAYS
+            // NO VIEWDATA / VIEWBAG USED
+            // =====================================================
+
+            let categoryMaster = [];
+
+            let bagTypeMaster = [];
+
+
+            // =====================================================
+            // URLS
+            // =====================================================
+
+            const categoryUrl =
+                '@Url.Action("GetItemCategories", "Unload")';
+
+
+            const bagTypeUrl =
+                '@Url.Action("GetBagTypes", "Unload")';
+
+
+            const itemsUrl =
+                '@Url.Action("GetItemsByCategory", "Unload")';
+
+
+            // =====================================================
+            // MASTER LOAD
+            // =====================================================
+
+            async function loadMasters()
             {
-                itemDropdown.innerHTML =
-                    '<option value="">-- Select Category First --</option>';
-
-                return;
-            }
-
-
-            itemDropdown.innerHTML =
-                '<option value="">Loading...</option>';
-
-
-            fetch(
-                '/Unload/GetItemsByCategory?categoryId='
-                +
-                encodeURIComponent(
-                    categoryId
-                )
-            )
-            .then(
-                response =>
-                    response.json()
-            )
-            .then(
-                data =>
+                try
                 {
-                    itemDropdown.innerHTML =
-                        '<option value="">-- Select Item --</option>';
+                    const responses =
+                        await Promise.all(
+                            [
+                                fetch(categoryUrl),
+                                fetch(bagTypeUrl)
+                            ]
+                        );
 
 
                     if (
-                        !data.success
+                        !responses[0].ok
                         ||
-                        !data.items
+                        !responses[1].ok
                     )
                     {
-                        itemDropdown.disabled =
-                            true;
+                        throw new Error(
+                            "Master API request failed."
+                        );
+                    }
+
+
+                    const categoryResponse =
+                        await responses[0].json();
+
+
+                    const bagResponse =
+                        await responses[1].json();
+
+
+                    categoryMaster =
+                        categoryResponse.success
+                        &&
+                        Array.isArray(
+                            categoryResponse.categories
+                        )
+                            ? categoryResponse.categories
+                            : [];
+
+
+                    bagTypeMaster =
+                        bagResponse.success
+                        &&
+                        Array.isArray(
+                            bagResponse.bagTypes
+                        )
+                            ? bagResponse.bagTypes
+                            : [];
+
+
+                    refreshMasterDropdowns();
+
+
+                    if (
+                        categoryMaster.length > 0
+                        &&
+                        bagTypeMaster.length > 0
+                    )
+                    {
+                        masterMessage.className =
+                            "master-message";
+
+
+                        masterMessage.innerHTML =
+                            '<i class="bi bi-check-circle-fill me-1"></i>'
+                            +
+                            'Category and Bag Type masters loaded successfully.';
+                    }
+                    else
+                    {
+                        masterMessage.className =
+                            "master-message master-error";
+
+
+                        masterMessage.innerHTML =
+                            '<i class="bi bi-exclamation-triangle-fill me-1"></i>'
+                            +
+                            'Category or Bag Type master contains no active records.';
+                    }
+                }
+                catch (error)
+                {
+                    console.error(
+                        error
+                    );
+
+
+                    masterMessage.className =
+                        "master-message master-error";
+
+
+                    masterMessage.innerHTML =
+                        '<i class="bi bi-exclamation-triangle-fill me-1"></i>'
+                        +
+                        'Unable to load Category / Bag Type masters.';
+
+
+                    categoryMaster = [];
+
+                    bagTypeMaster = [];
+                }
+
+
+                validateForm();
+            }
+
+
+            // =====================================================
+            // FILL MASTER DROPDOWNS
+            // =====================================================
+
+            function refreshMasterDropdowns()
+            {
+                rowsContainer
+                    .querySelectorAll(
+                        ".material-row"
+                    )
+                    .forEach(
+                        function (row)
+                        {
+                            fillCategoryDropdown(
+                                row.querySelector(
+                                    ".category-select"
+                                )
+                            );
+
+
+                            fillBagTypeDropdown(
+                                row.querySelector(
+                                    ".bag-type-select"
+                                )
+                            );
+                        }
+                    );
+            }
+
+
+            function fillCategoryDropdown(
+                select
+            )
+            {
+                const existingValue =
+                    select.value;
+
+
+                select.innerHTML =
+                    '<option value="">-- Select Category --</option>';
+
+
+                categoryMaster.forEach(
+                    function (category)
+                    {
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+
+                        option.value =
+                            category.categoryId;
+
+
+                        option.textContent =
+                            category.categoryName;
+
+
+                        select.appendChild(
+                            option
+                        );
+                    }
+                );
+
+
+                if (existingValue)
+                {
+                    select.value =
+                        existingValue;
+                }
+            }
+
+
+            function fillBagTypeDropdown(
+                select
+            )
+            {
+                const existingValue =
+                    select.value;
+
+
+                select.innerHTML =
+                    '<option value="">-- Select Bag Type --</option>';
+
+
+                bagTypeMaster.forEach(
+                    function (bag)
+                    {
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+
+                        option.value =
+                            bag.bagTypeId;
+
+
+                        option.textContent =
+                            bag.bagTypeName;
+
+
+                        select.appendChild(
+                            option
+                        );
+                    }
+                );
+
+
+                if (existingValue)
+                {
+                    select.value =
+                        existingValue;
+                }
+            }
+
+
+            // =====================================================
+            // LOAD ITEM BY CATEGORY
+            // =====================================================
+
+            async function loadItems(
+                row,
+                categoryId
+            )
+            {
+                const itemSelect =
+                    row.querySelector(
+                        ".item-select"
+                    );
+
+
+                itemSelect.innerHTML =
+                    '<option value="">-- Select Item --</option>';
+
+
+                itemSelect.disabled =
+                    true;
+
+
+                if (!categoryId)
+                {
+                    validateForm();
+
+                    return;
+                }
+
+
+                try
+                {
+                    const response =
+                        await fetch(
+                            itemsUrl
+                            +
+                            "?categoryId="
+                            +
+                            encodeURIComponent(
+                                categoryId
+                            )
+                        );
+
+
+                    if (!response.ok)
+                    {
+                        throw new Error(
+                            "Item API failed."
+                        );
+                    }
+
+
+                    const result =
+                        await response.json();
+
+
+                    if (
+                        result.success
+                        &&
+                        Array.isArray(
+                            result.items
+                        )
+                    )
+                    {
+                        result.items.forEach(
+                            function (item)
+                            {
+                                const option =
+                                    document.createElement(
+                                        "option"
+                                    );
+
+
+                                option.value =
+                                    item.itemId;
+
+
+                                option.textContent =
+                                    item.itemName;
+
+
+                                itemSelect.appendChild(
+                                    option
+                                );
+                            }
+                        );
+
+
+                        itemSelect.disabled =
+                            false;
+                    }
+                }
+                catch (error)
+                {
+                    console.error(
+                        error
+                    );
+                }
+
+
+                validateForm();
+            }
+
+
+            // =====================================================
+            // INTEGER ONLY
+            // =====================================================
+
+            document.addEventListener(
+                "input",
+                function (event)
+                {
+                    if (
+                        event.target.classList.contains(
+                            "stack-value"
+                        )
+                        ||
+                        event.target.classList.contains(
+                            "bag-count-input"
+                        )
+                    )
+                    {
+                        event.target.value =
+                            event.target.value
+                                .replace(
+                                    /[^0-9]/g,
+                                    ""
+                                );
+
+
+                        validateForm();
+                    }
+                }
+            );
+
+
+            // =====================================================
+            // CATEGORY / OTHER CHANGE
+            // =====================================================
+
+            rowsContainer.addEventListener(
+                "change",
+                function (event)
+                {
+                    if (
+                        event.target.classList.contains(
+                            "category-select"
+                        )
+                    )
+                    {
+                        const row =
+                            event.target.closest(
+                                ".material-row"
+                            );
+
+
+                        loadItems(
+                            row,
+                            event.target.value
+                        );
+
 
                         return;
                     }
 
 
-                    data.items.forEach(
-                        function (item)
-                        {
-                            const option =
-                                document.createElement(
-                                    'option'
-                                );
-
-
-                            option.value =
-                                item.itemId;
-
-
-                            option.textContent =
-                                item.itemName;
-
-
-                            itemDropdown.appendChild(
-                                option
-                            );
-                        }
-                    );
-
-
-                    itemDropdown.disabled =
-                        false;
-                }
-            )
-            .catch(
-                function (error)
-                {
-                    console.error(
-                        'Unable to load items:',
-                        error
-                    );
-
-
-                    itemDropdown.innerHTML =
-                        '<option value="">Unable to load items</option>';
-
-
-                    itemDropdown.disabled =
-                        true;
+                    validateForm();
                 }
             );
-        }
 
 
+            // =====================================================
+            // ADD ROW
+            // =====================================================
 
-        // =========================================================
-        // REINDEX ROWS
-        // Important for ASP.NET model binding
-        // =========================================================
-
-        function reindexRows()
-        {
-            const rows =
-                rowsContainer.querySelectorAll(
-                    '.category-row'
-                );
-
-
-            rows.forEach(
-                function (row, index)
-                {
-                    const rowNumber =
-                        row.querySelector(
-                            '.sua-row-number'
-                        );
-
-
-                    if (rowNumber)
-                    {
-                        rowNumber.textContent =
-                            index + 1;
-                    }
-
-
-                    const category =
-                        row.querySelector(
-                            '.category-dropdown'
-                        );
-
-
-                    const item =
-                        row.querySelector(
-                            '.item-dropdown'
-                        );
-
-
-                    const bagType =
-                        row.querySelector(
-                            '.bagtype-dropdown'
-                        );
-
-
-                    const bagCount =
-                        row.querySelector(
-                            '.category-count'
-                        );
-
-
-                    category.name =
-                        `CategoryRows[${index}].CategoryId`;
-
-
-                    item.name =
-                        `CategoryRows[${index}].ItemId`;
-
-
-                    bagType.name =
-                        `CategoryRows[${index}].BagTypeId`;
-
-
-                    bagCount.name =
-                        `CategoryRows[${index}].BagCount`;
-                }
-            );
-        }
-
-
-
-        // =========================================================
-        // CALCULATE TOTALS
-        // =========================================================
-
-        function calculateTotals()
-        {
-            let supervisorTotal =
-                0;
-
-
-            document
-                .querySelectorAll(
-                    '.category-count'
-                )
-                .forEach(
-                    function (input)
-                    {
-                        const count =
-                            parseInt(
-                                input.value || '0'
-                            );
-
-
-                        if (!isNaN(count))
-                        {
-                            supervisorTotal +=
-                                count;
-                        }
-                    }
-                );
-
-
-            const difference =
-                methTotalBags
-                -
-                supervisorTotal;
-
-
-            document
-                .getElementById(
-                    'supervisorTotal'
-                )
-                .textContent =
-                    supervisorTotal;
-
-
-            document
-                .getElementById(
-                    'differenceTotal'
-                )
-                .textContent =
-                    difference;
-
-
-            const message =
-                document.getElementById(
-                    'matchMessage'
-                );
-
-
-            const differenceBox =
-                document.getElementById(
-                    'differenceBox'
-                );
-
-
-            const differenceTotal =
-                document.getElementById(
-                    'differenceTotal'
-                );
-
-
-            if (
-                methTotalBags > 0
-                &&
-                supervisorTotal === methTotalBags
-            )
-            {
-                message.innerHTML =
-                    '<i class="bi bi-check-circle-fill me-1"></i>'
-                    +
-                    'Bag totals matched successfully.';
-
-
-                message.style.background =
-                    '#ecfdf3';
-
-
-                message.style.color =
-                    '#15803d';
-
-
-                differenceBox.style.background =
-                    '#ecfdf3';
-
-
-                differenceTotal.style.color =
-                    '#15803d';
-
-
-                submitButton.disabled =
-                    false;
-            }
-            else
-            {
-                message.innerHTML =
-                    '<i class="bi bi-exclamation-circle me-1"></i>'
-                    +
-                    'Category-wise total must match Meth total bags.';
-
-
-                message.style.background =
-                    '#fff7ed';
-
-
-                message.style.color =
-                    '#c2410c';
-
-
-                differenceBox.style.background =
-                    '#fff7ed';
-
-
-                differenceTotal.style.color =
-                    '#c2410c';
-
-
-                submitButton.disabled =
-                    true;
-            }
-        }
-
-
-
-        // =========================================================
-        // ADD NEW ROW
-        // =========================================================
-
-        addRowButton.addEventListener(
-            'click',
-            function ()
-            {
-                const firstRow =
-                    rowsContainer.querySelector(
-                        '.category-row'
-                    );
-
-
-                const newRow =
-                    firstRow.cloneNode(
-                        true
-                    );
-
-
-                // Category reset
-                const category =
-                    newRow.querySelector(
-                        '.category-dropdown'
-                    );
-
-                category.value =
-                    '';
-
-
-                // Item reset
-                const item =
-                    newRow.querySelector(
-                        '.item-dropdown'
-                    );
-
-                item.innerHTML =
-                    '<option value="">-- Select Category First --</option>';
-
-                item.disabled =
-                    true;
-
-
-                // Bag Type reset
-                const bagType =
-                    newRow.querySelector(
-                        '.bagtype-dropdown'
-                    );
-
-                bagType.value =
-                    '';
-
-
-                // Count reset
-                const bagCount =
-                    newRow.querySelector(
-                        '.category-count'
-                    );
-
-                bagCount.value =
-                    '';
-
-
-                rowsContainer.appendChild(
-                    newRow
-                );
-
-
-                reindexRows();
-
-                calculateTotals();
-            }
-        );
-
-
-
-        // =========================================================
-        // PAGE EVENTS
-        // =========================================================
-
-        document.addEventListener(
-            'change',
-            function (event)
-            {
-                if (
-                    event.target
-                        .classList
-                        .contains(
-                            'category-dropdown'
-                        )
-                )
-                {
-                    loadItemsByCategory(
-                        event.target
-                    );
-                }
-            }
-        );
-
-
-
-        document.addEventListener(
-            'input',
-            function (event)
-            {
-                if (
-                    event.target
-                        .classList
-                        .contains(
-                            'sua-number-input'
-                        )
-                )
-                {
-                    cleanNumericInput(
-                        event.target
-                    );
-                }
-
-
-                if (
-                    event.target
-                        .classList
-                        .contains(
-                            'category-count'
-                        )
-                )
-                {
-                    calculateTotals();
-                }
-            }
-        );
-
-
-
-        // =========================================================
-        // REMOVE ROW
-        // =========================================================
-
-        document.addEventListener(
-            'click',
-            function (event)
-            {
-                const removeButton =
-                    event.target.closest(
-                        '.remove-category-row'
-                    );
-
-
-                if (!removeButton)
-                {
-                    return;
-                }
-
-
-                const rows =
-                    rowsContainer.querySelectorAll(
-                        '.category-row'
-                    );
-
-
-                // At least one row must remain
-                if (rows.length <= 1)
+            addButton.addEventListener(
+                "click",
+                function ()
                 {
                     const firstRow =
-                        rows[0];
-
-
-                    firstRow
-                        .querySelector(
-                            '.category-dropdown'
-                        )
-                        .value =
-                            '';
-
-
-                    const itemDropdown =
-                        firstRow.querySelector(
-                            '.item-dropdown'
+                        rowsContainer.querySelector(
+                            ".material-row"
                         );
 
 
-                    itemDropdown.innerHTML =
-                        '<option value="">-- Select Category First --</option>';
+                    if (!firstRow)
+                    {
+                        return;
+                    }
 
 
-                    itemDropdown.disabled =
+                    const row =
+                        firstRow.cloneNode(
+                            true
+                        );
+
+
+                    row.querySelector(
+                        ".category-select"
+                    ).value =
+                        "";
+
+
+                    fillCategoryDropdown(
+                        row.querySelector(
+                            ".category-select"
+                        )
+                    );
+
+
+                    fillBagTypeDropdown(
+                        row.querySelector(
+                            ".bag-type-select"
+                        )
+                    );
+
+
+                    const itemSelect =
+                        row.querySelector(
+                            ".item-select"
+                        );
+
+
+                    itemSelect.innerHTML =
+                        '<option value="">-- Select Item --</option>';
+
+
+                    itemSelect.disabled =
                         true;
 
 
-                    firstRow
-                        .querySelector(
-                            '.bagtype-dropdown'
+                    row.querySelector(
+                        ".bag-count-input"
+                    ).value =
+                        "";
+
+
+                    rowsContainer.appendChild(
+                        row
+                    );
+
+
+                    reIndexRows();
+
+                    updateRemoveButtons();
+
+                    validateForm();
+                }
+            );
+
+
+            // =====================================================
+            // REMOVE ROW
+            // =====================================================
+
+            rowsContainer.addEventListener(
+                "click",
+                function (event)
+                {
+                    const button =
+                        event.target.closest(
+                            ".remove-material-row"
+                        );
+
+
+                    if (!button)
+                    {
+                        return;
+                    }
+
+
+                    const rows =
+                        rowsContainer.querySelectorAll(
+                            ".material-row"
+                        );
+
+
+                    if (rows.length <= 1)
+                    {
+                        return;
+                    }
+
+
+                    button
+                        .closest(
+                            ".material-row"
                         )
-                        .value =
-                            '';
+                        .remove();
 
 
-                    firstRow
-                        .querySelector(
-                            '.category-count'
+                    reIndexRows();
+
+                    updateRemoveButtons();
+
+                    validateForm();
+                }
+            );
+
+
+            // =====================================================
+            // REINDEX
+            // =====================================================
+
+            function reIndexRows()
+            {
+                rowsContainer
+                    .querySelectorAll(
+                        ".material-row"
+                    )
+                    .forEach(
+                        function (
+                            row,
+                            index
                         )
-                        .value =
-                            '';
+                        {
+                            row.querySelector(
+                                ".category-select"
+                            ).name =
+                                "CategoryRows["
+                                +
+                                index
+                                +
+                                "].CategoryId";
 
 
-                    calculateTotals();
+                            row.querySelector(
+                                ".item-select"
+                            ).name =
+                                "CategoryRows["
+                                +
+                                index
+                                +
+                                "].ItemId";
 
-                    return;
+
+                            row.querySelector(
+                                ".bag-type-select"
+                            ).name =
+                                "CategoryRows["
+                                +
+                                index
+                                +
+                                "].BagTypeId";
+
+
+                            row.querySelector(
+                                ".bag-count-input"
+                            ).name =
+                                "CategoryRows["
+                                +
+                                index
+                                +
+                                "].BagCount";
+                        }
+                    );
+            }
+
+
+            // =====================================================
+            // REMOVE BUTTON
+            // =====================================================
+
+            function updateRemoveButtons()
+            {
+                const rows =
+                    rowsContainer.querySelectorAll(
+                        ".material-row"
+                    );
+
+
+                rows.forEach(
+                    function (row)
+                    {
+                        row.querySelector(
+                            ".remove-material-row"
+                        ).disabled =
+                            rows.length === 1;
+                    }
+                );
+            }
+
+
+            // =====================================================
+            // STACK TOTAL
+            // =====================================================
+
+            function getNumber(
+                id
+            )
+            {
+                const el =
+                    document.getElementById(
+                        id
+                    );
+
+
+                if (!el)
+                {
+                    return 0;
                 }
 
 
-                removeButton
-                    .closest(
-                        '.category-row'
-                    )
-                    .remove();
-
-
-                reindexRows();
-
-                calculateTotals();
+                return parseInt(
+                    el.value
+                ) || 0;
             }
-        );
 
 
+            function calculateStackTotal()
+            {
+                const total =
+                    getNumber("stackPP")
+                    +
+                    getNumber("stackJute")
+                    +
+                    getNumber("haudiPP")
+                    +
+                    getNumber("haudiJute");
 
-        // =========================================================
-        // FINAL CLIENT-SIDE CHECK
-        // =========================================================
 
-        document
-            .getElementById(
-                'supervisorActionForm'
-            )
-            .addEventListener(
-                'submit',
-                function (event)
+                document.getElementById(
+                    "stackTotalDisplay"
+                ).textContent =
+                    total;
+
+
+                return total;
+            }
+
+
+            // =====================================================
+            // MATERIAL TOTAL
+            // =====================================================
+
+            function calculateMaterialTotal()
+            {
+                let total = 0;
+
+
+                rowsContainer
+                    .querySelectorAll(
+                        ".bag-count-input"
+                    )
+                    .forEach(
+                        function (input)
+                        {
+                            total +=
+                                parseInt(
+                                    input.value
+                                ) || 0;
+                        }
+                    );
+
+
+                document.getElementById(
+                    "materialTotalDisplay"
+                ).textContent =
+                    total;
+
+
+                return total;
+            }
+
+
+            // =====================================================
+            // ROW VALIDATION
+            // =====================================================
+
+            function rowsComplete()
+            {
+                const rows =
+                    rowsContainer.querySelectorAll(
+                        ".material-row"
+                    );
+
+
+                if (rows.length === 0)
                 {
-                    let total =
-                        0;
+                    return false;
+                }
 
 
-                    document
-                        .querySelectorAll(
-                            '.category-count'
-                        )
-                        .forEach(
-                            function (input)
-                            {
-                                total +=
-                                    parseInt(
-                                        input.value || '0'
-                                    )
-                                    || 0;
-                            }
-                        );
+                for (
+                    let index = 0;
+                    index < rows.length;
+                    index++
+                )
+                {
+                    const row =
+                        rows[index];
+
+
+                    const categoryId =
+                        row.querySelector(
+                            ".category-select"
+                        ).value;
+
+
+                    const itemId =
+                        row.querySelector(
+                            ".item-select"
+                        ).value;
+
+
+                    const bagTypeId =
+                        row.querySelector(
+                            ".bag-type-select"
+                        ).value;
+
+
+                    const count =
+                        parseInt(
+                            row.querySelector(
+                                ".bag-count-input"
+                            ).value
+                        ) || 0;
 
 
                     if (
-                        total !== methTotalBags
+                        !categoryId
+                        ||
+                        !itemId
+                        ||
+                        !bagTypeId
+                        ||
+                        count <= 0
                     )
+                    {
+                        return false;
+                    }
+                }
+
+
+                return true;
+            }
+
+
+            // =====================================================
+            // FINAL PAGE VALIDATION
+            // =====================================================
+
+            function validateForm()
+{
+    const stackTotal =
+        calculateStackTotal();
+
+    const materialTotal =
+        calculateMaterialTotal();
+
+    const mastersReady =
+        categoryMaster.length > 0
+        &&
+        bagTypeMaster.length > 0;
+
+    const valid =
+        stackTotal > 0
+        &&
+        stackTotal === materialTotal
+        &&
+        rowsComplete()
+        &&
+        mastersReady;
+
+
+    if (valid)
+    {
+        statusBox.className =
+            "total-status total-status-success";
+
+        statusBox.innerHTML =
+            '<i class="bi bi-check-circle-fill me-1"></i>'
+            +
+            "Stack / Haudi Total and Material Total matched: "
+            +
+            stackTotal;
+
+        saveButton.disabled =
+            false;
+    }
+    else
+    {
+        statusBox.className =
+            "total-status total-status-warning";
+
+        statusBox.innerHTML =
+            "Stack / Haudi Total: "
+            +
+            stackTotal
+            +
+            " | Material Total: "
+            +
+            materialTotal;
+
+        saveButton.disabled =
+            true;
+    }
+}
+
+
+            // =====================================================
+            // SUBMIT
+            // =====================================================
+
+            form.addEventListener(
+                "submit",
+                function (event)
+                {
+                    reIndexRows();
+
+                    validateForm();
+
+
+                    if (saveButton.disabled)
                     {
                         event.preventDefault();
 
 
                         alert(
-                            'Supervisor category total must match Meth total bags.'
+                            "Please complete all details and make sure all bag totals match."
                         );
 
 
-                        return false;
+                        return;
                     }
+
+
+                    saveButton.disabled =
+                        true;
+
+
+                    saveButton.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-2"></span>'
+                        +
+                        "Saving...";
                 }
             );
 
 
+            // =====================================================
+            // INITIAL
+            // =====================================================
 
-        // =========================================================
-        // INITIAL
-        // =========================================================
+            reIndexRows();
 
-        reindexRows();
+            updateRemoveButtons();
 
-        calculateTotals();
+            validateForm();
 
-    </script>
-}
+            loadMasters();
+        }
+    );
+</script>
