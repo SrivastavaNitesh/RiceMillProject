@@ -1,5 +1,6 @@
 using RiceMillProject.DAL;
 using RiceMillProject.Models;
+using System.Data;
 using System.Globalization;
 
 namespace RiceMillProject.BAL;
@@ -8,10 +9,15 @@ public class LabWorkflowBAL(IConfiguration configuration)
 {
     private readonly LabWorkflowDAL dal = new(configuration);
     public List<LabTestMaster> GetTests() => dal.GetTests();
+    public DataTable GetUnits()
+    {
+        return dal.GetUnits();
+    }
     public void SaveTest(LabTestMaster test, int userId) => dal.SaveTest(test, userId);
     public void RemoveTest(int id, int userId) => dal.RemoveTest(id, userId);
     public List<LabItemTestMapping> GetMappings() => dal.GetMappings();
     public void SaveMapping(LabItemTestMapping mapping, int userId) => dal.SaveMapping(mapping, userId);
+    public void SaveMappings(LabItemTestSelection form, int userId) => dal.SaveMappings(form, userId);
     public void RemoveMapping(int id, int userId) => dal.RemoveMapping(id, userId);
     public List<LabItemOption> GetItems(string? rst = null) => dal.GetItems(rst);
     public List<LabRstSummary> GetRsts() => dal.GetRsts();

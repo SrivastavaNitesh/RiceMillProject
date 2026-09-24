@@ -1,5 +1,11 @@
 @model RiceMillProject.Models.LabTestMasterPage
-@{ ViewData["Title"] = "Lab test master"; }
+@using System.Data
+@{
+    ViewData["Title"] = "Lab test master";
+
+    DataTable dtUnits = ViewBag.UnitTable as DataTable ?? new DataTable();
+}
+
 <partial name="_Navigation" />
 <h2>Lab test master</h2>
 <p class="text-muted">Create the tests your laboratory uses, then map them to items.</p>
@@ -15,6 +21,27 @@
             <select asp-for="Form.ResultType" class="form-select mb-3"><option value="Number">Number</option><option value="Text">Text / observation</option></select>
             <label asp-for="Form.Unit" class="form-label">Unit (optional)</label>
             <input asp-for="Form.Unit" class="form-control mb-3" maxlength="30" placeholder="%, mg/kg, etc." />
+
+            <label asp-for="Form.Deducations" class="form-label">
+                Deduction
+            </label>
+            <input asp-for="Form.Deducations" type="number" class="form-control mb-3" min="0" max="999" step="1" placeholder="Enter deduction" oninput=" if(this.value.length > 3) this.value = this.value.slice(0,3); if(this.value > 999) this.value = 999; if(this.value < 0) this.value = 0; " />
+            <label asp-for="Form.UnitId" class="form-label">
+                Deduction Unit
+            </label>
+
+            <select asp-for="Form.UnitId" class="form-select mb-3">
+                <option value="">-- Select deduction unit --</option>
+                @foreach (DataRow row in dtUnits.Rows)
+                {
+                    <option value="@row["UnitId"]">@row["UnitName"] (@row["UnitCode"])</option>
+                }
+                @if (Model.Form.UnitId.HasValue && !dtUnits.AsEnumerable().Any(r => Convert.ToInt32(r["UnitId"]) == Model.Form.UnitId.Value))
+                {
+                    <option value="@Model.Form.UnitId">@(Model.Form.UnitName ?? "Saved unit") (inactive/unavailable)</option>
+                }
+            </select>
+            <span asp-validation-for="Form.UnitId" class="text-danger"></span>
             <label asp-for="Form.Description" class="form-label">Instructions (optional)</label>
             <textarea asp-for="Form.Description" class="form-control mb-3" maxlength="500"></textarea>
             <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save test</button><a asp-action="Tests" class="btn btn-outline-secondary">Clear</a></div>
@@ -22,17 +49,31 @@
     </div>
     <div class="col-lg-8">
         <div class="table-responsive"><table class="table table-striped align-middle">
-            <thead><tr><th>Test</th><th>Format</th><th>Unit</th><th>Actions</th></tr></thead>
+            <thead><tr>
+                <th>Test</th>
+                <th>Format</th>
+                <th>Unit</th>
+                <th>Description</th>
+                <th>Deduction</th>
+                <th>Unit Name</th>
+                <th>Actions</th></tr></thead>
             <tbody>
-            @if (Model.Tests.Count == 0) { <tr><td colspan="4" class="text-muted">No tests yet. Add your first test using the form.</td></tr> }
+            @if (Model.Tests.Count == 0) { <tr><td colspan="7" class="text-muted">No tests yet. Add your first test using the form.</td></tr> }
             @foreach (var test in Model.Tests)
             {
-                <tr><td>@test.TestName<small class="d-block text-muted">@test.Description</small></td><td>@test.ResultType</td><td>@test.Unit</td>
-                <td><a asp-action="Tests" asp-route-id="@test.TestId" class="btn btn-sm btn-outline-primary">Edit</a>
+                <tr>
+                    <td>@test.TestName<small class="d-block text-muted">@test.Description</small></td>
+                    <td>@test.ResultType</td>
+                    <td>@test.Unit</td>
+                    <td>@test.Description</td>
+                    <td>@test.Deducations</td>
+                    <td>@test.UnitName</td>
+                    <td><a asp-action="Tests" asp-route-id="@test.TestId" class="btn btn-sm btn-outline-primary">Edit</a>
                     <form asp-action="RemoveTest" method="post" class="d-inline" onsubmit="return confirm('Remove this test and its active item mappings? Saved reports will remain available.');">
                         <input type="hidden" name="id" value="@test.TestId" /><button class="btn btn-sm btn-outline-danger">Remove</button>
                     </form>
-                </td></tr>
+                    </td>
+                </tr>
             }
             </tbody>
         </table></div>

@@ -5,10 +5,30 @@ namespace RiceMillProject.Models;
 public class LabTestMaster
 {
     public int TestId { get; set; }
-    [Required, StringLength(120)] public string TestName { get; set; } = "";
-    [StringLength(30)] public string? Unit { get; set; }
-    [RegularExpression("Number|Text")] public string ResultType { get; set; } = "Number";
-    [StringLength(500)] public string? Description { get; set; }
+
+    [Required]
+    [StringLength(120)]
+    public string TestName { get; set; } = "";
+
+    [StringLength(30)]
+    public string? Unit { get; set; }
+
+    [RegularExpression("Number|Text")]
+    public string ResultType { get; set; } = "Number";
+
+    [StringLength(500)]
+    public string? Description { get; set; }
+
+    // Deduction amount - maximum 3 digits
+    [Range(0, 999, ErrorMessage = "Deduction must be between 0 and 999.")]
+    public int? Deducations { get; set; }
+
+    // tbl_Masterofunit.UnitId
+    public int? UnitId { get; set; }
+
+    // Display purpose - tbl_Masterofunit.UnitName
+    public string? UnitName { get; set; }
+
     public bool IsActive { get; set; } = true;
 }
 
@@ -68,9 +88,18 @@ public class LabTestMasterPage
     public List<LabTestMaster> Tests { get; set; } = [];
 }
 
+public class LabItemTestSelection
+{
+    public int MappingId { get; set; }
+    [Range(1, int.MaxValue)] public int CategoryId { get; set; }
+    [Range(1, int.MaxValue)] public int ItemId { get; set; }
+    public List<int> SelectedTestIds { get; set; } = [];
+    public List<int> OriginalTestIds { get; set; } = [];
+}
+
 public class LabMappingPage
 {
-    public LabItemTestMapping Form { get; set; } = new();
+    public LabItemTestSelection Form { get; set; } = new();
     public List<LabItemTestMapping> Mappings { get; set; } = [];
     public List<LabItemOption> Items { get; set; } = [];
     public List<LabTestMaster> Tests { get; set; } = [];

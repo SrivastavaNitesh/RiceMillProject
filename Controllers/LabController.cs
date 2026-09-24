@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
+using System.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -44,16 +45,23 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     {
         var tests = lab.GetTests();
         var form = id.HasValue ? tests.FirstOrDefault(t => t.TestId == id) : new LabTestMaster();
+        DataTable dtUnits = lab.GetUnits();
+        if (!id.HasValue && form != null)
+            form.UnitId = dtUnits.AsEnumerable().Where(r => string.Equals(Convert.ToString(r["UnitCode"]), "Q", StringComparison.OrdinalIgnoreCase)).Select(r => (int?)Convert.ToInt32(r["UnitId"])).FirstOrDefault();
+        ViewBag.UnitTable = dtUnits;
         return form == null ? NotFound() : View(new LabTestMasterPage { Form = form, Tests = tests });
     }
     [HttpPost]
     public IActionResult Tests([Bind(Prefix = "Form")] LabTestMaster form)
     {
+       
         if (ModelState.IsValid)
         {
             try { lab.SaveTest(form, UserId); TempData["LabSuccess"] = "Test saved."; return RedirectToAction(nameof(Tests)); }
             catch (SqlException ex) { DatabaseError(ex); }
         }
+        DataTable dtUnits = lab.GetUnits();
+        ViewBag.UnitTable = dtUnits;
         return View(new LabTestMasterPage { Form = form, Tests = lab.GetTests() });
     }
     [HttpPost]
@@ -67,15 +75,25 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     public IActionResult Mappings(int? id)
     {
         var mappings = lab.GetMappings();
-        var form = id.HasValue ? mappings.FirstOrDefault(m => m.MappingId == id) : new LabItemTestMapping();
-        return form == null ? NotFound() : View(new LabMappingPage { Form = form, Mappings = mappings, Items = lab.GetItems(), Tests = lab.GetTests() });
+        var form = new LabItemTestSelection();
+        if (id.HasValue)
+        {
+            var mapping = mappings.FirstOrDefault(m => m.MappingId == id);
+            if (mapping == null) return NotFound();
+            form.MappingId = mapping.MappingId;
+            form.CategoryId = mapping.CategoryId;
+            form.ItemId = mapping.ItemId;
+            form.SelectedTestIds = mappings.Where(m => m.CategoryId == form.CategoryId && m.ItemId == form.ItemId).Select(m => m.TestId).Distinct().ToList();
+            form.OriginalTestIds = form.SelectedTestIds.ToList();
+        }
+        return View(new LabMappingPage { Form = form, Mappings = mappings, Items = lab.GetItems(), Tests = lab.GetTests() });
     }
     [HttpPost]
-    public IActionResult Mappings([Bind(Prefix = "Form")] LabItemTestMapping form)
+    public IActionResult Mappings([Bind(Prefix = "Form")] LabItemTestSelection form)
     {
         if (ModelState.IsValid)
         {
-            try { lab.SaveMapping(form, UserId); TempData["LabSuccess"] = "Item test mapping saved."; return RedirectToAction(nameof(Mappings)); }
+            try { lab.SaveMappings(form, UserId); TempData["LabSuccess"] = "Item test selections saved."; return RedirectToAction(nameof(Mappings)); }
             catch (SqlException ex) { DatabaseError(ex); }
         }
         return View(new LabMappingPage { Form = form, Mappings = lab.GetMappings(), Items = lab.GetItems(), Tests = lab.GetTests() });

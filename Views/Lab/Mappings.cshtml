@@ -1,14 +1,18 @@
 @model RiceMillProject.Models.LabMappingPage
+@using System.Text.Json
 @{ ViewData["Title"] = "Item test mapping"; }
 <partial name="_Navigation" />
 <h2>Item test mapping</h2>
-<p class="text-muted">Add one mapping for each test required by an item. An item can have any number of tests.</p>
+<p class="text-muted">Select an item and choose all its tests together. Unselect a test to remove its active mapping; saved reports remain unchanged.</p>
 <div class="row g-4">
     <div class="col-lg-4">
-        <form asp-action="Mappings" method="post" class="card card-body shadow-sm">
-            <h5>@(Model.Form.MappingId == 0 ? "Add mapping" : "Edit mapping")</h5>
-            <div asp-validation-summary="All" class="text-danger"></div>
+        <form asp-action="Mappings" method="post" id="mapping-form" class="card card-body shadow-sm">
+            <h5>@(Model.Form.MappingId == 0 ? "Set item tests" : "Edit item tests")</h5>
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
             <input asp-for="Form.MappingId" type="hidden" />
+            <div id="mapping-original-tests">
+                @foreach (var testId in Model.Form.OriginalTestIds) { <input type="hidden" name="Form.OriginalTestIds" value="@testId" /> }
+            </div>
             <label asp-for="Form.CategoryId" class="form-label">Item category</label>
             <select asp-for="Form.CategoryId" id="mapping-category" class="form-select mb-3" required>
                 <option value="">Select category</option>
@@ -19,42 +23,44 @@
                 <option value="">Select item</option>
                 @foreach (var item in Model.Items) { <option value="@item.ItemId" data-category="@item.CategoryId">@item.ItemName</option> }
             </select>
-            <label asp-for="Form.TestId" class="form-label">Test</label>
-            <select asp-for="Form.TestId" class="form-select mb-3" required>
-                <option value="">Select test</option>
-                @foreach (var test in Model.Tests) { <option value="@test.TestId">@test.TestName @test.Unit</option> }
-            </select>
-            @if (Model.Tests.Count == 0) { <p class="text-warning">Add tests in the test master first.</p> }
-            <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save mapping</button><a asp-action="Mappings" class="btn btn-outline-secondary">Clear</a></div>
+            <label class="form-label" for="mapping-tests-toggle">Tests (multiple selection)</label>
+            <div class="dropdown mb-3">
+                <button id="mapping-tests-toggle" type="button" class="btn btn-outline-primary dropdown-toggle w-100 text-start" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">Select tests</button>
+                <div class="dropdown-menu p-3 w-100" style="max-height:320px;overflow-y:auto" aria-labelledby="mapping-tests-toggle">
+                    @foreach (var test in Model.Tests)
+                    {
+                        <div class="form-check mb-2">
+                            <input class="form-check-input mapping-test" type="checkbox" name="Form.SelectedTestIds" value="@test.TestId" id="mapping-test-@test.TestId" checked="@Model.Form.SelectedTestIds.Contains(test.TestId)" />
+                            <label class="form-check-label" for="mapping-test-@test.TestId">@test.TestName @test.Unit</label>
+                        </div>
+                    }
+                    @if (Model.Tests.Count == 0) { <span class="text-muted">Add tests in the test master first.</span> }
+                </div>
+            </div>
+            <p id="mapping-selection-summary" class="text-muted small" aria-live="polite"></p>
+            <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save item tests</button><a asp-action="Mappings" class="btn btn-outline-secondary">Clear</a></div>
+            <noscript><p class="text-warning mt-2">Enable JavaScript for category/item filtering and loading existing test selections.</p></noscript>
         </form>
     </div>
     <div class="col-lg-8"><div class="table-responsive"><table class="table table-striped align-middle">
-        <thead><tr><th>Category</th><th>Item</th><th>Test</th><th>Actions</th></tr></thead><tbody>
+        <thead><tr><th>Category</th><th>Item</th><th>Mapped tests</th><th>Actions</th></tr></thead><tbody>
         @if (Model.Mappings.Count == 0) { <tr><td colspan="4" class="text-muted">No item tests mapped yet.</td></tr> }
-        @foreach (var mapping in Model.Mappings)
+        @foreach (var group in Model.Mappings.GroupBy(m => new { m.CategoryId, m.ItemId }))
         {
-            <tr><td>@mapping.CategoryName</td><td>@mapping.ItemName</td><td>@mapping.TestName</td><td>
-                <a asp-action="Mappings" asp-route-id="@mapping.MappingId" class="btn btn-sm btn-outline-primary">Edit</a>
-                <form asp-action="RemoveMapping" method="post" class="d-inline" onsubmit="return confirm('Remove this item test mapping? Saved reports will remain available.');">
-                    <input type="hidden" name="id" value="@mapping.MappingId" /><button class="btn btn-sm btn-outline-danger">Remove</button>
-                </form>
-            </td></tr>
+            var first = group.First();
+            <tr><td>@first.CategoryName</td><td>@first.ItemName</td><td>
+                @foreach (var mapping in group)
+                {
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span>@mapping.TestName</span>
+                        <form asp-action="RemoveMapping" method="post" class="d-inline" onsubmit="return confirm('Remove this test mapping? Saved reports will remain available.');">
+                            <input type="hidden" name="id" value="@mapping.MappingId" /><button class="btn btn-sm btn-outline-danger" aria-label="Remove @mapping.TestName mapping">Remove</button>
+                        </form>
+                    </div>
+                }
+            </td><td><a asp-action="Mappings" asp-route-id="@first.MappingId" class="btn btn-sm btn-outline-primary">Edit all tests</a></td></tr>
         }
         </tbody></table></div></div>
 </div>
-@section Scripts {
-<script>
-(() => {
-    const category = document.getElementById('mapping-category');
-    const item = document.getElementById('mapping-item');
-    const options = Array.from(item.options).map(o => o.cloneNode(true));
-    function filter() {
-        const current = item.value;
-        item.replaceChildren(...options.filter(o => !o.value || o.dataset.category === category.value).map(o => o.cloneNode(true)));
-        item.value = Array.from(item.options).some(o => o.value === current) ? current : '';
-    }
-    category.addEventListener('change', filter);
-    filter();
-})();
-</script>
-}
+<script id="mapping-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Mappings.Select(m => new { m.CategoryId, m.ItemId, m.TestId })))</script>
+@section Scripts { <script src="~/js/lab-mappings.js" asp-append-version="true"></script> }
