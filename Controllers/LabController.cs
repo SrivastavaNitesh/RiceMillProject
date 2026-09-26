@@ -21,6 +21,11 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     public IActionResult Create(string? rstNumber)
     {
         if (string.IsNullOrWhiteSpace(rstNumber)) return RedirectToAction(nameof(Index));
+        if (lab.GetRsts().Any(r => r.RSTNumber == rstNumber && r.IsComplete))
+        {
+            TempData["LabInfo"] = "All item tests for this RST are submitted. Entry is closed; saved reports are available below.";
+            return RedirectToAction(nameof(Reports), new { rstNumber });
+        }
         return View(new LabEntryViewModel { RSTNumber = rstNumber, AvailableItems = lab.GetItems(rstNumber) });
     }
     [HttpPost]
@@ -31,10 +36,24 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
             try
             {
                 var reportId = lab.SaveReport(model, UserId);
-                TempData["LabSuccess"] = "Lab results saved successfully.";
-                return RedirectToAction(nameof(Report), new { id = reportId });
+                var savedReport = reportId > 0 ? lab.GetReport(reportId) : null;
+                if (savedReport == null || savedReport.RSTNumber != model.RSTNumber || savedReport.Results.Count == 0)
+                {
+                    logger.LogError("Lab save returned {ReportId} for RST {RSTNumber}, but no readable report was found.", reportId, model.RSTNumber);
+                    ModelState.AddModelError("", "The saved report could not be confirmed. Your entered values are retained. Retry saving; the same submission will not create a duplicate report.");
+                }
+                else
+                {
+                    TempData["LabSuccess"] = $"Lab report LAB-{reportId} saved for RST {savedReport.RSTNumber}.";
+                    return RedirectToAction(nameof(Report), new { id = reportId });
+                }
             }
             catch (ArgumentException ex) { ModelState.AddModelError("", ex.Message); }
+            catch (SqlException ex) when (ex.Number == 50002)
+            {
+                TempData["LabInfo"] = ex.Message;
+                return RedirectToAction(nameof(Reports), new { rstNumber = model.RSTNumber });
+            }
             catch (SqlException ex) { DatabaseError(ex); }
         }
         model.AvailableItems = lab.GetItems(model.RSTNumber);

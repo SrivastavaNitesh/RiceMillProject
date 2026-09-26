@@ -1,22 +1,34 @@
 @model RiceMillProject.Models.LabReport
 @{ ViewData["Title"] = "Lab report LAB-" + Model.ReportId; }
 <partial name="_Navigation" />
-<style>@@media print { nav, .sidebar, header, footer, .topbar, .d-print-none { display: none !important; } html, body, .main-wrapper, .main-content, .page-content { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; } .main-wrapper, .main-content { display: block !important; } body { background: white !important; } .card { border: 0 !important; box-shadow: none !important; } tr { break-inside: avoid; } }</style>
-<div class="card card-body shadow-sm">
-    <div class="d-flex flex-wrap justify-content-between gap-2"><h2>Lab report LAB-@Model.ReportId</h2>
-        <div class="d-print-none"><button onclick="window.print()" class="btn btn-primary">Print / PDF</button> <a asp-action="Export" asp-route-id="@Model.ReportId" class="btn btn-outline-secondary">Download CSV</a></div>
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-4 d-print-none">
+    <a asp-action="Reports" asp-route-rstNumber="@Model.RSTNumber" class="btn btn-outline-secondary">&larr; Back to reports</a>
+    <div class="d-flex gap-2"><a asp-action="Export" asp-route-id="@Model.ReportId" class="btn btn-outline-secondary">Download CSV</a><button onclick="window.print()" class="btn btn-primary">Print / PDF</button></div>
+</div>
+<article class="card card-body lab-report">
+    <div class="lab-report-heading">
+        <p class="lab-report-eyebrow">RiceMill / Laboratory</p>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><h2 class="mb-0">Lab report LAB-@Model.ReportId</h2><span class="badge bg-success">Saved report</span></div>
+        <p class="text-muted mb-0 mt-2">Item-wise quality test results</p>
     </div>
-    <p><strong>RST:</strong> @Model.RSTNumber<br /><strong>Technician:</strong> @Model.TechnicianName<br /><strong>Tested at:</strong> @Model.TestedAt.ToString("dd MMM yyyy HH:mm:ss")</p>
+    <dl class="lab-report-meta">
+        <div><dt>RST number</dt><dd>@Model.RSTNumber</dd></div>
+        <div><dt>Recorded by</dt><dd>@Model.TechnicianName</dd></div>
+        <div><dt>Tested at</dt><dd>@Model.TestedAt.ToString("dd MMM yyyy, HH:mm")</dd></div>
+    </dl>
     @foreach (var category in Model.Results.GroupBy(r => r.CategoryId))
     {
         <h4 class="mt-3">@category.First().CategoryName</h4>
         @foreach (var item in category.GroupBy(r => r.ItemId))
         {
-            <h5>@item.First().ItemName</h5>
-            <table class="table table-bordered"><thead><tr><th>Test</th><th>Result</th><th>Unit</th></tr></thead><tbody>
-            @foreach (var result in item) { <tr><td>@result.TestName</td><td style="white-space:pre-wrap">@result.Value</td><td>@result.Unit</td></tr> }
-            </tbody></table>
+            <section class="lab-report-item">
+                <h5>@item.First().ItemName <span class="text-muted fw-normal small">/ @item.Count() test(s)</span></h5>
+                <div class="table-responsive"><table class="table"><thead><tr><th scope="col">Test</th><th scope="col">Result</th><th scope="col">Unit</th></tr></thead><tbody>
+                @foreach (var result in item) { <tr><td>@result.TestName</td><td style="white-space:pre-wrap">@result.Value</td><td>@(string.IsNullOrWhiteSpace(result.Unit) ? "-" : result.Unit)</td></tr> }
+                </tbody></table></div>
+            </section>
         }
     }
-    @if (!string.IsNullOrWhiteSpace(Model.Remarks)) { <p><strong>Remarks:</strong> <span style="white-space:pre-wrap">@Model.Remarks</span></p> }
-</div>
+    @if (!string.IsNullOrWhiteSpace(Model.Remarks)) { <div class="lab-report-notes"><strong>Remarks</strong><br />@Model.Remarks</div> }
+    <p class="small text-muted mt-4 mb-0">Report LAB-@Model.ReportId &middot; @Model.Results.Select(r => r.ItemId).Distinct().Count() item(s) &middot; @Model.Results.Count test result(s)</p>
+</article>

@@ -454,6 +454,10 @@
                     }
 
 
+                    @if (User.IsAdminUser())
+                    {
+                        <li><a asp-controller="Billing" asp-action="Index"><i class="bi bi-receipt-cutoff me-2"></i> Billing Section</a></li>
+                    }
                     <!-- =================================================
                          ACCOUNTS & BILLING
                          ================================================= -->

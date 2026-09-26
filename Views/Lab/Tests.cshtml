@@ -53,19 +53,19 @@
                 <th>Test</th>
                 <th>Format</th>
                 <th>Unit</th>
-                <th>Description</th>
+
                 <th>Deduction</th>
-                <th>Unit Name</th>
+                <th>Deduction unit</th>
                 <th>Actions</th></tr></thead>
             <tbody>
-            @if (Model.Tests.Count == 0) { <tr><td colspan="7" class="text-muted">No tests yet. Add your first test using the form.</td></tr> }
+            @if (Model.Tests.Count == 0) { <tr><td colspan="6" class="text-muted">No tests yet. Add your first test using the form.</td></tr> }
             @foreach (var test in Model.Tests)
             {
                 <tr>
                     <td>@test.TestName<small class="d-block text-muted">@test.Description</small></td>
                     <td>@test.ResultType</td>
                     <td>@test.Unit</td>
-                    <td>@test.Description</td>
+
                     <td>@test.Deducations</td>
                     <td>@test.UnitName</td>
                     <td><a asp-action="Tests" asp-route-id="@test.TestId" class="btn btn-sm btn-outline-primary">Edit</a>

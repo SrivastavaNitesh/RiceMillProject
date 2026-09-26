@@ -1,0 +1,29 @@
+@model RiceMillProject.Models.BillingDocument
+@using RiceMillProject.Models
+@using System.Globalization
+@{ViewData["Title"]=$"Bill RM-{Model.BillId:D6}";var payment=ViewBag.Payment as BillingPaymentInput ?? new(){BillId=Model.BillId,Amount=Model.Balance}; Model.Calculation.Source.Header.BillId=Model.BillId;Model.Calculation.Source.Header.TotalAmount=Model.Calculation.Total;Model.Calculation.Source.Header.PaidAmount=Model.Paid;}
+<partial name="_Messages" />
+<div class="bill-page-heading"><div><div class="lab-report-eyebrow">RiceMill / Billing</div><h2>Bill RM-@Model.BillId.ToString("D6")</h2><p class="text-muted">@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm") · @Model.Status</p></div><div class="bill-actions d-print-none"><a asp-action="Index" class="btn btn-outline-secondary">Billing register</a><button onclick="window.print()" class="btn btn-primary">Print / PDF</button></div></div>
+<partial name="_RstHeader" model="Model.Calculation" /><partial name="_Items" model="Model.Calculation" />
+<h4>Item charges and laboratory deductions</h4>
+<div class="table-responsive mb-4"><table class="table"><thead><tr><th>Item</th><th>Rate</th><th>Base amount</th><th>Lab deduction</th><th>Item payable</th></tr></thead><tbody>
+@foreach(var item in Model.Calculation.Items){<tr><td><strong>@item.ItemName</strong><small class="d-block text-muted">@item.CategoryName</small>@foreach(var note in item.DeductionNotes){<small class="d-block text-muted">@note</small>}</td><td>@item.Rate.ToString("N2") / @item.RateBasis</td><td>@item.BaseAmount.ToString("N2")</td><td>@item.LabDeductionAmount.ToString("N2")</td><td>@item.Amount.ToString("N2")</td></tr>}
+</tbody></table></div>
+<h4>Worker charges</h4><div class="table-responsive mb-4"><table class="table"><thead><tr><th>Worker</th><th>Work / bag type</th><th>Bags</th><th>Rate</th><th>Amount</th></tr></thead><tbody>
+@foreach(var w in Model.Calculation.Workers){<tr><td>@w.WorkerName</td><td>@w.WorkType / @w.BagTypeName</td><td>@w.BagCount</td><td>@w.Rate.ToString("N2")</td><td>@w.Amount.ToString("N2")</td></tr>}
+</tbody></table></div>
+<div class="row g-4"><div class="col-lg-7">
+@if(!string.IsNullOrWhiteSpace(Model.Calculation.Notes)){<div class="card card-body mb-4"><h5>Notes</h5><p class="mb-0" style="white-space:pre-wrap">@Model.Calculation.Notes</p></div>}
+<h4>Payment history</h4><div class="table-responsive"><table class="table"><thead><tr><th>Date</th><th>Method / reference</th><th>Paid INR</th></tr></thead><tbody>
+@if(Model.Payments.Count==0){<tr><td colspan="3" class="text-muted">No payment recorded.</td></tr>}
+@foreach(var p in Model.Payments){<tr><td>@p.PaidAt.ToString("dd MMM yyyy HH:mm")</td><td>@p.Method<small class="d-block text-muted">@p.Reference</small></td><td>@p.Amount.ToString("N2")</td></tr>}
+</tbody></table></div>
+</div><div class="col-lg-5"><section class="card card-body bill-totals"><dl><div><dt>Item amount</dt><dd>@Model.Calculation.ItemAmount.ToString("N2")</dd></div><div><dt>Lab deduction</dt><dd>@Model.Calculation.LabDeduction.ToString("N2")</dd></div><div><dt>Worker charges</dt><dd>@Model.Calculation.WorkerAmount.ToString("N2")</dd></div><div><dt>Subtotal</dt><dd>@Model.Calculation.Subtotal.ToString("N2")</dd></div><div><dt>GST (@Model.Calculation.GstPercent%)</dt><dd>@Model.Calculation.GstAmount.ToString("N2")</dd></div><div class="bill-grand-total"><dt>Total INR</dt><dd>@Model.Calculation.Total.ToString("N2")</dd></div><div><dt>Paid INR</dt><dd>@Model.Paid.ToString("N2")</dd></div><div><dt>Balance INR</dt><dd>@Model.Balance.ToString("N2")</dd></div></dl></section></div></div>
+@if(Model.Balance>0){
+<form asp-action="Pay" method="post" class="card card-body mt-4 d-print-none">
+<h4>Record payment</h4><p class="small text-muted">Record an amount already paid. This does not transfer money.</p>
+<div asp-validation-summary="All" class="text-danger"></div>
+<input type="hidden" name="Payment.BillId" value="@payment.BillId" /><input type="hidden" name="Payment.SubmissionId" value="@payment.SubmissionId" />
+<div class="row g-3"><div class="col-md-3"><label class="form-label" for="payment-amount">Amount paid (INR)</label><input id="payment-amount" name="Payment.Amount" value="@payment.Amount.ToString("0.00",CultureInfo.InvariantCulture)" type="number" min="0.01" max="@Model.Balance.ToString(CultureInfo.InvariantCulture)" step="0.01" required class="form-control" /></div><div class="col-md-3"><label class="form-label" for="payment-method">Method</label><select id="payment-method" name="Payment.Method" class="form-select">@foreach(var method in new[]{"Cash","Bank transfer","UPI","Cheque"}){<option value="@method" selected="@(method==payment.Method)">@method</option>}</select></div><div class="col-md-4"><label class="form-label" for="payment-reference">Reference</label><input id="payment-reference" name="Payment.Reference" value="@payment.Reference" maxlength="100" class="form-control" /></div><div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary">Record paid</button></div></div>
+</form>
+}

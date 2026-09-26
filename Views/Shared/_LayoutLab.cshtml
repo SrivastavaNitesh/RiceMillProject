@@ -1,49 +1,40 @@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var checks = action is "Index" or "Create";
+    var reports = action is "Report" or "Reports";
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Lab Quality Portal - RiceMill</title>
+    <title>@ViewData["Title"] - RiceMill Laboratory</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <style>
-        .lab-navbar { background: linear-gradient(180deg, #1e3c72 0%, #162d56 100%); color: white; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .nav-pills .nav-link { color: rgba(255,255,255,0.85); border-radius: 6px; font-weight: 500; }
-        .nav-pills .nav-link:hover, .nav-pills .nav-link.active { background-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
-    </style>
+    <link rel="stylesheet" href="~/css/lab.css" asp-append-version="true" />
 </head>
-<body>
-    <nav class="navbar lab-navbar shadow-sm px-4 py-2">
-        <div class="d-flex align-items-center w-100 justify-content-between flex-wrap">
-            <div class="d-flex align-items-center gap-3">
-                <h4 class="mb-0 fw-bold text-white"><i class="bi bi-moisture me-2"></i> Lab Quality Portal</h4>
-                <ul class="nav nav-pills ms-4">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Lab" asp-action="Index"><i class="bi bi-moisture me-1"></i> Quality Check Log</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Lab" asp-action="Tests"><i class="bi bi-plus-lg me-1"></i> Test Master</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Lab" asp-action="Mappings"><i class="bi bi-box me-1"></i> Item Test Mapping</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Lab" asp-action="Reports">Lab Reports</a></li>
-                </ul>
-            </div>
-            <div class="d-flex align-items-center gap-3 text-white my-1">
-                <span><i class="bi bi-person-badge me-1"></i> @User.Identity?.Name (Lab Technician)</span>
-                <a asp-controller="Account" asp-action="Logout" class="btn btn-sm btn-light text-dark fw-bold"><i class="bi bi-power"></i> Logout</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid p-4">
-        @RenderBody()
+<body class="lab-shell">
+    <a href="#lab-content" class="lab-skip">Skip to content</a>
+    <aside class="lab-sidebar" id="lab-sidebar">
+        <a class="lab-brand" asp-controller="Lab" asp-action="Index"><span class="lab-mark">R</span><span>RiceMill<small>LABORATORY</small></span></a>
+        <div class="lab-nav-label">WORKSPACE</div>
+        <nav aria-label="Laboratory navigation">
+            <a class="lab-nav-link @(checks ? "active" : "")" aria-current="@(checks ? "page" : null)" asp-controller="Lab" asp-action="Index"><span class="lab-nav-symbol" aria-hidden="true">01</span>RST quality checks</a>
+            <a class="lab-nav-link @(reports ? "active" : "")" aria-current="@(reports ? "page" : null)" asp-controller="Lab" asp-action="Reports"><span class="lab-nav-symbol" aria-hidden="true">02</span>Lab reports</a>
+            <div class="lab-nav-label">CONFIGURATION</div>
+            <a class="lab-nav-link @(action == "Tests" ? "active" : "")" aria-current="@(action == "Tests" ? "page" : null)" asp-controller="Lab" asp-action="Tests"><span class="lab-nav-symbol" aria-hidden="true">03</span>Test master</a>
+            <a class="lab-nav-link @(action == "Mappings" ? "active" : "")" aria-current="@(action == "Mappings" ? "page" : null)" asp-controller="Lab" asp-action="Mappings"><span class="lab-nav-symbol" aria-hidden="true">04</span>Item test mapping</a>
+        </nav>
+        <div class="lab-sidebar-bottom"><span class="lab-nav-label">SIGNED IN AS</span><strong>@User.Identity?.Name</strong><a asp-controller="Home" asp-action="Index">Home dashboard</a><a asp-controller="Account" asp-action="Logout">Sign out &rarr;</a></div>
+    </aside>
+    <button class="lab-backdrop" type="button" aria-label="Close navigation" hidden></button>
+    <div class="lab-workspace">
+        <header class="lab-topbar"><div class="d-flex align-items-center gap-3"><button type="button" class="btn btn-outline-secondary lab-menu-toggle" aria-controls="lab-sidebar" aria-expanded="false">Menu</button><span>Quality control <span class="lab-divider">/</span> <strong>@ViewData["Title"]</strong></span></div><span class="lab-workspace-tag">Laboratory workspace</span></header>
+        <main id="lab-content" class="lab-content" tabindex="-1">@RenderBody()</main>
+        <footer class="lab-footer">RiceMill &middot; Laboratory &amp; quality control</footer>
     </div>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/lab-shell.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
