@@ -3,7 +3,7 @@
 <partial name="_Navigation" />
 <h2>RST quality checks</h2>
 <p class="text-muted">Select an RST to test the items recorded during unloading. Multiple categories and items can be tested together.</p>
-<div class="table-responsive"><table class="table table-striped align-middle">
+<div class="lab-metrics"><div class="lab-metric"><span>Ready RSTs</span><strong>@Model.Count</strong></div><div class="lab-metric"><span>Unloaded items</span><strong>@Model.Sum(r => r.ItemCount)</strong></div><div class="lab-metric"><span>Recorded results</span><strong>@Model.Sum(r => r.CompletedTests)</strong></div></div><div class="table-responsive"><table class="table table-striped align-middle">
     <thead><tr><th>RST number</th><th>Vehicle / party</th><th>Unloaded items</th><th>Test coverage</th><th>Actions</th></tr></thead><tbody>
     @if (Model.Count == 0)
     {
@@ -14,9 +14,9 @@
         <tr><td class="fw-bold">@rst.RSTNumber</td><td>@rst.VehicleNumber<small class="d-block text-muted">@rst.PartyName</small></td><td>@rst.ItemCount</td>
             <td>@rst.CompletedTests / @rst.RequiredTests results recorded
                 @if (rst.UnmappedItems > 0) { <small class="d-block text-warning">@rst.UnmappedItems item(s) need test mapping</small> }
-                else if (rst.RequiredTests > 0 && rst.CompletedTests == rst.RequiredTests) { <span class="badge bg-success">Complete</span> }
+                else if (rst.IsComplete) { <span class="badge bg-success">Complete</span> }
             </td>
-            <td><a asp-action="Create" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-primary">Enter results</a>
+            <td>@if (rst.IsComplete) { <button type="button" class="btn btn-sm btn-secondary" disabled title="All item tests submitted">Entry completed</button> } else { <a asp-action="Create" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-primary">Enter details</a> }
                 <a asp-action="Reports" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-outline-secondary">Reports</a></td></tr>
     }
     </tbody></table></div>

@@ -1,0 +1,15 @@
+@model RiceMillProject.Models.BillingRule
+@using RiceMillProject.Models
+@using RiceMillProject.BAL
+@{ViewData["Title"]="Billing lab deduction rules";var rules=ViewBag.Rules as List<BillingRule>??[];}
+<partial name="_Messages" />
+<h2>Lab deduction rules</h2><p class="text-muted">Configure numeric limits per category and test. Below the limit: no deduction. At or above the limit: deduct the configured amount from item payment.</p>
+<div class="row g-4"><div class="col-xl-4"><form method="post" asp-action="Rules" class="card card-body"><h5>@(Model.CategoryId>0?$"{Model.CategoryName} / {Model.TestName}":"Select a rule to configure")</h5><div asp-validation-summary="All" class="text-danger"></div><input asp-for="CategoryId" type="hidden" /><input asp-for="TestId" type="hidden" />
+<label asp-for="Threshold" class="form-label">Deduction starts at (numeric result)</label><input asp-for="Threshold" class="form-control mb-3" type="number" min="0" max="999999999" step="0.000001" required />
+<label asp-for="DeductionMode" class="form-label">Payment deduction basis</label><select asp-for="DeductionMode" class="form-select mb-3">@foreach(var mode in BillingCalculator.Modes){<option value="@mode.Key">@mode.Value</option>}</select>
+<label asp-for="DeductionValue" class="form-label">Deduction value (% or INR)</label><input asp-for="DeductionValue" class="form-control mb-3" type="number" min="0" max="999999" step="0.000001" required />
+<p class="small text-muted">Use “No deduction” for non-chargeable observations. Existing master values are shown alongside; text ranges are not assumed to be a single threshold.</p>
+<button class="btn btn-primary" disabled="@(Model.CategoryId<=0)">Save billing rule</button></form></div>
+<div class="col-xl-8"><div class="table-responsive"><table class="table"><thead><tr><th>Category / test</th><th>Lab master settings</th><th>Billing rule</th><th>Action</th></tr></thead><tbody>
+@foreach(var rule in rules){<tr><td><strong>@rule.TestName</strong><small class="d-block text-muted">@rule.CategoryName</small></td><td>@rule.MasterReference<small class="d-block text-muted">Deduction: @rule.MasterDeduction @rule.MasterUnit</small></td><td>@if(rule.Configured){<span>Result = @rule.Threshold</span><small class="d-block text-muted">@BillingCalculator.Modes.GetValueOrDefault(rule.DeductionMode) · @rule.DeductionValue</small>}else{<span class="text-warning">Not configured</span>}</td><td><a asp-action="Rules" asp-route-categoryId="@rule.CategoryId" asp-route-testId="@rule.TestId" class="btn btn-sm btn-outline-primary">Configure</a></td></tr>}
+</tbody></table></div></div></div>

@@ -1,0 +1,65 @@
+@model RiceMillProject.Models.BillingCalculation
+@{ViewData["Title"]="RST details";}
+<partial name="_Messages" />
+<div class="bill-page-heading"><div><h2>RST details</h2><p class="text-muted">Party, unloading quantities, laboratory coverage and worker allocations.</p></div><div class="bill-actions d-print-none"><a asp-action="Index" class="btn btn-outline-secondary">Back to register</a>
+@if(Model.Source.Header.BillId.HasValue){<a asp-action="Bill" asp-route-id="@Model.Source.Header.BillId" class="btn btn-primary">View bill</a>}
+else if(Model.Source.Header.LabComplete){<a asp-action="Generate" asp-route-rstNumber="@Model.Source.Header.RSTNumber" class="btn btn-primary">Generate bill</a>}
+<button onclick="window.print()" class="btn btn-outline-secondary">Print</button></div></div>
+<partial name="_RstHeader" model="Model" />
+<partial name="_Items" model="Model" />
+@if(Model.Issues.Count>0){<div class="alert alert-warning"><strong>Pending before billing</strong><ul class="mb-0">@foreach(var issue in Model.Issues){<li>@issue</li>}</ul></div>}
+@{
+    var labGroups = Model.Source.LabResults.GroupBy(l => new { l.CategoryId, l.ItemId }).ToList();
+    var workerGroups = Model.Workers.GroupBy(w => w.WorkerId).OrderBy(g => g.First().WorkerName).ToList();
+    // Older invoice snapshots have names but no bag IDs; retain their original labels.
+    string BagKey(RiceMillProject.Models.BillingWorker w) => w.BagTypeId.HasValue ? "id:" + w.BagTypeId : "name:" + w.BagTypeName;
+    var bagTypes = Model.Workers.GroupBy(BagKey).Select(g => new { Key = g.Key, Name = string.IsNullOrWhiteSpace(g.First().BagTypeName) ? "Unspecified bag" : g.First().BagTypeName }).OrderBy(b => b.Name).ToList();
+}
+<section class="bill-details-section">
+    <div class="bill-section-heading"><div><h4>Laboratory results</h4><p>Item-wise test results and recording details</p></div><span class="bill-section-count">@labGroups.Count items &middot; @Model.Source.LabResults.Count tests</span></div>
+    <div class="table-responsive"><table class="table table-bordered bill-detail-table" id="billing-lab-results">
+        <thead><tr><th scope="col">Category / item</th><th scope="col">Test</th><th scope="col">Result</th><th scope="col">Reference</th><th scope="col">Report</th><th scope="col">Recorded date</th><th scope="col">Recorded by</th></tr></thead>
+        <tbody>
+        @foreach(var group in labGroups)
+        {
+            var item = Model.Items.FirstOrDefault(i => i.CategoryId == group.Key.CategoryId && i.ItemId == group.Key.ItemId);
+            var first = true;
+            foreach(var lab in group)
+            {
+                <tr>
+                    @if(first){<th scope="rowgroup" rowspan="@group.Count()" class="bill-group-cell"><small>@item?.CategoryName</small><strong>@(item?.ItemName ?? "Item " + group.Key.ItemId)</strong></th>first=false;}
+                    <td>@lab.TestName</td><td class="bill-result-value">@(string.IsNullOrWhiteSpace(lab.ResultValue) ? "Pending" : lab.ResultValue)</td><td>@lab.Unit</td>
+                    <td>@if(lab.ReportId.HasValue){<a asp-controller="Lab" asp-action="Report" asp-route-id="@lab.ReportId">LAB-@lab.ReportId</a>}else{<span class="text-muted">Pending</span>}</td>
+                    <td class="bill-date-cell">@(lab.TestedAt?.ToString("dd MMM yyyy") ?? "—")<small>@lab.TestedAt?.ToString("hh:mm tt")</small></td>
+                    <td>@(string.IsNullOrWhiteSpace(lab.RecordedBy) ? "—" : lab.RecordedBy)</td>
+                </tr>
+            }
+        }
+        @if(labGroups.Count==0){<tr><td colspan="7" class="bill-empty-state">No laboratory tests are mapped to these unloaded items.</td></tr>}
+        </tbody>
+    </table></div>
+</section>
+<section class="bill-details-section">
+    <div class="bill-section-heading"><div><h4>Worker allocations</h4><p>Unloaded bag counts recorded by Meth. Rates are shown below each count.</p></div><span class="bill-section-count">@workerGroups.Count workers &middot; @Model.Workers.Sum(w => (long)w.BagCount).ToString("N0") bags</span></div>
+    <div class="table-responsive"><table class="table table-bordered bill-detail-table" id="billing-worker-allocations">
+        <thead><tr><th scope="col">Worker</th><th scope="col">Work</th>@foreach(var bag in bagTypes){<th scope="col" class="bill-number">@bag.Name<small>Unloaded bags / rate</small></th>}<th scope="col" class="bill-number">Total bags</th><th scope="col" class="bill-number">Amount</th></tr></thead>
+        <tbody>
+        @foreach(var worker in workerGroups)
+        {
+            <tr>
+                <th scope="row">@worker.First().WorkerName</th><td>@string.Join(", ",worker.Select(w=>w.WorkType).Distinct())</td>
+                @foreach(var bag in bagTypes)
+                {
+                    var allocations=worker.Where(w=>BagKey(w)==bag.Key).ToList();
+                    <td class="bill-number"><strong>@allocations.Sum(w=>(long)w.BagCount).ToString("N0")</strong>
+                        @foreach(var rate in allocations.GroupBy(w=>w.Rate).OrderBy(g=>g.Key)){<small>@rate.Sum(w=>(long)w.BagCount).ToString("N0") bags × @rate.Key.ToString("N2")</small>}
+                    </td>
+                }
+                <td class="bill-number"><strong>@worker.Sum(w=>(long)w.BagCount).ToString("N0")</strong></td><td class="bill-number"><strong>@worker.Sum(w=>w.Amount).ToString("N2")</strong></td>
+            </tr>
+        }
+        @if(workerGroups.Count==0){<tr><td colspan="@(bagTypes.Count+4)" class="bill-empty-state">No worker allocations have been recorded.</td></tr>}
+        </tbody>
+        @if(workerGroups.Count>0){<tfoot><tr><th colspan="2" scope="row">Total</th>@foreach(var bag in bagTypes){<td class="bill-number">@Model.Workers.Where(w=>BagKey(w)==bag.Key).Sum(w=>(long)w.BagCount).ToString("N0")</td>}<td class="bill-number">@Model.Workers.Sum(w=>(long)w.BagCount).ToString("N0")</td><td class="bill-number">@Model.Workers.Sum(w=>w.Amount).ToString("N2")</td></tr></tfoot>}
+    </table></div>
+</section>

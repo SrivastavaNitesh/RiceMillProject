@@ -5,7 +5,7 @@
 <h2>Item test mapping</h2>
 <p class="text-muted">Select an item and choose all its tests together. Unselect a test to remove its active mapping; saved reports remain unchanged.</p>
 <div class="row g-4">
-    <div class="col-lg-4">
+    <div class="col-xl-4">
         <form asp-action="Mappings" method="post" id="mapping-form" class="card card-body shadow-sm">
             <h5>@(Model.Form.MappingId == 0 ? "Set item tests" : "Edit item tests")</h5>
             <div asp-validation-summary="All" class="text-danger" role="alert"></div>
@@ -42,25 +42,31 @@
             <noscript><p class="text-warning mt-2">Enable JavaScript for category/item filtering and loading existing test selections.</p></noscript>
         </form>
     </div>
-    <div class="col-lg-8"><div class="table-responsive"><table class="table table-striped align-middle">
-        <thead><tr><th>Category</th><th>Item</th><th>Mapped tests</th><th>Actions</th></tr></thead><tbody>
-        @if (Model.Mappings.Count == 0) { <tr><td colspan="4" class="text-muted">No item tests mapped yet.</td></tr> }
-        @foreach (var group in Model.Mappings.GroupBy(m => new { m.CategoryId, m.ItemId }))
-        {
-            var first = group.First();
-            <tr><td>@first.CategoryName</td><td>@first.ItemName</td><td>
-                @foreach (var mapping in group)
+    <div class="col-xl-8">
+        <section class="card lab-mapping-list" aria-labelledby="mapping-list-title">
+            <div class="lab-mapping-list-header"><div><h5 id="mapping-list-title">Configured item tests</h5><p class="text-muted mb-0">Tests assigned to each item</p></div><span class="lab-count">@Model.Mappings.Select(m => m.ItemId).Distinct().Count() items</span></div>
+            <div class="table-responsive"><table class="table lab-mapping-table">
+                <thead><tr><th scope="col">Item / category</th><th scope="col">Assigned tests</th><th scope="col" class="text-end">Manage</th></tr></thead>
+                <tbody>
+                @if (Model.Mappings.Count == 0) { <tr><td colspan="3" class="text-center py-5 text-muted">No item tests configured yet. Select an item and save its tests.</td></tr> }
+                @foreach (var group in Model.Mappings.GroupBy(m => new { m.CategoryId, m.ItemId }))
                 {
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <span>@mapping.TestName</span>
-                        <form asp-action="RemoveMapping" method="post" class="d-inline" onsubmit="return confirm('Remove this test mapping? Saved reports will remain available.');">
-                            <input type="hidden" name="id" value="@mapping.MappingId" /><button class="btn btn-sm btn-outline-danger" aria-label="Remove @mapping.TestName mapping">Remove</button>
-                        </form>
-                    </div>
+                    var first = group.First();
+                    <tr>
+                        <td><strong class="lab-mapping-item-name">@first.ItemName</strong><span class="d-block text-muted small">@first.CategoryName</span><span class="lab-test-count">@group.Count() test(s)</span></td>
+                        <td><ul class="lab-mapped-tests">
+                            @foreach (var mapping in group)
+                            {
+                                <li><span>@mapping.TestName</span><form asp-action="RemoveMapping" method="post" onsubmit="return confirm('Remove this test mapping? Saved reports will remain available.');"><input type="hidden" name="id" value="@mapping.MappingId" /><button type="submit" class="lab-remove-test" aria-label="Remove @mapping.TestName from @first.ItemName" title="Remove @mapping.TestName">Remove</button></form></li>
+                            }
+                        </ul></td>
+                        <td class="text-end"><a asp-action="Mappings" asp-route-id="@first.MappingId" class="btn btn-sm btn-outline-primary text-nowrap">Edit tests</a></td>
+                    </tr>
                 }
-            </td><td><a asp-action="Mappings" asp-route-id="@first.MappingId" class="btn btn-sm btn-outline-primary">Edit all tests</a></td></tr>
-        }
-        </tbody></table></div></div>
+                </tbody>
+            </table></div>
+        </section>
+    </div>
 </div>
 <script id="mapping-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Mappings.Select(m => new { m.CategoryId, m.ItemId, m.TestId })))</script>
 @section Scripts { <script src="~/js/lab-mappings.js" asp-append-version="true"></script> }

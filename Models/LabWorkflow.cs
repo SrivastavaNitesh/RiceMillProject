@@ -61,6 +61,7 @@ public class LabRstSummary
     public int RequiredTests { get; set; }
     public int CompletedTests { get; set; }
     public int UnmappedItems { get; set; }
+    public bool IsComplete => ItemCount > 0 && UnmappedItems == 0 && RequiredTests > 0 && CompletedTests >= RequiredTests;
 }
 
 public class LabResultInput
