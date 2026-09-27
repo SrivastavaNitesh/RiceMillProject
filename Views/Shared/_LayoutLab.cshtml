@@ -17,6 +17,7 @@
     </style>
 </head>
 <body>
+    @{ var currentLabAction = ViewContext.RouteData.Values["action"]?.ToString() ?? ""; }
     <aside class="lab-sidebar p-3 d-flex flex-column">
         <div class="lab-brand pb-3 mb-3">
             <h4 class="mb-1 fw-bold"><i class="bi bi-moisture me-2"></i>Lab Portal</h4>
@@ -24,10 +25,10 @@
         </div>
         <div class="text-uppercase small text-white-50 mb-2">Lab Navigation</div>
         <nav class="nav flex-column gap-1">
-            <a class="nav-link" asp-controller="Lab" asp-action="Index"><i class="bi bi-moisture me-2"></i>Quality Check Log</a>
-            <a class="nav-link" asp-controller="Lab" asp-action="Tests"><i class="bi bi-clipboard-plus me-2"></i>Test Master</a>
-            <a class="nav-link" asp-controller="Lab" asp-action="Mappings"><i class="bi bi-box me-2"></i>Item Test Mapping</a>
-            <a class="nav-link" asp-controller="Lab" asp-action="Reports"><i class="bi bi-file-earmark-bar-graph me-2"></i>Lab Reports</a>
+            <a class="nav-link @(currentLabAction == "Index" ? "active" : "")" asp-controller="Lab" asp-action="Index"><i class="bi bi-moisture me-2"></i>Quality Check Log</a>
+            <a class="nav-link @(currentLabAction == "Tests" ? "active" : "")" asp-controller="Lab" asp-action="Tests"><i class="bi bi-clipboard-plus me-2"></i>Test Master</a>
+            <a class="nav-link @(currentLabAction == "Mappings" ? "active" : "")" asp-controller="Lab" asp-action="Mappings"><i class="bi bi-box me-2"></i>Item Test Mapping</a>
+            <a class="nav-link @(currentLabAction == "Reports" || currentLabAction == "Report" ? "active" : "")" asp-controller="Lab" asp-action="Reports"><i class="bi bi-file-earmark-bar-graph me-2"></i>Lab Reports</a>
         </nav>
         <div class="mt-auto border-top border-light border-opacity-25 pt-3">
             <div class="small mb-3"><i class="bi bi-person-badge me-2"></i>@User.Identity?.Name<br /><span class="text-white-50">Lab Technician</span></div>
