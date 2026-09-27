@@ -8,14 +8,17 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RiceMill Laboratory</title>
+    <title>@ViewData["Title"] - Annapurna Agro Laboratory</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/lab.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/annapurna-design.css" asp-append-version="true" />
+<script src="~/js/annapurna-theme.js" asp-append-version="true"></script>
 </head>
-<body class="lab-shell">
+<body class="agro-ui lab-shell">
     <a href="#lab-content" class="lab-skip">Skip to content</a>
     <aside class="lab-sidebar" id="lab-sidebar">
-        <a class="lab-brand" asp-controller="Lab" asp-action="Index"><span class="lab-mark">R</span><span>RiceMill<small>LABORATORY</small></span></a>
+        <a class="agro-brand-link" asp-controller="Lab" asp-action="Index"><partial name="_Brand" /></a>
         <div class="lab-nav-label">WORKSPACE</div>
         <nav aria-label="Laboratory navigation">
             <a class="lab-nav-link @(checks ? "active" : "")" aria-current="@(checks ? "page" : null)" asp-controller="Lab" asp-action="Index"><span class="lab-nav-symbol" aria-hidden="true">01</span>RST quality checks</a>
@@ -30,11 +33,13 @@
     <div class="lab-workspace">
         <header class="lab-topbar"><div class="d-flex align-items-center gap-3"><button type="button" class="btn btn-outline-secondary lab-menu-toggle" aria-controls="lab-sidebar" aria-expanded="false">Menu</button><span>Quality control <span class="lab-divider">/</span> <strong>@ViewData["Title"]</strong></span></div><span class="lab-workspace-tag">Laboratory workspace</span></header>
         <main id="lab-content" class="lab-content" tabindex="-1">@RenderBody()</main>
-        <footer class="lab-footer">RiceMill &middot; Laboratory &amp; quality control</footer>
+        <footer class="lab-footer">Annapurna Agro &middot; Laboratory &amp; quality control</footer>
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/lab-shell.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>
+    <partial name="_Appearance" />
 </body>
 </html>

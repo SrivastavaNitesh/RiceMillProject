@@ -3,7 +3,7 @@
 @using System.Globalization
 @{ViewData["Title"]=$"Bill RM-{Model.BillId:D6}";var payment=ViewBag.Payment as BillingPaymentInput ?? new(){BillId=Model.BillId,Amount=Model.Balance}; Model.Calculation.Source.Header.BillId=Model.BillId;Model.Calculation.Source.Header.TotalAmount=Model.Calculation.Total;Model.Calculation.Source.Header.PaidAmount=Model.Paid;}
 <partial name="_Messages" />
-<div class="bill-page-heading"><div><div class="lab-report-eyebrow">RiceMill / Billing</div><h2>Bill RM-@Model.BillId.ToString("D6")</h2><p class="text-muted">@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm") · @Model.Status</p></div><div class="bill-actions d-print-none"><a asp-action="Index" class="btn btn-outline-secondary">Billing register</a><button onclick="window.print()" class="btn btn-primary">Print / PDF</button></div></div>
+<div class="bill-page-heading"><div><div class="lab-report-eyebrow">Annapurna Agro Industries Pvt. Ltd. / Billing</div><h2>Bill RM-@Model.BillId.ToString("D6")</h2><p class="text-muted">@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm") · @Model.Status</p></div><div class="bill-actions d-print-none"><a asp-action="Index" class="btn btn-outline-secondary">Billing register</a><button onclick="window.print()" class="btn btn-primary">Print / PDF</button></div></div>
 <partial name="_RstHeader" model="Model.Calculation" /><partial name="_Items" model="Model.Calculation" />
 <h4>Item charges and laboratory deductions</h4>
 <div class="table-responsive mb-4"><table class="table"><thead><tr><th>Item</th><th>Rate</th><th>Base amount</th><th>Lab deduction</th><th>Item payable</th></tr></thead><tbody>

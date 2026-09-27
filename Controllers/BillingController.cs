@@ -9,6 +9,7 @@ using RiceMillProject.Models;
 namespace RiceMillProject.Controllers;
 
 [Authorize(Policy="BillingAccess")]
+
 [AutoValidateAntiforgeryToken]
 public class BillingController(IConfiguration configuration,ILogger<BillingController> logger):Controller
 {

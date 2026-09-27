@@ -1,0 +1,74 @@
+/* Compact branding and the unified Annapurna workspace design. */
+.agro-ui{--agro-bg:#f5f6f8;--agro-ink:#202c2b;--agro-muted:#76817e;--agro-line:#e5e9e7}
+.agro-logo-mark{display:block!important;width:42px!important;height:44px;flex:0 0 42px;background:#000 url('../images/annapurna-logo.jpeg') -1px -18px/128px 85px no-repeat;border-radius:10px;overflow:hidden}
+.agro-ui .agro-brand{flex-direction:row;align-items:center;gap:11px;padding:24px 18px;margin:0 0 18px;border-bottom:1px solid var(--agro-line);color:var(--agro-ink);text-align:left}
+.agro-ui .agro-brand .agro-brand-name{font-size:20px;font-weight:750;line-height:1.1;letter-spacing:-.7px}
+.agro-ui .agro-brand small{display:block;margin:7px 0 0;color:var(--agro-muted);font-size:7px;font-weight:650;letter-spacing:1.2px}
+@media screen{
+.agro-ui :is(.sidebar,.meth-sidebar,.lab-sidebar){background:#fff!important;color:var(--agro-ink);border-right:1px solid var(--agro-line)}
+.agro-ui :is(.sidebar a,.meth-sidebar-menu a,.lab-nav-link){color:#62706c!important;font-size:12px!important;padding:11px 16px!important;border-radius:7px;font-weight:550;transition:background .15s}
+.agro-ui :is(.sidebar a,.meth-sidebar-menu a,.lab-nav-link):hover{background:#f3f6f4!important;color:#253e35!important}
+.agro-ui :is(.sidebar a,.meth-sidebar-menu a,.lab-nav-link).active{background:var(--agro-soft)!important;color:color-mix(in srgb,var(--agro-accent) 70%,#162c24)!important;box-shadow:inset 3px 0 var(--agro-accent)!important;font-weight:700}
+.agro-ui :is(.sidebar-section-title,.meth-sidebar-section,.lab-nav-label){color:#8b9591!important;font-size:9px!important;letter-spacing:1.7px}
+.agro-ui .sidebar .text-white,.agro-ui .sidebar .text-white-50{color:#697771!important}.agro-ui .lab-sidebar-bottom strong{color:var(--agro-ink)}.agro-ui .lab-sidebar-bottom a{color:#62706c}
+.agro-ui .agro-brand-link{padding:0!important;margin:0!important}.agro-ui .agro-brand-link:hover{background:transparent!important}
+.agro-ui :is(.top-header,.meth-top-header,.lab-topbar){min-height:68px;padding:15px 28px;background:#ffffffed!important}
+.agro-ui :is(.top-header h4,.meth-top-title){font-size:16px!important;letter-spacing:-.4px!important}
+.agro-ui .card{border-radius:10px!important;box-shadow:0 2px 5px #24362c03!important}.agro-ui .card-header{padding:17px 22px}
+.agro-ui .table thead th{background:#f6f8f7!important;font-size:10px;color:#78857e!important;letter-spacing:.08em}.agro-ui .table tbody td{padding:15px 16px}
+.agro-ui .form-control,.agro-ui .form-select{border-color:#dfe5e1;border-radius:8px;min-height:44px}.agro-ui .btn{border-radius:8px;padding:10px 17px}
+.agro-ui .erp-page-header{background:#fff!important;border:1px solid var(--agro-line);color:var(--agro-ink)!important;padding:24px!important}.agro-ui .erp-page-header :is(h1,h2,h3,h4,.text-white){color:var(--agro-ink)!important}
+}
+.agro-ui .agro-settings-trigger{background:#f5f7f6;color:#465c51;border:1px solid var(--agro-line);font-size:12px;padding:12px 14px;margin:16px 12px}.agro-ui .agro-settings-floating{background:#fff;box-shadow:0 4px 24px #162d3910}.agro-ui .agro-menu-close{color:var(--agro-ink)!important;border-color:var(--agro-line)}
+.agro-ui:has(.agro-home):not(:has(.sidebar)) .top-header{display:none}.agro-ui:has(.agro-home) .page-content{padding:0 5vw 32px!important;background:#fbfcf9}.agro-home{max-width:1400px}.agro-home-nav{display:flex;justify-content:space-between;align-items:center;padding:8px 0 22px}.agro-home-nav .agro-brand{border:0;margin:0;padding:20px 0}.agro-nav-login{font-size:12px;font-weight:650;color:var(--agro-ink);text-decoration:none}.agro-nav-login span{margin-left:20px;font-size:20px}
+.agro-hero{border:0;border-radius:0;background:transparent;grid-template-columns:1.05fr 1fr;gap:7%;min-height:470px;overflow:visible}.agro-hero-copy{padding:16px 0 30px}.agro-hero-copy>.agro-eyebrow{font-size:9px;letter-spacing:2px;color:#748678}.agro-hero h1{font-size:clamp(42px,4.8vw,70px);line-height:1.04;letter-spacing:-3px;font-weight:650;margin:23px 0}.agro-hero h1 em{font-family:Georgia,serif;font-weight:400;font-style:italic}.agro-hero-copy>p{font-size:14px;line-height:1.85;max-width:420px}.agro-hero-actions{margin:25px 0;gap:24px}.agro-hero-actions .btn{font-size:12px;padding:15px 22px}.agro-hero-link{font-size:12px}.agro-hero-note{font-size:9px;margin-top:30px}
+.agro-hero-visual{border-radius:160px 12px 12px 12px;overflow:hidden;min-height:470px;background:#143b2c;box-shadow:0 18px 50px #223d2a12}.agro-hero-visual>img{opacity:.8;object-position:56% center}.agro-hero-visual:after{content:'';position:absolute;inset:50% 0 0;background:linear-gradient(transparent,#112e25d9);z-index:-1}.agro-photo-label{position:absolute;top:28px;right:24px;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#ffffffed;border-radius:9px;color:#48564a;font-size:10px;line-height:1.6;box-shadow:0 4px 20px #132e3912}.agro-photo-label .agro-logo-mark{transform:scale(.75);margin:-5px}.agro-visual-caption{left:32px;bottom:32px}.agro-visual-caption strong{font-family:Georgia,serif;font-size:30px;font-weight:400}.agro-visual-caption span{font-size:8px;letter-spacing:2px}
+.agro-home-section{padding:54px 0 38px}.agro-section-heading{margin-bottom:28px}.agro-section-heading h2{font-size:25px;font-weight:600;letter-spacing:-.9px}.agro-section-heading>p{font-size:12px;max-width:300px}.agro-feature-grid{gap:0;border-top:1px solid #e1e7df;border-bottom:1px solid #e1e7df}.agro-feature-grid article{border:0;border-right:1px solid #e1e7df;border-radius:0;background:transparent;padding:26px}.agro-feature-grid article:first-child{padding-left:0}.agro-feature-grid article:last-child{border-right:0}.agro-feature-grid i{display:inline-flex;align-items:center;justify-content:center;width:37px;height:37px;background:var(--agro-soft);border-radius:10px;font-size:18px;margin:0 0 22px}.agro-feature-grid span{display:block;font-size:8px}.agro-feature-grid h3{font-size:16px;font-weight:650}.agro-feature-grid p{font-size:12px;line-height:1.75}
+.agro-home-bottom{background:#f0f3eb;border:0;border-radius:12px;padding:32px 38px;gap:50px}.agro-home-bottom h2{font-size:25px;font-weight:600}.agro-start-card{border:0}.agro-start-card>i{display:none}.agro-start-card h3{font-size:16px}.agro-home-bottom p{font-size:12px}
+.agro-ui.agro-login{background:#f5f6f2;padding:32px 12px;min-height:100dvh}.agro-login .login-card{max-width:1080px;border-radius:18px!important;box-shadow:0 24px 80px #20352b0c!important;background:#fff}.agro-login .login-sidebar{background:linear-gradient(180deg,color-mix(in srgb,var(--agro-navy) 72%,transparent),color-mix(in srgb,var(--agro-navy) 92%,transparent)),url('../images/banner2.jpg') center/cover;padding:32px;justify-content:flex-start;position:relative}.agro-login .login-sidebar .agro-brand{padding:0;border:0;color:#fff;margin-bottom:72px}.agro-login .login-sidebar .agro-brand small{color:#d6e3d7}.agro-login .login-sidebar h2{font-family:Georgia,serif;font-size:39px;line-height:1.16;letter-spacing:-1px;font-weight:400!important;margin-top:14px!important}.agro-login .login-sidebar .lead{font-size:13px;line-height:1.8}.agro-login-kicker{display:block;font-size:8px;font-weight:700;letter-spacing:2px;opacity:.65;margin-bottom:12px}.agro-login .card-body{padding:60px 48px!important}.agro-login h3{font-size:31px;letter-spacing:-1px;margin-bottom:14px!important}.agro-login .card-body>p{font-size:13px;line-height:1.8}.agro-login-benefits{margin-top:32px;padding-top:24px;font-size:10px;line-height:1.8}.agro-login-benefits p{margin-bottom:14px}.agro-login .input-group-text{background:white!important}.agro-login .form-control{background:white!important;min-height:48px}.agro-login form .mb-5{margin-bottom:28px!important}.agro-login .btn-primary{min-height:48px;font-size:13px}.agro-login-help{font-size:10px;line-height:1.9}.agro-login .agro-home-link{font-size:11px}
+@media(max-width:991px){.agro-hero{gap:5%}.agro-hero h1{font-size:47px}.agro-feature-grid{grid-template-columns:repeat(2,1fr)}.agro-feature-grid article:nth-child(2){border-right:0}.agro-feature-grid article:nth-child(3){padding-left:0;border-top:1px solid #e1e7df}.agro-feature-grid article:nth-child(4){border-top:1px solid #e1e7df}.agro-login .card-body{padding:38px 28px!important}.agro-login .login-sidebar{padding:28px 24px}.agro-login .login-sidebar h2{font-size:32px}.agro-login .agro-brand-name{font-size:17px!important}}
+@media(max-width:767px){.agro-home-nav{padding-bottom:8px}.agro-home-nav .agro-brand-name{font-size:18px!important}.agro-nav-login{font-size:10px}.agro-nav-login span{margin-left:4px}.agro-hero{grid-template-columns:1fr;gap:16px}.agro-hero h1{font-size:52px}.agro-hero-copy{padding:18px 0 6px}.agro-hero-visual{min-height:330px;border-radius:90px 12px 12px 12px}.agro-photo-label{top:20px;right:18px}.agro-home-section{padding-top:36px}.agro-section-heading{gap:12px}.agro-home-bottom{padding:26px;gap:22px}.agro-login .card-body{padding:30px!important}.agro-login .card-body .agro-brand{padding:0 0 26px;border:0;margin:0}.agro-login .agro-brand small{font-size:7px}.agro-login .login-card{max-width:430px}.agro-ui.agro-login{padding-top:24px}.agro-home-nav .agro-brand{gap:8px}.agro-home-nav .agro-logo-mark{transform:scale(.85);margin-left:-3px}}
+@media(max-width:480px){.agro-feature-grid{grid-template-columns:1fr 1fr}.agro-feature-grid article{padding:22px 14px}.agro-feature-grid h3{font-size:14px}.agro-feature-grid p{font-size:11px}.agro-hero-actions .btn{width:auto}.agro-hero-actions{gap:18px}.agro-home-nav .agro-brand small{font-size:6px;letter-spacing:.6px}.agro-home-nav .agro-brand-name{font-size:17px!important}.agro-section-heading h2{font-size:24px}}
+
+/* Every signed-in role uses the selected accent for both navigation bars.
+   Dark mixes preserve readable white labels even for very light custom colors. */
+@media screen {
+    .agro-ui {
+        --agro-sidebar-color: color-mix(in srgb, var(--agro-accent) 30%, #10231e);
+        --agro-topbar-color: color-mix(in srgb, var(--agro-accent) 38%, #142b24);
+    }
+    .agro-ui :is(.sidebar, .meth-sidebar, .lab-sidebar) {
+        background: var(--agro-sidebar-color)!important;
+        color: #edf5f0;
+        border-right: 1px solid #ffffff14;
+    }
+    .agro-ui :is(.sidebar a, .meth-sidebar-menu a, .lab-nav-link, .lab-sidebar-bottom a) { color: #d9e7df!important; }
+    .agro-ui :is(.sidebar a, .meth-sidebar-menu a, .lab-nav-link):hover { background: #ffffff12!important; color: #fff!important; }
+    .agro-ui :is(.sidebar a, .meth-sidebar-menu a, .lab-nav-link).active {
+        background: #ffffff1d!important;
+        color: #fff!important;
+        box-shadow: inset 3px 0 color-mix(in srgb, var(--agro-accent) 35%, white)!important;
+    }
+    .agro-ui :is(.sidebar, .meth-sidebar, .lab-sidebar) .agro-brand { color: #fff; border-color: #ffffff20; }
+    .agro-ui :is(.sidebar, .meth-sidebar, .lab-sidebar) .agro-brand small,
+    .agro-ui :is(.sidebar-section-title, .meth-sidebar-section, .lab-nav-label),
+    .agro-ui .sidebar .text-white-50 { color: #b3c9bc!important; }
+    .agro-ui .sidebar .text-white, .agro-ui .lab-sidebar-bottom strong { color: #fff!important; }
+    .agro-ui :is(.sidebar, .meth-sidebar, .lab-sidebar) :is(.agro-settings-trigger, .agro-menu-close, .btn-outline-light) {
+        color: #e9f3ed!important; background: #ffffff0d; border-color: #ffffff30;
+    }
+    .agro-ui :is(.top-header, .meth-top-header, .lab-topbar) {
+        background: var(--agro-topbar-color)!important;
+        color: #edf5f0;
+        border-bottom: 1px solid #ffffff20;
+    }
+    .agro-ui :is(.top-header, .meth-top-header, .lab-topbar) :is(h4, .meth-top-title, .dropdown-toggle, .meth-user-toggle, .text-primary, .lab-topbar strong) { color: #fff!important; }
+    .agro-ui :is(.top-header, .meth-top-header, .lab-topbar) :is(.text-muted, .meth-clock, .meth-user-role, .lab-divider) { color: #c8dcd0!important; }
+    .agro-ui :is(.top-header, .meth-top-header, .lab-topbar) :is(.agro-menu-toggle, .lab-menu-toggle) {
+        background: #ffffff12; border-color: #ffffff40; color: #fff;
+    }
+    .agro-ui .lab-workspace-tag { background: #ffffff0b; border-color: #ffffff30; color: #d9e8df; }
+    .agro-ui :is(.sidebar, .meth-sidebar, .lab-sidebar, .top-header, .meth-top-header, .lab-topbar) :focus-visible {
+        outline-color: #d9efae;
+    }
+}
