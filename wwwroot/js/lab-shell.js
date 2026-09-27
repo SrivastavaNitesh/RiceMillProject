@@ -11,7 +11,7 @@
     toggle.addEventListener('click', () => setOpen(!document.body.classList.contains('lab-menu-open')));
     backdrop.addEventListener('click', () => { setOpen(false); toggle.focus(); });
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && document.body.classList.contains('lab-menu-open')) {
+        if (event.key === 'Escape' && !document.querySelector('dialog[open]') && document.body.classList.contains('lab-menu-open')) {
             setOpen(false); toggle.focus();
         }
     });

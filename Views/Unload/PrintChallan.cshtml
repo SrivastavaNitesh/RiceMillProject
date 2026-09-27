@@ -22,8 +22,9 @@
             .print-container { border: none; margin-top: 0; }
         }
     </style>
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
 </head>
-<body>
+<body class="agro-ui">
     <div class="text-center mt-3 no-print">
         <button onclick="window.print()" class="btn btn-primary btn-lg">Print Challan</button>
         <a href="/Unload/Index" class="btn btn-secondary btn-lg ms-2">Back to Dashboard</a>
@@ -31,7 +32,7 @@
 
     <div class="print-container">
         <div class="header-title">
-            <h1>RICE MILL PRO</h1>
+            <h1>Annapurna Agro Industries Pvt. Ltd.</h1>
             <h3>METH ASSIGNMENT CHALLAN</h3>
         </div>
 
@@ -66,5 +67,6 @@
             </div>
         </div>
     </div>
+    <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>
 </body>
 </html>

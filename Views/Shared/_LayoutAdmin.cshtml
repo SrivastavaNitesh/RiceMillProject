@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>@ViewData["Title"] - RiceMillProject</title>
+    <title>@ViewData["Title"] - Annapurna Agro</title>
 
     <script type="importmap"></script>
 
@@ -306,10 +306,13 @@
         .global-loader-card .spinner-border { width: 2.5rem; height: 2.5rem; }
 </style>
 
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/annapurna-design.css" asp-append-version="true" />
+<script src="~/js/annapurna-theme.js" asp-append-version="true"></script>
 </head>
 
 
-<body>
+<body class="agro-ui">
     <div id="globalProcessLoader" aria-live="polite" aria-label="Processing">
         <div class="global-loader-card">
             <div class="spinner-border text-primary" role="status"></div>
@@ -334,17 +337,7 @@
                      SIDEBAR HEADER
                      ================================================= -->
 
-                <div class="p-3 text-center border-bottom border-light border-opacity-25 mb-3">
-
-                    <i class="bi bi-buildings"
-                       style="font-size: 2.5rem;">
-                    </i>
-
-                    <h5 class="mt-2 fw-bold">
-                        Menu Navigation
-                    </h5>
-
-                </div>
+                <partial name="_Brand" />
 
 
                 <!-- =================================================
@@ -813,7 +806,7 @@
                     <h4 class="mb-0 fw-bold text-primary"
                         style="letter-spacing: -0.5px;">
 
-                        Sri Balaji Rice Mill
+                        Annapurna Agro
 
                     </h4>
 
@@ -933,7 +926,7 @@
 
             <footer class="main-footer text-center p-3 text-muted small border-top bg-white">
 
-                &copy; @DateTime.Now.Year - Sri Balaji Rice Mill ERP
+                &copy; @DateTime.Now.Year - Annapurna Agro ERP
 
             </footer>
 
@@ -1054,5 +1047,7 @@
     @await RenderSectionAsync("Scripts", required: false)
 
 
+    <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>
+    <partial name="_Appearance" />
 </body>
 </html>
