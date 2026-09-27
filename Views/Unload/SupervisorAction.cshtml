@@ -5,6 +5,10 @@
         ?? new RiceMillProject.Models.SupervisorUnloadActionViewModel();
 
     int labourTotalBags = vm.MethTotalBags;
+
+    var stackTypes =
+        ViewBag.StackTypes as List<RiceMillProject.Models.StackTypeMaster>
+        ?? new List<RiceMillProject.Models.StackTypeMaster>();
 }
 
 <style>
@@ -88,11 +92,11 @@
         border: 1px solid #cfd8e3;
     }
 
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, .10);
-    }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .10);
+        }
 
     .stack-table {
         width: 100%;
@@ -103,23 +107,23 @@
         overflow: hidden;
     }
 
-    .stack-table th {
-        padding: 11px;
-        background: #f8fafc;
-        color: #475569;
-        text-align: center;
-        font-size: 12px;
-        border-bottom: 1px solid #e2e8f0;
-    }
+        .stack-table th {
+            padding: 11px;
+            background: #f8fafc;
+            color: #475569;
+            text-align: center;
+            font-size: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
 
-    .stack-table td {
-        padding: 12px;
-    }
+        .stack-table td {
+            padding: 12px;
+        }
 
-    .stack-table input {
-        text-align: center;
-        font-weight: 700;
-    }
+        .stack-table input {
+            text-align: center;
+            font-weight: 700;
+        }
 
     .summary-box {
         min-height: 82px;
@@ -238,7 +242,6 @@
     <!-- =====================================================
          MESSAGES
          ===================================================== -->
-
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger">
@@ -482,7 +485,7 @@
 
         <!-- =================================================
              STACK / HAUDI
-             Original Google Form Section
+             MASTER DRIVEN SECTION
              ================================================= -->
 
         <div class="sup-card">
@@ -498,100 +501,133 @@
 
             <div class="sup-section-body">
 
-                <div class="table-responsive">
+                @if (stackTypes.Count == 0)
+                {
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        No active Stack / Haudi master records were found.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
 
-                    <table class="stack-table">
+                        <table class="stack-table">
 
-                        <thead>
+                            <thead>
 
-                            <tr>
+                                <tr>
 
-                                <th>
-                                    Stack (PP)
-                                </th>
+                                    @foreach (var stackType in stackTypes)
+                                    {
+                                        var typeName =
+                                            (stackType.StackTypeName ?? "").Trim();
 
-                                <th>
-                                    Stack (Jute)
-                                </th>
+                                        var typeKey =
+                                            typeName.ToLowerInvariant();
 
-                                <th>
-                                    Haudi (PP)
-                                </th>
+                                        if (typeKey != "stack" &&
+                                            typeKey != "haudi")
+                                        {
+                                            continue;
+                                        }
 
-                                <th>
-                                    Haudi (Jute)
-                                </th>
+                                        <th>
+                                            @typeName (PP)
+                                        </th>
 
-                            </tr>
+                                        <th>
+                                            @typeName (Jute)
+                                        </th>
+                                    }
 
-                        </thead>
+                                </tr>
 
-                        <tbody>
+                            </thead>
 
-                            <tr>
+                            <tbody>
 
-                                <td>
+                                <tr>
 
-                                    <input type="number"
-                                           name="StackPP"
-                                           id="stackPP"
-                                           class="form-control stack-value"
-                                           min="0"
-                                           step="1"
-                                           placeholder="0"
-                                           value="@(vm.StackPP > 0 ? vm.StackPP.ToString() : "")" />
+                                    @foreach (var stackType in stackTypes)
+                                    {
+                                        var typeName =
+                                            (stackType.StackTypeName ?? "").Trim();
 
-                                </td>
+                                        var typeKey =
+                                            typeName.ToLowerInvariant();
 
+                                        if (typeKey != "stack" &&
+                                            typeKey != "haudi")
+                                        {
+                                            continue;
+                                        }
 
-                                <td>
+                                        var ppName =
+                                            typeKey == "stack"
+                                                ? "StackPP"
+                                                : "HaudiPP";
 
-                                    <input type="number"
-                                           name="StackJute"
-                                           id="stackJute"
-                                           class="form-control stack-value"
-                                           min="0"
-                                           step="1"
-                                           placeholder="0"
-                                           value="@(vm.StackJute > 0 ? vm.StackJute.ToString() : "")" />
+                                        var juteName =
+                                            typeKey == "stack"
+                                                ? "StackJute"
+                                                : "HaudiJute";
 
-                                </td>
+                                        var ppId =
+                                            typeKey == "stack"
+                                                ? "stackPP"
+                                                : "haudiPP";
 
+                                        var juteId =
+                                            typeKey == "stack"
+                                                ? "stackJute"
+                                                : "haudiJute";
 
-                                <td>
+                                        var ppValue =
+                                            typeKey == "stack"
+                                                ? vm.StackPP
+                                                : vm.HaudiPP;
 
-                                    <input type="number"
-                                           name="HaudiPP"
-                                           id="haudiPP"
-                                           class="form-control stack-value"
-                                           min="0"
-                                           step="1"
-                                           placeholder="0"
-                                           value="@(vm.HaudiPP > 0 ? vm.HaudiPP.ToString() : "")" />
+                                        var juteValue =
+                                            typeKey == "stack"
+                                                ? vm.StackJute
+                                                : vm.HaudiJute;
 
-                                </td>
+                                        <td>
 
+                                            <input type="number"
+                                                   name="@ppName"
+                                                   id="@ppId"
+                                                   class="form-control stack-value"
+                                                   min="0"
+                                                   step="1"
+                                                   placeholder="0"
+                                                   value="@(ppValue > 0 ? ppValue.ToString() : "")" />
 
-                                <td>
+                                        </td>
 
-                                    <input type="number"
-                                           name="HaudiJute"
-                                           id="haudiJute"
-                                           class="form-control stack-value"
-                                           min="0"
-                                           step="1"
-                                           placeholder="0"
-                                           value="@(vm.HaudiJute > 0 ? vm.HaudiJute.ToString() : "")" />
+                                        <td>
 
-                                </td>
+                                            <input type="number"
+                                                   name="@juteName"
+                                                   id="@juteId"
+                                                   class="form-control stack-value"
+                                                   min="0"
+                                                   step="1"
+                                                   placeholder="0"
+                                                   value="@(juteValue > 0 ? juteValue.ToString() : "")" />
 
-                            </tr>
+                                        </td>
+                                    }
 
-                        </tbody>
+                                </tr>
 
-                    </table>
+                            </tbody>
 
-                </div>
+                        </table>
+
+                    </div>
+                }
 
 
                 <!-- TOTAL SUMMARY -->
@@ -671,11 +707,11 @@
         <div class="sup-card">
 
             <div class="sup-section-title
-                        d-flex
-                        justify-content-between
-                        align-items-center
-                        flex-wrap
-                        gap-2">
+                d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-2">
 
                 <span>
 
@@ -716,9 +752,9 @@
                 <div class="table-responsive">
 
                     <table class="table
-                                  table-bordered
-                                  material-table
-                                  mb-0">
+                        table-bordered
+                        material-table
+                        mb-0">
 
                         <thead>
 
@@ -883,10 +919,10 @@
             <div class="sup-section-body">
 
                 <div class="d-flex
-                            justify-content-between
-                            align-items-center
-                            flex-wrap
-                            gap-2">
+                    justify-content-between
+                    align-items-center
+                    flex-wrap
+                    gap-2">
 
                     <a asp-controller="Unload"
                        asp-action="MethWorkRegister"
@@ -924,8 +960,7 @@
 <script>
     document.addEventListener(
         "DOMContentLoaded",
-        function ()
-        {
+        function() {
             "use strict";
 
 
@@ -1007,10 +1042,8 @@
             // MASTER LOAD
             // =====================================================
 
-            async function loadMasters()
-            {
-                try
-                {
+            async function loadMasters() {
+                try {
                     const responses =
                         await Promise.all(
                             [
@@ -1024,8 +1057,7 @@
                         !responses[0].ok
                         ||
                         !responses[1].ok
-                    )
-                    {
+                    ) {
                         throw new Error(
                             "Master API request failed."
                         );
@@ -1042,20 +1074,20 @@
 
                     categoryMaster =
                         categoryResponse.success
-                        &&
-                        Array.isArray(
-                            categoryResponse.categories
-                        )
+                            &&
+                            Array.isArray(
+                                categoryResponse.categories
+                            )
                             ? categoryResponse.categories
                             : [];
 
 
                     bagTypeMaster =
                         bagResponse.success
-                        &&
-                        Array.isArray(
-                            bagResponse.bagTypes
-                        )
+                            &&
+                            Array.isArray(
+                                bagResponse.bagTypes
+                            )
                             ? bagResponse.bagTypes
                             : [];
 
@@ -1067,8 +1099,7 @@
                         categoryMaster.length > 0
                         &&
                         bagTypeMaster.length > 0
-                    )
-                    {
+                    ) {
                         masterMessage.className =
                             "master-message";
 
@@ -1078,8 +1109,7 @@
                             +
                             'Category and Bag Type masters loaded successfully.';
                     }
-                    else
-                    {
+                    else {
                         masterMessage.className =
                             "master-message master-error";
 
@@ -1090,8 +1120,7 @@
                             'Category or Bag Type master contains no active records.';
                     }
                 }
-                catch (error)
-                {
+                catch (error) {
                     console.error(
                         error
                     );
@@ -1121,15 +1150,13 @@
             // FILL MASTER DROPDOWNS
             // =====================================================
 
-            function refreshMasterDropdowns()
-            {
+            function refreshMasterDropdowns() {
                 rowsContainer
                     .querySelectorAll(
                         ".material-row"
                     )
                     .forEach(
-                        function (row)
-                        {
+                        function(row) {
                             fillCategoryDropdown(
                                 row.querySelector(
                                     ".category-select"
@@ -1149,8 +1176,7 @@
 
             function fillCategoryDropdown(
                 select
-            )
-            {
+            ) {
                 const existingValue =
                     select.value;
 
@@ -1160,8 +1186,7 @@
 
 
                 categoryMaster.forEach(
-                    function (category)
-                    {
+                    function(category) {
                         const option =
                             document.createElement(
                                 "option"
@@ -1183,8 +1208,7 @@
                 );
 
 
-                if (existingValue)
-                {
+                if (existingValue) {
                     select.value =
                         existingValue;
                 }
@@ -1193,8 +1217,7 @@
 
             function fillBagTypeDropdown(
                 select
-            )
-            {
+            ) {
                 const existingValue =
                     select.value;
 
@@ -1204,8 +1227,7 @@
 
 
                 bagTypeMaster.forEach(
-                    function (bag)
-                    {
+                    function(bag) {
                         const option =
                             document.createElement(
                                 "option"
@@ -1227,8 +1249,7 @@
                 );
 
 
-                if (existingValue)
-                {
+                if (existingValue) {
                     select.value =
                         existingValue;
                 }
@@ -1242,8 +1263,7 @@
             async function loadItems(
                 row,
                 categoryId
-            )
-            {
+            ) {
                 const itemSelect =
                     row.querySelector(
                         ".item-select"
@@ -1258,16 +1278,14 @@
                     true;
 
 
-                if (!categoryId)
-                {
+                if (!categoryId) {
                     validateForm();
 
                     return;
                 }
 
 
-                try
-                {
+                try {
                     const response =
                         await fetch(
                             itemsUrl
@@ -1280,8 +1298,7 @@
                         );
 
 
-                    if (!response.ok)
-                    {
+                    if (!response.ok) {
                         throw new Error(
                             "Item API failed."
                         );
@@ -1298,11 +1315,9 @@
                         Array.isArray(
                             result.items
                         )
-                    )
-                    {
+                    ) {
                         result.items.forEach(
-                            function (item)
-                            {
+                            function(item) {
                                 const option =
                                     document.createElement(
                                         "option"
@@ -1328,8 +1343,7 @@
                             false;
                     }
                 }
-                catch (error)
-                {
+                catch (error) {
                     console.error(
                         error
                     );
@@ -1346,8 +1360,7 @@
 
             document.addEventListener(
                 "input",
-                function (event)
-                {
+                function(event) {
                     if (
                         event.target.classList.contains(
                             "stack-value"
@@ -1356,8 +1369,7 @@
                         event.target.classList.contains(
                             "bag-count-input"
                         )
-                    )
-                    {
+                    ) {
                         event.target.value =
                             event.target.value
                                 .replace(
@@ -1378,14 +1390,12 @@
 
             rowsContainer.addEventListener(
                 "change",
-                function (event)
-                {
+                function(event) {
                     if (
                         event.target.classList.contains(
                             "category-select"
                         )
-                    )
-                    {
+                    ) {
                         const row =
                             event.target.closest(
                                 ".material-row"
@@ -1413,16 +1423,14 @@
 
             addButton.addEventListener(
                 "click",
-                function ()
-                {
+                function() {
                     const firstRow =
                         rowsContainer.querySelector(
                             ".material-row"
                         );
 
 
-                    if (!firstRow)
-                    {
+                    if (!firstRow) {
                         return;
                     }
 
@@ -1493,16 +1501,14 @@
 
             rowsContainer.addEventListener(
                 "click",
-                function (event)
-                {
+                function(event) {
                     const button =
                         event.target.closest(
                             ".remove-material-row"
                         );
 
 
-                    if (!button)
-                    {
+                    if (!button) {
                         return;
                     }
 
@@ -1513,8 +1519,7 @@
                         );
 
 
-                    if (rows.length <= 1)
-                    {
+                    if (rows.length <= 1) {
                         return;
                     }
 
@@ -1539,18 +1544,16 @@
             // REINDEX
             // =====================================================
 
-            function reIndexRows()
-            {
+            function reIndexRows() {
                 rowsContainer
                     .querySelectorAll(
                         ".material-row"
                     )
                     .forEach(
-                        function (
+                        function(
                             row,
                             index
-                        )
-                        {
+                        ) {
                             row.querySelector(
                                 ".category-select"
                             ).name =
@@ -1598,8 +1601,7 @@
             // REMOVE BUTTON
             // =====================================================
 
-            function updateRemoveButtons()
-            {
+            function updateRemoveButtons() {
                 const rows =
                     rowsContainer.querySelectorAll(
                         ".material-row"
@@ -1607,8 +1609,7 @@
 
 
                 rows.forEach(
-                    function (row)
-                    {
+                    function(row) {
                         row.querySelector(
                             ".remove-material-row"
                         ).disabled =
@@ -1624,16 +1625,14 @@
 
             function getNumber(
                 id
-            )
-            {
+            ) {
                 const el =
                     document.getElementById(
                         id
                     );
 
 
-                if (!el)
-                {
+                if (!el) {
                     return 0;
                 }
 
@@ -1644,16 +1643,21 @@
             }
 
 
-            function calculateStackTotal()
-            {
-                const total =
-                    getNumber("stackPP")
-                    +
-                    getNumber("stackJute")
-                    +
-                    getNumber("haudiPP")
-                    +
-                    getNumber("haudiJute");
+            function calculateStackTotal() {
+                let total = 0;
+
+                document
+                    .querySelectorAll(
+                        ".stack-value"
+                    )
+                    .forEach(
+                        function(input) {
+                            total +=
+                                parseInt(
+                                    input.value
+                                ) || 0;
+                        }
+                    );
 
 
                 document.getElementById(
@@ -1670,8 +1674,7 @@
             // MATERIAL TOTAL
             // =====================================================
 
-            function calculateMaterialTotal()
-            {
+            function calculateMaterialTotal() {
                 let total = 0;
 
 
@@ -1680,8 +1683,7 @@
                         ".bag-count-input"
                     )
                     .forEach(
-                        function (input)
-                        {
+                        function(input) {
                             total +=
                                 parseInt(
                                     input.value
@@ -1704,16 +1706,14 @@
             // ROW VALIDATION
             // =====================================================
 
-            function rowsComplete()
-            {
+            function rowsComplete() {
                 const rows =
                     rowsContainer.querySelectorAll(
                         ".material-row"
                     );
 
 
-                if (rows.length === 0)
-                {
+                if (rows.length === 0) {
                     return false;
                 }
 
@@ -1722,8 +1722,7 @@
                     let index = 0;
                     index < rows.length;
                     index++
-                )
-                {
+                ) {
                     const row =
                         rows[index];
 
@@ -1762,8 +1761,7 @@
                         !bagTypeId
                         ||
                         count <= 0
-                    )
-                    {
+                    ) {
                         return false;
                     }
                 }
@@ -1777,62 +1775,59 @@
             // FINAL PAGE VALIDATION
             // =====================================================
 
-            function validateForm()
-{
-    const stackTotal =
-        calculateStackTotal();
+            function validateForm() {
+                const stackTotal =
+                    calculateStackTotal();
 
-    const materialTotal =
-        calculateMaterialTotal();
+                const materialTotal =
+                    calculateMaterialTotal();
 
-    const mastersReady =
-        categoryMaster.length > 0
-        &&
-        bagTypeMaster.length > 0;
+                const mastersReady =
+                    categoryMaster.length > 0
+                    &&
+                    bagTypeMaster.length > 0;
 
-    const valid =
-        stackTotal > 0
-        &&
-        stackTotal === materialTotal
-        &&
-        rowsComplete()
-        &&
-        mastersReady;
+                const valid =
+                    stackTotal > 0
+                    &&
+                    stackTotal === materialTotal
+                    &&
+                    rowsComplete()
+                    &&
+                    mastersReady;
 
 
-    if (valid)
-    {
-        statusBox.className =
-            "total-status total-status-success";
+                if (valid) {
+                    statusBox.className =
+                        "total-status total-status-success";
 
-        statusBox.innerHTML =
-            '<i class="bi bi-check-circle-fill me-1"></i>'
-            +
-            "Stack / Haudi Total and Material Total matched: "
-            +
-            stackTotal;
+                    statusBox.innerHTML =
+                        '<i class="bi bi-check-circle-fill me-1"></i>'
+                        +
+                        "Stack / Haudi Total and Material Total matched: "
+                        +
+                        stackTotal;
 
-        saveButton.disabled =
-            false;
-    }
-    else
-    {
-        statusBox.className =
-            "total-status total-status-warning";
+                    saveButton.disabled =
+                        false;
+                }
+                else {
+                    statusBox.className =
+                        "total-status total-status-warning";
 
-        statusBox.innerHTML =
-            "Stack / Haudi Total: "
-            +
-            stackTotal
-            +
-            " | Material Total: "
-            +
-            materialTotal;
+                    statusBox.innerHTML =
+                        "Stack / Haudi Total: "
+                        +
+                        stackTotal
+                        +
+                        " | Material Total: "
+                        +
+                        materialTotal;
 
-        saveButton.disabled =
-            true;
-    }
-}
+                    saveButton.disabled =
+                        true;
+                }
+            }
 
 
             // =====================================================
@@ -1841,15 +1836,13 @@
 
             form.addEventListener(
                 "submit",
-                function (event)
-                {
+                function(event) {
                     reIndexRows();
 
                     validateForm();
 
 
-                    if (saveButton.disabled)
-                    {
+                    if (saveButton.disabled) {
                         event.preventDefault();
 
 

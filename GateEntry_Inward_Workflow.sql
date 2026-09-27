@@ -19,6 +19,64 @@ BEGIN
  ORDER BY h.InwardId DESC;
 END;
 GO
+
+-- Current Weightman RST creation procedure. Keep this definition aligned with
+-- GateEntryDAL.CreateGateEntry and the live RiceMillDB procedure.
+CREATE OR ALTER PROCEDURE dbo.sp_CreateGateEntry
+    @InwardNo NVARCHAR(100),
+    @VehicleId INT,
+    @PartyId INT,
+    @DriverId INT,
+    @GrossWeight DECIMAL(18,2),
+    @ItemId INT,
+    @TargetOfficeId INT = NULL,
+    @CreatedBy INT,
+    @WeightCharge DECIMAL(18,2) = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    IF ISNULL(@InwardNo, '') = '' THROW 50001, 'Gate inward entry is required.', 1;
+    IF @GrossWeight <= 0 THROW 50001, 'Gross Weight must be greater than zero.', 1;
+    IF NOT EXISTS (SELECT 1 FROM dbo.m_Item WHERE ItemId = @ItemId AND IsActive = 1)
+        THROW 50001, 'Select an active material or variety.', 1;
+
+    IF ISNULL(@TargetOfficeId, 0) = 0
+        SELECT @TargetOfficeId = g.OfficeId
+        FROM dbo.t_InwardHeader h
+        INNER JOIN dbo.m_GateMaster g ON g.GateId = h.GateId
+        WHERE h.InwardNo = @InwardNo;
+
+    IF ISNULL(@TargetOfficeId, 0) = 0
+        THROW 50001, 'Company could not be determined from the inward gate.', 1;
+    IF NOT EXISTS (SELECT 1 FROM dbo.o05_office WHERE OfficeId = @TargetOfficeId AND IsActive = 1 AND OfficeType = 1)
+        THROW 50001, 'Invalid or inactive company.', 1;
+
+    BEGIN TRANSACTION;
+    IF NOT EXISTS (SELECT 1 FROM dbo.t_InwardHeader WITH (UPDLOCK, HOLDLOCK)
+                   WHERE InwardNo = @InwardNo AND ISNULL(RSTEntryCompleted, 0) = 0)
+        THROW 50001, 'This inward is closed for new RST entries.', 1;
+    IF EXISTS (SELECT 1 FROM dbo.t_GateEntry WHERE InwardNo = @InwardNo AND ItemId = @ItemId AND TareWeight IS NULL)
+        THROW 50001, 'An open RST already exists for this variety and inward.', 1;
+
+    DECLARE @Year CHAR(4) = CONVERT(CHAR(4), YEAR(GETDATE()));
+    DECLARE @NextNo INT;
+    SELECT @NextNo = ISNULL(MAX(TRY_CONVERT(INT, RIGHT(RSTNumber, CHARINDEX('-', REVERSE(RSTNumber)) - 1))), 0) + 1
+    FROM dbo.t_GateEntry WITH (UPDLOCK, HOLDLOCK)
+    WHERE RSTNumber LIKE 'RST-' + @Year + '-%';
+    DECLARE @RSTNumber NVARCHAR(100) = 'RST-' + @Year + '-' + RIGHT('000000' + CONVERT(VARCHAR(12), @NextNo), 6);
+
+    INSERT dbo.t_GateEntry (RSTNumber, InwardNo, VehicleId, PartyId, DriverId, ItemId, GrossWeight,
+        TargetOfficeId, GateEntryTime, StatusId, Status, CreatedBy, WeighmentCharge, InwardOutward)
+    VALUES (@RSTNumber, @InwardNo, @VehicleId, @PartyId, @DriverId, @ItemId, @GrossWeight,
+        @TargetOfficeId, GETDATE(), 1, 'WaitingForSupervisor', @CreatedBy, ISNULL(@WeightCharge, 0), 'Inward');
+
+    UPDATE dbo.t_InwardHeader SET IsRSTGenerated = 1 WHERE InwardNo = @InwardNo;
+    COMMIT;
+    SELECT @RSTNumber;
+END;
+GO
 CREATE OR ALTER PROCEDURE dbo.sp_CreateRstFromInward
  @InwardNo nvarchar(50), @GrossWeight decimal(18,2), @TargetOfficeId int=NULL
 AS

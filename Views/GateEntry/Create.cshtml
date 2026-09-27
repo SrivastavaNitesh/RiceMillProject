@@ -201,7 +201,63 @@
                                         -- Select Party / Supplier Master --
                                     </option>
 
+                                    <option value="__other__">
+                                        + Other / Add New Party
+                                    </option>
+
                                 </select>
+
+                                <div id="otherPartyPanel"
+                                     class="border rounded-3 p-3 mt-2 bg-light"
+                                     style="display:none;">
+
+                                    <div class="row g-2">
+
+                                        <div class="col-md-7">
+
+                                            <label class="form-label small fw-semibold">
+                                                Party / Supplier Name
+                                            </label>
+
+                                            <input type="text"
+                                                   id="txtOtherPartyName"
+                                                   class="form-control"
+                                                   maxlength="400"
+                                                   placeholder="Enter Party / Supplier Name" />
+
+                                        </div>
+
+                                        <div class="col-md-5">
+
+                                            <label class="form-label small fw-semibold">
+                                                Mobile No. (Optional)
+                                            </label>
+
+                                            <input type="text"
+                                                   id="txtOtherPartyMobile"
+                                                   class="form-control"
+                                                   maxlength="20"
+                                                   inputmode="numeric"
+                                                   placeholder="Enter Mobile Number" />
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="mt-2 text-end">
+
+                                        <button type="button"
+                                                id="btnAddParty"
+                                                class="btn btn-sm btn-primary">
+
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Add Party
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
                             }
 
                         </div>
@@ -246,7 +302,40 @@
                                         -- Select Vehicle --
                                     </option>
 
+                                    <option value="__other__">
+                                        + Other / Add New Vehicle
+                                    </option>
+
                                 </select>
+
+                                <div id="otherVehiclePanel"
+                                     class="border rounded-3 p-3 mt-2 bg-light"
+                                     style="display:none;">
+
+                                    <label class="form-label small fw-semibold">
+                                        Vehicle Number
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <input type="text"
+                                               id="txtOtherVehicleNumber"
+                                               class="form-control text-uppercase"
+                                               maxlength="50"
+                                               placeholder="e.g. UP32AB1234" />
+
+                                        <button type="button"
+                                                id="btnAddVehicle"
+                                                class="btn btn-primary">
+
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Add Vehicle
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
                             }
 
                         </div>
@@ -291,51 +380,64 @@
                                         -- Select Driver (Name / Mobile No) --
                                     </option>
 
+                                    <option value="__other__">
+                                        + Other / Add New Driver
+                                    </option>
+
                                 </select>
+
+                                <div id="otherDriverPanel"
+                                     class="border rounded-3 p-3 mt-2 bg-light"
+                                     style="display:none;">
+
+                                    <div class="row g-2">
+
+                                        <div class="col-md-7">
+
+                                            <label class="form-label small fw-semibold">
+                                                Driver Name
+                                            </label>
+
+                                            <input type="text"
+                                                   id="txtOtherDriverName"
+                                                   class="form-control"
+                                                   maxlength="400"
+                                                   placeholder="Enter Driver Name" />
+
+                                        </div>
+
+                                        <div class="col-md-5">
+
+                                            <label class="form-label small fw-semibold">
+                                                Mobile No. (Optional)
+                                            </label>
+
+                                            <input type="text"
+                                                   id="txtOtherDriverMobile"
+                                                   class="form-control"
+                                                   maxlength="20"
+                                                   inputmode="numeric"
+                                                   placeholder="Enter Mobile Number" />
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="mt-2 text-end">
+
+                                        <button type="button"
+                                                id="btnAddDriver"
+                                                class="btn btn-sm btn-primary">
+
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Add Driver
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
                             }
-
-                        </div>
-
-
-                        <!-- =================================================
-                             ITEM
-                             ================================================= -->
-
-                        <div class="col-md-6">
-
-                            <label asp-for="ItemId"
-                                   class="form-label fw-bold text-dark">
-
-                                Material / Variety
-
-                                <span class="text-danger">*</span>
-
-                            </label>
-
-
-                            <select asp-for="ItemId"
-                                    class="form-select border-primary-subtle"
-                                    asp-items="ViewBag.Items"
-                                    id="ddlItem"
-                                    required>
-
-                                <option value="">
-                                    -- Select Material / Variety --
-                                </option>
-
-                            </select>
-
-
-                            <span asp-validation-for="ItemId"
-                                  class="text-danger small">
-                            </span>
-
-
-                            <small class="text-muted">
-
-                                Every variety will receive a separate RST number.
-
-                            </small>
 
                         </div>
 
@@ -414,7 +516,6 @@
                              OTHER DEVELOPER COMPANY / LOCATION LOGIC
                              PRESERVED
                              ================================================= -->
-
                         @if (!isWeightman)
                         {
                             <div class="col-md-6">
@@ -540,8 +641,7 @@ catch (Exception ex)
         // LIVE CLOCK
         // =========================================================
 
-        function updateLiveClocks()
-        {
+        function updateLiveClocks() {
             const now =
                 new Date();
 
@@ -574,8 +674,7 @@ catch (Exception ex)
                 );
 
 
-            if (headerClock)
-            {
+            if (headerClock) {
                 headerClock.innerText =
                     dateString
                     + ' - '
@@ -599,233 +698,480 @@ catch (Exception ex)
 
         document.addEventListener(
             'DOMContentLoaded',
-            function ()
-            {
+            function() {
 
                 // =================================================
                 // SUCCESS MESSAGE
                 // =================================================
 
                 @if (TempData["SuccessMessage"] != null)
-                {
-                    <text>
+                    {
+                        <text>
 
-                    Swal.fire({
-                        title: 'RST Generated!',
-                        text: @Html.Raw(
-                            System.Text.Json.JsonSerializer.Serialize(
-                                TempData["SuccessMessage"]?.ToString()
-                            )
-                        ),
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#0d6efd'
-                    });
+                                Swal.fire({
+                                    title: 'RST Generated!',
+                                text: @Html.Raw(
+                                                    System.Text.Json.JsonSerializer.Serialize(
+                                                    TempData["SuccessMessage"]?.ToString()
+                                                    )
+                                                    ),
+                                icon: 'success',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#0d6efd'
+                                    });
 
-                    </text>
+                        </text>
                 }
 
 
-                // =================================================
-                // ERROR MESSAGE
-                // =================================================
+                    // =================================================
+                    // ERROR MESSAGE
+                    // =================================================
 
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <text>
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <text>
 
-                    Swal.fire({
-                        title: 'Error!',
-                        text: @Html.Raw(
-                            System.Text.Json.JsonSerializer.Serialize(
-                                TempData["ErrorMessage"]?.ToString()
-                            )
-                        ),
-                        icon: 'error',
-                        confirmButtonText: 'Close',
-                        confirmButtonColor: '#dc3545'
-                    });
+                                Swal.fire({
+                                    title: 'Error!',
+                                text: @Html.Raw(
+                                                    System.Text.Json.JsonSerializer.Serialize(
+                                                    TempData["ErrorMessage"]?.ToString()
+                                                    )
+                                                    ),
+                                icon: 'error',
+                                confirmButtonText: 'Close',
+                                confirmButtonColor: '#dc3545'
+                                    });
 
-                    </text>
+                        </text>
                 }
 
 
-                // =================================================
-                // PARTY -> VEHICLE + DRIVER
-                // =================================================
+                        // =================================================
+                        // PARTY -> VEHICLE -> DRIVER
+                        // + OTHER / QUICK ADD
+                        // =================================================
+
+                        const OTHER_VALUE =
+                    '__other__';
+
+
+                function getAntiForgeryToken() {
+                    return document.querySelector(
+                        'input[name="__RequestVerificationToken"]'
+                    )?.value || '';
+                }
+
+
+                function showPanel(
+                    panelId,
+                    show) {
+                    const panel =
+                        document.getElementById(
+                            panelId
+                        );
+
+                    if (panel) {
+                        panel.style.display =
+                            show
+                                ? 'block'
+                                : 'none';
+                    }
+                }
+
+
+                function appendOtherOption(
+                    select,
+                    text) {
+                    if (!select) {
+                        return;
+                    }
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        OTHER_VALUE;
+
+                    option.textContent =
+                        text;
+
+                    select.appendChild(
+                        option
+                    );
+                }
+
+
+                function insertOrSelectOption(
+                    select,
+                    value,
+                    textValue) {
+                    if (!select) {
+                        return;
+                    }
+
+                    const stringValue =
+                        String(
+                            value
+                        );
+
+                    let option =
+                        Array.from(
+                            select.options
+                        )
+                            .find(
+                                x =>
+                                    x.value ===
+                                    stringValue
+                            );
+
+
+                    if (!option) {
+                        option =
+                            document.createElement(
+                                'option'
+                            );
+
+                        option.value =
+                            stringValue;
+
+                        option.textContent =
+                            textValue;
+
+
+                        const otherOption =
+                            Array.from(
+                                select.options
+                            )
+                                .find(
+                                    x =>
+                                        x.value ===
+                                        OTHER_VALUE
+                                );
+
+
+                        if (otherOption) {
+                            select.insertBefore(
+                                option,
+                                otherOption
+                            );
+                        }
+                        else {
+                            select.appendChild(
+                                option
+                            );
+                        }
+                    }
+
+
+                    select.value =
+                        stringValue;
+                }
+
+
+                function resetVehicleDropdown() {
+                    const ddlVehicle =
+                        document.getElementById(
+                            'ddlVehicle'
+                        );
+
+                    if (!ddlVehicle) {
+                        return;
+                    }
+
+                    ddlVehicle.innerHTML =
+                        '<option value="">-- Select Vehicle --</option>';
+
+
+                    appendOtherOption(
+                        ddlVehicle,
+                        '+ Other / Add New Vehicle'
+                    );
+
+
+                    showPanel(
+                        'otherVehiclePanel',
+                        false
+                    );
+                }
+
+
+                function resetDriverDropdown() {
+                    const ddlDriver =
+                        document.getElementById(
+                            'ddlDriver'
+                        );
+
+                    if (!ddlDriver) {
+                        return;
+                    }
+
+                    ddlDriver.innerHTML =
+                        '<option value="">-- Select Driver (Name / Mobile No) --</option>';
+
+
+                    appendOtherOption(
+                        ddlDriver,
+                        '+ Other / Add New Driver'
+                    );
+
+
+                    showPanel(
+                        'otherDriverPanel',
+                        false
+                    );
+                }
+
+
+                function loadDriversByVehicle(
+                    partyId,
+                    vehicleId,
+                    targetDriverId) {
+                    resetDriverDropdown();
+
+                    if (
+                        !partyId
+                        ||
+                        partyId === OTHER_VALUE
+                        ||
+                        !vehicleId
+                        ||
+                        vehicleId === OTHER_VALUE
+                    ) {
+                        return;
+                    }
+
+
+                    fetch(
+                        '/GateEntry/GetDriversByVehicle'
+                        +
+                        '?partyId='
+                        +
+                        encodeURIComponent(
+                            partyId
+                        )
+                        +
+                        '&vehicleId='
+                        +
+                        encodeURIComponent(
+                            vehicleId
+                        )
+                    )
+                        .then(response =>
+                            response.json()
+                        )
+                        .then(data => {
+                            const ddlDriver =
+                                document.getElementById(
+                                    'ddlDriver'
+                                );
+
+
+                            if (!ddlDriver) {
+                                return;
+                            }
+
+
+                            ddlDriver.innerHTML =
+                                '<option value="">-- Select Driver (Name / Mobile No) --</option>';
+
+
+                            if (
+                                data.success
+                                &&
+                                Array.isArray(
+                                    data.drivers
+                                )
+                            ) {
+                                data.drivers.forEach(
+                                    function(driver) {
+                                        const option =
+                                            document.createElement(
+                                                'option'
+                                            );
+
+
+                                        option.value =
+                                            driver.driverId;
+
+
+                                        option.textContent =
+                                            driver.driverNameMobile;
+
+
+                                        ddlDriver.appendChild(
+                                            option
+                                        );
+                                    }
+                                );
+                            }
+
+
+                            appendOtherOption(
+                                ddlDriver,
+                                '+ Other / Add New Driver'
+                            );
+
+
+                            if (
+                                targetDriverId
+                                &&
+                                targetDriverId > 0
+                            ) {
+                                ddlDriver.value =
+                                    targetDriverId;
+                            }
+                        })
+                        .catch(error => {
+                            console.error(
+                                'Driver options error:',
+                                error
+                            );
+                        });
+                }
+
 
                 function loadPartyOptions(
                     partyId,
                     targetVehicleId,
-                    targetDriverId)
-                {
-                    if (!partyId)
-                    {
+                    targetDriverId) {
+                    resetVehicleDropdown();
+                    resetDriverDropdown();
+
+                    if (
+                        !partyId
+                        ||
+                        partyId === OTHER_VALUE
+                    ) {
                         return;
                     }
 
 
                     fetch(
                         '/GateEntry/GetPartyOptions?partyId='
-                        + encodeURIComponent(partyId)
-                    )
-                    .then(response =>
-                        response.json()
-                    )
-                    .then(data =>
-                    {
-                        if (!data.success)
-                        {
-                            return;
-                        }
-
-
-                        // =========================================
-                        // VEHICLES
-                        // =========================================
-
-                        const ddlVehicle =
-                            document.getElementById(
-                                'ddlVehicle'
-                            );
-
-
-                        if (
-                            ddlVehicle
-                            &&
-                            data.vehicles
+                        +
+                        encodeURIComponent(
+                            partyId
                         )
-                        {
+                    )
+                        .then(response =>
+                            response.json()
+                        )
+                        .then(data => {
+                            const ddlVehicle =
+                                document.getElementById(
+                                    'ddlVehicle'
+                                );
+
+
+                            if (!ddlVehicle) {
+                                return;
+                            }
+
+
                             ddlVehicle.innerHTML =
                                 '<option value="">-- Select Vehicle --</option>';
 
 
-                            data.vehicles.forEach(
-                                function (v)
-                                {
-                                    const opt =
-                                        document.createElement(
-                                            'option'
+                            if (
+                                data.success
+                                &&
+                                Array.isArray(
+                                    data.vehicles
+                                )
+                            ) {
+                                data.vehicles.forEach(
+                                    function(vehicle) {
+                                        const option =
+                                            document.createElement(
+                                                'option'
+                                            );
+
+
+                                        option.value =
+                                            vehicle.vehicleId;
+
+
+                                        option.textContent =
+                                            vehicle.vehicleNumber;
+
+
+                                        ddlVehicle.appendChild(
+                                            option
                                         );
-
-
-                                    opt.value =
-                                        v.vehicleId;
-
-
-                                    opt.textContent =
-                                        v.isLinked
-                                            ? `${v.vehicleNumber} (Linked)`
-                                            : v.vehicleNumber;
-
-
-                                    if (v.isLinked)
-                                    {
-                                        opt.style.fontWeight =
-                                            'bold';
                                     }
+                                );
+                            }
 
 
-                                    ddlVehicle.appendChild(
-                                        opt
-                                    );
-                                }
+                            appendOtherOption(
+                                ddlVehicle,
+                                '+ Other / Add New Vehicle'
                             );
 
 
-                            const selectedVehicle =
+                            const selectedVehicleId =
                                 targetVehicleId
-                                || data.defaultVehicleId;
+                                ||
+                                data.defaultVehicleId;
 
 
                             if (
-                                selectedVehicle
+                                selectedVehicleId
                                 &&
-                                selectedVehicle > 0
-                            )
-                            {
+                                selectedVehicleId > 0
+                            ) {
                                 ddlVehicle.value =
-                                    selectedVehicle;
+                                    selectedVehicleId;
+
+
+                                loadDriversByVehicle(
+                                    partyId,
+                                    selectedVehicleId,
+                                    targetDriverId
+                                    ||
+                                    data.defaultDriverId
+                                );
                             }
-                        }
-
-
-                        // =========================================
-                        // DRIVERS
-                        // =========================================
-
-                        const ddlDriver =
-                            document.getElementById(
-                                'ddlDriver'
+                        })
+                        .catch(error => {
+                            console.error(
+                                'Party options error:',
+                                error
                             );
+                        });
+                }
 
 
-                        if (
-                            ddlDriver
-                            &&
-                            data.drivers
-                        )
-                        {
-                            ddlDriver.innerHTML =
-                                '<option value="">-- Select Driver (Name / Mobile No) --</option>';
+                async function postQuickAdd(
+                    url,
+                    values) {
+                    values.append(
+                        '__RequestVerificationToken',
+                        getAntiForgeryToken()
+                    );
 
 
-                            data.drivers.forEach(
-                                function (d)
-                                {
-                                    const opt =
-                                        document.createElement(
-                                            'option'
-                                        );
-
-
-                                    opt.value =
-                                        d.driverId;
-
-
-                                    opt.textContent =
-                                        d.isLinked
-                                            ? `${d.driverNameMobile} (Linked)`
-                                            : d.driverNameMobile;
-
-
-                                    if (d.isLinked)
-                                    {
-                                        opt.style.fontWeight =
-                                            'bold';
-                                    }
-
-
-                                    ddlDriver.appendChild(
-                                        opt
-                                    );
-                                }
-                            );
-
-
-                            const selectedDriver =
-                                targetDriverId
-                                || data.defaultDriverId;
-
-
-                            if (
-                                selectedDriver
-                                &&
-                                selectedDriver > 0
-                            )
+                    const response =
+                        await fetch(
+                            url,
                             {
-                                ddlDriver.value =
-                                    selectedDriver;
+                                method: 'POST',
+                                headers:
+                                {
+                                    'Content-Type':
+                                        'application/x-www-form-urlencoded; charset=UTF-8'
+                                },
+                                body:
+                                    values.toString()
                             }
-                        }
-                    })
-                    .catch(error =>
-                    {
-                        console.error(
-                            'Party options error:',
-                            error
                         );
-                    });
+
+
+                    return await response.json();
                 }
 
 
@@ -839,15 +1185,542 @@ catch (Exception ex)
                     );
 
 
-                if (ddlParty)
-                {
+                if (ddlParty) {
                     ddlParty.addEventListener(
                         'change',
-                        function ()
-                        {
+                        function() {
+                            const isOther =
+                                this.value ===
+                                OTHER_VALUE;
+
+
+                            showPanel(
+                                'otherPartyPanel',
+                                isOther
+                            );
+
+
+                            if (isOther) {
+                                resetVehicleDropdown();
+                                resetDriverDropdown();
+
+                                return;
+                            }
+
+
                             loadPartyOptions(
                                 this.value
                             );
+                        }
+                    );
+                }
+
+
+                // =================================================
+                // VEHICLE CHANGE
+                // =================================================
+
+                const ddlVehicle =
+                    document.getElementById(
+                        'ddlVehicle'
+                    );
+
+
+                if (ddlVehicle) {
+                    ddlVehicle.addEventListener(
+                        'change',
+                        function() {
+                            const isOther =
+                                this.value ===
+                                OTHER_VALUE;
+
+
+                            showPanel(
+                                'otherVehiclePanel',
+                                isOther
+                            );
+
+
+                            resetDriverDropdown();
+
+
+                            if (isOther) {
+                                return;
+                            }
+
+
+                            const partyId =
+                                ddlParty?.value;
+
+
+                            loadDriversByVehicle(
+                                partyId,
+                                this.value
+                            );
+                        }
+                    );
+                }
+
+
+                // =================================================
+                // DRIVER CHANGE
+                // =================================================
+
+                const ddlDriver =
+                    document.getElementById(
+                        'ddlDriver'
+                    );
+
+
+                if (ddlDriver) {
+                    ddlDriver.addEventListener(
+                        'change',
+                        function() {
+                            showPanel(
+                                'otherDriverPanel',
+                                this.value ===
+                                OTHER_VALUE
+                            );
+                        }
+                    );
+                }
+
+
+                // =================================================
+                // ADD PARTY
+                // =================================================
+
+                const btnAddParty =
+                    document.getElementById(
+                        'btnAddParty'
+                    );
+
+
+                if (btnAddParty) {
+                    btnAddParty.addEventListener(
+                        'click',
+                        async function() {
+                            const partyName =
+                                document.getElementById(
+                                    'txtOtherPartyName'
+                                )?.value.trim();
+
+
+                            const mobileNumber =
+                                document.getElementById(
+                                    'txtOtherPartyMobile'
+                                )?.value.trim();
+
+
+                            if (!partyName) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Party Name Required',
+                                    text: 'Please enter Party / Supplier Name.'
+                                });
+
+                                return;
+                            }
+
+
+                            this.disabled =
+                                true;
+
+
+                            try {
+                                const values =
+                                    new URLSearchParams();
+
+                                values.append(
+                                    'partyName',
+                                    partyName
+                                );
+
+                                values.append(
+                                    'mobileNumber',
+                                    mobileNumber || ''
+                                );
+
+
+                                const result =
+                                    await postQuickAdd(
+                                        '/GateEntry/QuickAddParty',
+                                        values
+                                    );
+
+
+                                if (!result.success) {
+                                    throw new Error(
+                                        result.message
+                                        ||
+                                        'Unable to add Party.'
+                                    );
+                                }
+
+
+                                insertOrSelectOption(
+                                    ddlParty,
+                                    result.partyId,
+                                    result.partyName
+                                    ||
+                                    partyName
+                                );
+
+
+                                showPanel(
+                                    'otherPartyPanel',
+                                    false
+                                );
+
+
+                                document.getElementById(
+                                    'txtOtherPartyName'
+                                ).value =
+                                    '';
+
+
+                                document.getElementById(
+                                    'txtOtherPartyMobile'
+                                ).value =
+                                    '';
+
+
+                                loadPartyOptions(
+                                    result.partyId
+                                );
+
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Party Added',
+                                    timer: 1200,
+                                    showConfirmButton: false
+                                });
+                            }
+                            catch (error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Unable to Add Party',
+                                    text: error.message
+                                });
+                            }
+                            finally {
+                                this.disabled =
+                                    false;
+                            }
+                        }
+                    );
+                }
+
+
+                // =================================================
+                // ADD VEHICLE
+                // =================================================
+
+                const btnAddVehicle =
+                    document.getElementById(
+                        'btnAddVehicle'
+                    );
+
+
+                if (btnAddVehicle) {
+                    btnAddVehicle.addEventListener(
+                        'click',
+                        async function() {
+                            const partyId =
+                                ddlParty?.value;
+
+
+                            const vehicleNumber =
+                                document.getElementById(
+                                    'txtOtherVehicleNumber'
+                                )?.value
+                                    .trim()
+                                    .toUpperCase()
+                                    .replace(
+                                        /\s+/g,
+                                        ''
+                                    );
+
+
+                            if (
+                                !partyId
+                                ||
+                                partyId ===
+                                OTHER_VALUE
+                            ) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Select Party First',
+                                    text: 'Please select or add Party before adding Vehicle.'
+                                });
+
+                                return;
+                            }
+
+
+                            if (!vehicleNumber) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Vehicle Number Required',
+                                    text: 'Please enter Vehicle Number.'
+                                });
+
+                                return;
+                            }
+
+
+                            this.disabled =
+                                true;
+
+
+                            try {
+                                const values =
+                                    new URLSearchParams();
+
+                                values.append(
+                                    'partyId',
+                                    partyId
+                                );
+
+                                values.append(
+                                    'vehicleNumber',
+                                    vehicleNumber
+                                );
+
+
+                                const result =
+                                    await postQuickAdd(
+                                        '/GateEntry/QuickAddVehicle',
+                                        values
+                                    );
+
+
+                                if (!result.success) {
+                                    throw new Error(
+                                        result.message
+                                        ||
+                                        'Unable to add Vehicle.'
+                                    );
+                                }
+
+
+                                insertOrSelectOption(
+                                    ddlVehicle,
+                                    result.vehicleId,
+                                    result.vehicleNumber
+                                    ||
+                                    vehicleNumber
+                                );
+
+
+                                showPanel(
+                                    'otherVehiclePanel',
+                                    false
+                                );
+
+
+                                document.getElementById(
+                                    'txtOtherVehicleNumber'
+                                ).value =
+                                    '';
+
+
+                                loadDriversByVehicle(
+                                    partyId,
+                                    result.vehicleId
+                                );
+
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Vehicle Added',
+                                    text: 'Now select an existing Driver or choose Other to add a new Driver.',
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
+                            }
+                            catch (error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Unable to Add Vehicle',
+                                    text: error.message
+                                });
+                            }
+                            finally {
+                                this.disabled =
+                                    false;
+                            }
+                        }
+                    );
+                }
+
+
+                // =================================================
+                // ADD DRIVER
+                // =================================================
+
+                const btnAddDriver =
+                    document.getElementById(
+                        'btnAddDriver'
+                    );
+
+
+                if (btnAddDriver) {
+                    btnAddDriver.addEventListener(
+                        'click',
+                        async function() {
+                            const partyId =
+                                ddlParty?.value;
+
+
+                            const vehicleId =
+                                ddlVehicle?.value;
+
+
+                            const driverName =
+                                document.getElementById(
+                                    'txtOtherDriverName'
+                                )?.value.trim();
+
+
+                            const mobileNumber =
+                                document.getElementById(
+                                    'txtOtherDriverMobile'
+                                )?.value.trim();
+
+
+                            if (
+                                !partyId
+                                ||
+                                partyId ===
+                                OTHER_VALUE
+                            ) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Select Party First'
+                                });
+
+                                return;
+                            }
+
+
+                            if (
+                                !vehicleId
+                                ||
+                                vehicleId ===
+                                OTHER_VALUE
+                            ) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Select Vehicle First'
+                                });
+
+                                return;
+                            }
+
+
+                            if (!driverName) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Driver Name Required',
+                                    text: 'Please enter Driver Name.'
+                                });
+
+                                return;
+                            }
+
+
+                            this.disabled =
+                                true;
+
+
+                            try {
+                                const values =
+                                    new URLSearchParams();
+
+                                values.append(
+                                    'partyId',
+                                    partyId
+                                );
+
+                                values.append(
+                                    'vehicleId',
+                                    vehicleId
+                                );
+
+                                values.append(
+                                    'driverName',
+                                    driverName
+                                );
+
+                                values.append(
+                                    'mobileNumber',
+                                    mobileNumber || ''
+                                );
+
+
+                                const result =
+                                    await postQuickAdd(
+                                        '/GateEntry/QuickAddDriver',
+                                        values
+                                    );
+
+
+                                if (!result.success) {
+                                    throw new Error(
+                                        result.message
+                                        ||
+                                        'Unable to add Driver.'
+                                    );
+                                }
+
+
+                                insertOrSelectOption(
+                                    ddlDriver,
+                                    result.driverId,
+                                    result.driverNameMobile
+                                    ||
+                                    driverName
+                                );
+
+
+                                showPanel(
+                                    'otherDriverPanel',
+                                    false
+                                );
+
+
+                                document.getElementById(
+                                    'txtOtherDriverName'
+                                ).value =
+                                    '';
+
+
+                                document.getElementById(
+                                    'txtOtherDriverMobile'
+                                ).value =
+                                    '';
+
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Driver Added & Linked',
+                                    timer: 1400,
+                                    showConfirmButton: false
+                                });
+                            }
+                            catch (error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Unable to Add Driver',
+                                    text: error.message
+                                });
+                            }
+                            finally {
+                                this.disabled =
+                                    false;
+                            }
                         }
                     );
                 }
@@ -863,18 +1736,15 @@ catch (Exception ex)
                     );
 
 
-                if (ddlInward)
-                {
+                if (ddlInward) {
                     ddlInward.addEventListener(
                         'change',
-                        function ()
-                        {
+                        function() {
                             const inwardNo =
                                 this.value;
 
 
-                            if (!inwardNo)
-                            {
+                            if (!inwardNo) {
                                 return;
                             }
 
@@ -885,44 +1755,39 @@ catch (Exception ex)
                                     inwardNo
                                 )
                             )
-                            .then(response =>
-                                response.json()
-                            )
-                            .then(data =>
-                            {
-                                if (
-                                    data.success
-                                    &&
-                                    data.partyId
+                                .then(response =>
+                                    response.json()
                                 )
-                                {
-                                    if (ddlParty)
-                                    {
-                                        ddlParty.value =
-                                            data.partyId;
+                                .then(data => {
+                                    if (
+                                        data.success
+                                        &&
+                                        data.partyId
+                                    ) {
+                                        if (ddlParty) {
+                                            ddlParty.value =
+                                                data.partyId;
+                                        }
+
+
+                                        loadPartyOptions(
+                                            data.partyId,
+                                            data.vehicleId,
+                                            data.driverId
+                                        );
                                     }
-
-
-                                    loadPartyOptions(
-                                        data.partyId,
-                                        data.vehicleId,
-                                        data.driverId
+                                })
+                                .catch(error => {
+                                    console.error(
+                                        'Inward details error:',
+                                        error
                                     );
-                                }
-                            })
-                            .catch(error =>
-                            {
-                                console.error(
-                                    'Inward details error:',
-                                    error
-                                );
-                            });
+                                });
                         }
                     );
 
 
-                    if (ddlInward.value)
-                    {
+                    if (ddlInward.value) {
                         ddlInward.dispatchEvent(
                             new Event(
                                 'change'
@@ -942,12 +1807,10 @@ catch (Exception ex)
                     );
 
 
-                if (form)
-                {
+                if (form) {
                     form.addEventListener(
                         'submit',
-                        function (e)
-                        {
+                        function(e) {
                             const party =
                                 document.getElementById(
                                     'ddlParty'
@@ -972,12 +1835,6 @@ catch (Exception ex)
                                 )?.value;
 
 
-                            const item =
-                                document.getElementById(
-                                    'ddlItem'
-                                )?.value;
-
-
                             const grossWt =
                                 parseFloat(
                                     document
@@ -992,42 +1849,42 @@ catch (Exception ex)
                             let missing = [];
 
 
-                            if (!inwardNo)
-                            {
+                            if (!inwardNo) {
                                 missing.push(
                                     'Gate Inward Entry'
                                 );
                             }
 
 
-                            if (!party)
-                            {
+                            if (
+                                !party
+                                ||
+                                party === OTHER_VALUE
+                            ) {
                                 missing.push(
                                     'Party / Supplier Master'
                                 );
                             }
 
 
-                            if (!vehicle)
-                            {
+                            if (
+                                !vehicle
+                                ||
+                                vehicle === OTHER_VALUE
+                            ) {
                                 missing.push(
                                     'Vehicle Selection'
                                 );
                             }
 
 
-                            if (!driver)
-                            {
+                            if (
+                                !driver
+                                ||
+                                driver === OTHER_VALUE
+                            ) {
                                 missing.push(
                                     'Driver / Mobile Number'
-                                );
-                            }
-
-
-                            if (!item)
-                            {
-                                missing.push(
-                                    'Material / Variety'
                                 );
                             }
 
@@ -1036,16 +1893,14 @@ catch (Exception ex)
                                 !grossWt
                                 ||
                                 grossWt <= 0
-                            )
-                            {
+                            ) {
                                 missing.push(
                                     'Gross Weight (KG)'
                                 );
                             }
 
 
-                            if (missing.length > 0)
-                            {
+                            if (missing.length > 0) {
                                 e.preventDefault();
 
 

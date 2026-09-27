@@ -549,6 +549,9 @@ namespace RiceMillProject.Controllers
                     tareWeight
                 );
 
+                TempData["SuccessMessage"] =
+                    $"Tare Weight saved successfully for RST {rstNumber}. Net Weight calculated.";
+
                 return RedirectToAction(
                     "Index"
                 );
@@ -740,6 +743,58 @@ namespace RiceMillProject.Controllers
                         success = false,
                         message =
                             ex.Message
+                    }
+                );
+            }
+        }
+
+
+        // =========================================================
+        // DRIVERS BY VEHICLE
+        // Party -> Vehicle -> Driver
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult GetDriversByVehicle(
+            int partyId,
+            int vehicleId)
+        {
+            try
+            {
+                if (partyId <= 0 || vehicleId <= 0)
+                {
+                    return Json(
+                        new
+                        {
+                            success = false,
+                            drivers = Array.Empty<object>(),
+                            message = "Valid Party and Vehicle are required."
+                        }
+                    );
+                }
+
+                var drivers =
+                    _gateBal.GetDriversByVehicle(
+                        partyId,
+                        vehicleId
+                    );
+
+                return Json(
+                    new
+                    {
+                        success = true,
+                        drivers = drivers
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+                        drivers = Array.Empty<object>(),
+                        message = ex.Message
                     }
                 );
             }
