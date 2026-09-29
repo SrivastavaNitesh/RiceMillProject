@@ -1,0 +1,49 @@
+@model RiceMillProject.Models.BillingPage
+@using System.Text.Json
+@{ViewData["Title"]="Generate bill";var source=Model.Calculation.Source;}
+<partial name="_Messages" />
+<div class="bill-page-heading"><div><h2>Generate bill</h2><p class="text-muted">Set item rates, review deductions and reconcile weights before saving.</p></div><a asp-action="Details" asp-route-rstNumber="@source.Header.RSTNumber" class="btn btn-outline-secondary">Back to details</a></div>
+<partial name="_RstHeader" model="Model.Calculation" />
+<partial name="_Items" model="Model.Calculation" />
+<form method="post" asp-action="Generate" id="billing-form">
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+<input asp-for="Form.RSTNumber" type="hidden" /><input asp-for="Form.SubmissionId" type="hidden" /><input asp-for="Form.SourceVersion" type="hidden" />
+@if(Model.Calculation.Issues.Count>0){<div class="alert alert-warning"><strong>Review before saving</strong><ul class="mb-0">@foreach(var issue in Model.Calculation.Issues){<li>@issue</li>}</ul><a asp-action="Rules">Configure lab deduction rules</a></div>}
+@if(ViewBag.PreviewReady==true){<div class="alert alert-success">Server calculation verified. Review totals and save the bill.</div>}
+<section class="card card-body mb-4">
+<div class="bill-section-title"><h4>Item rates and deductions</h4><div><label asp-for="Form.WeightMode" class="form-label">Weight allocation</label><select asp-for="Form.WeightMode" class="form-select" id="weight-mode"><option value="ByBags">Net kg ÷ total bags × item bags</option><option value="Measured">Enter measured item weights</option></select></div></div>
+<p class="small text-muted">Kg/quintal rates use weight after bag tare. Bag rates use the recorded bag count. Laboratory deductions reduce the item payment.</p>
+<div class="table-responsive"><table class="table bill-rate-table"><thead><tr><th>Item</th><th>Bags</th><th>Weight kg</th><th>Rate</th><th>Rate per</th><th>Billable kg</th><th>Base amount</th><th>Lab deduction</th><th>Item payable</th></tr></thead><tbody>
+@for(var i=0;i<Model.Form.Items.Count;i++){
+var item=Model.Calculation.Items.FirstOrDefault(x=>x.ItemId==Model.Form.Items[i].ItemId);if(item==null){continue;}
+<tr data-item-id="@item.ItemId"><td><strong>@item.ItemName</strong><small class="d-block text-muted">@item.CategoryName</small><input asp-for="Form.Items[i].ItemId" type="hidden" /></td><td>@item.Bags</td>
+<td><input asp-for="Form.Items[i].MeasuredWeight" type="number" min="0.001" max="999999999999" step="0.001" class="form-control measured-weight" aria-label="Measured kg for @item.ItemName" /><span class="allocated-weight">@item.GrossKg.ToString("N3")</span></td>
+<td><input asp-for="Form.Items[i].Rate" type="text" inputmode="decimal" pattern="[0-9]+([.][0-9]{1,2})?" required maxlength="11" class="form-control item-rate" aria-label="Rate for @item.ItemName" /></td>
+<td><select asp-for="Form.Items[i].RateBasis" class="form-select rate-basis" aria-label="Rate basis for @item.ItemName"><option value="Quintal">Quintal</option><option value="Kg">Kg</option><option value="Bag">Bag</option></select></td>
+<td class="item-payable-kg">@item.PayableKg.ToString("N3")</td><td class="item-base">@item.BaseAmount.ToString("N2")</td><td class="item-deduction">@item.LabDeductionAmount.ToString("N2")</td><td class="item-amount fw-bold">@item.Amount.ToString("N2")</td></tr>
+}
+</tbody></table></div>
+<div id="weight-reconciliation" class="small mt-3" role="status"></div>
+</section>
+<section class="card card-body mb-4">
+<h4>Item location allocation</h4><p class="text-muted small">Each supervisor bag row must be fully allocated to its unloading locations. Location weight follows the item's bag ratio.</p>
+<div class="table-responsive"><table class="table"><thead><tr><th>Item / bag type</th><th>Location</th><th>Supervisor bags</th><th>Allocated bags</th></tr></thead><tbody>
+@for(var i=0;i<Model.Form.Allocations.Count;i++){
+var a=Model.Form.Allocations[i];var lot=source.Lots.FirstOrDefault(l=>l.DetailId==a.DetailId);if(lot==null){continue;}
+var loc=source.Locations.FirstOrDefault(l=>l.UnloadId==lot.UnloadId && l.LocationId==a.LocationId);
+<tr><td>@lot.ItemName / @lot.BagTypeName<input asp-for="Form.Allocations[i].DetailId" type="hidden" /><input asp-for="Form.Allocations[i].LocationId" type="hidden" /></td><td>@loc?.LocationName</td><td>@lot.BagCount</td><td><input asp-for="Form.Allocations[i].BagCount" class="form-control bill-count-input" type="number" min="0" max="@lot.BagCount" step="1" required aria-label="Bags for @lot.ItemName at @loc?.LocationName" /></td></tr>
+}
+</tbody></table></div>
+</section>
+<section class="card card-body mb-4"><h4>Worker costs</h4><p class="text-muted small">Bag counts come from Meth entries. Enter the rate per bag for each worker/work allocation.</p>
+<div class="table-responsive"><table class="table"><thead><tr><th>Worker</th><th>Work / bag</th><th>Bags</th><th>Rate per bag</th><th>Amount</th></tr></thead><tbody>
+@for(var i=0;i<Model.Form.Workers.Count;i++){
+var w=source.Workers.FirstOrDefault(x=>x.AllocationId==Model.Form.Workers[i].AllocationId);if(w==null){continue;}
+<tr class="worker-row" data-bags="@w.BagCount"><td>@w.WorkerName<input asp-for="Form.Workers[i].AllocationId" type="hidden" /></td><td>@w.WorkType / @w.BagTypeName</td><td>@w.BagCount</td><td><input asp-for="Form.Workers[i].Rate" type="text" inputmode="decimal" pattern="[0-9]+([.][0-9]{1,2})?" required maxlength="9" class="form-control worker-rate" aria-label="Rate per bag for @w.WorkerName" /></td><td class="worker-amount">@Model.Calculation.Workers.FirstOrDefault(x=>x.AllocationId==w.AllocationId)?.Amount.ToString("N2")</td></tr>
+}
+</tbody></table></div></section>
+<div class="row g-4"><div class="col-lg-7"><section class="card card-body"><label asp-for="Form.Notes" class="form-label">Notes</label><textarea asp-for="Form.Notes" class="form-control" maxlength="1000"></textarea><label asp-for="Form.GstPercent" class="form-label mt-3">GST (%)</label><input asp-for="Form.GstPercent" type="number" min="0" max="100" step="0.01" class="form-control" id="gst-percent" required /><p class="small text-muted mt-2 mb-0">GST is applied to item payable plus worker charges. Enter the applicable rate; default is 0.</p></section></div>
+<div class="col-lg-5"><section class="card card-body bill-totals"><dl><div><dt>Item base amount</dt><dd id="total-items">@Model.Calculation.ItemAmount.ToString("N2")</dd></div><div><dt>Lab deduction</dt><dd id="total-deduction">@Model.Calculation.LabDeduction.ToString("N2")</dd></div><div><dt>Worker charges</dt><dd id="total-workers">@Model.Calculation.WorkerAmount.ToString("N2")</dd></div><div><dt>Subtotal</dt><dd id="total-subtotal">@Model.Calculation.Subtotal.ToString("N2")</dd></div><div><dt>GST</dt><dd id="total-gst">@Model.Calculation.GstAmount.ToString("N2")</dd></div><div class="bill-grand-total"><dt>Total INR</dt><dd id="total-amount">@Model.Calculation.Total.ToString("N2")</dd></div></dl><div class="d-flex gap-2 flex-wrap"><button type="submit" name="intent" value="preview" class="btn btn-outline-primary">Verify calculation</button><button type="submit" name="intent" value="save" class="btn btn-primary">Save bill</button></div><small class="text-muted mt-3">Server validation runs again before saving. Saved bills cannot be silently overwritten.</small></section></div></div>
+</form>
+<script type="application/json" id="billing-source">@Html.Raw(JsonSerializer.Serialize(source))</script>
+@section Scripts {<script src="~/js/billing.js" asp-append-version="true"></script>}

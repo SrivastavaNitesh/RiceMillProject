@@ -1,49 +1,201 @@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var checks = action is "Index" or "Create";
+    var reports = action is "Report" or "Reports";
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Lab Quality Portal - RiceMill</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <style>
-        .lab-sidebar { background: linear-gradient(180deg, #1e3c72 0%, #162d56 100%); color: white; width: 270px; min-height: 100vh; position: fixed; left: 0; top: 0; z-index: 1030; }
-        .lab-brand { border-bottom: 1px solid rgba(255,255,255,.18); }
-        .lab-sidebar .nav-link { color: rgba(255,255,255,.86); border-radius: 8px; font-weight: 500; padding: .75rem 1rem; }
-        .lab-sidebar .nav-link:hover, .lab-sidebar .nav-link.active { background-color: rgba(255,255,255,.18); color: #fff; }
-        .lab-content { margin-left: 270px; min-height: 100vh; background: #f5f7fb; }
-        @@media (max-width: 768px) { .lab-sidebar { width: 220px; } .lab-content { margin-left: 220px; } }
-    </style>
+
+    <title>@ViewData["Title"] - Annapurna Agro Laboratory</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+    <link rel="stylesheet"
+          href="~/css/lab.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/annapurna-theme.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/annapurna-design.css"
+          asp-append-version="true" />
+
+    <script src="~/js/annapurna-theme.js"
+            asp-append-version="true"></script>
 </head>
-<body>
-    @{ var currentLabAction = ViewContext.RouteData.Values["action"]?.ToString() ?? ""; }
-    <aside class="lab-sidebar p-3 d-flex flex-column">
-        <div class="lab-brand pb-3 mb-3">
-            <h4 class="mb-1 fw-bold"><i class="bi bi-moisture me-2"></i>Lab Portal</h4>
-            <small class="text-white-50">Rice Mill Quality Control</small>
+
+<body class="agro-ui lab-shell">
+
+    <a href="#lab-content" class="lab-skip">
+        Skip to content
+    </a>
+
+    <aside class="lab-sidebar" id="lab-sidebar">
+
+        <a class="agro-brand-link"
+           asp-controller="Lab"
+           asp-action="Index">
+            <partial name="_Brand" />
+        </a>
+
+        <div class="lab-nav-label">
+            WORKSPACE
         </div>
-        <div class="text-uppercase small text-white-50 mb-2">Lab Navigation</div>
-        <nav class="nav flex-column gap-1">
-            <a class="nav-link @(currentLabAction == "Index" ? "active" : "")" asp-controller="Lab" asp-action="Index"><i class="bi bi-moisture me-2"></i>Quality Check Log</a>
-            <a class="nav-link @(currentLabAction == "Tests" ? "active" : "")" asp-controller="Lab" asp-action="Tests"><i class="bi bi-clipboard-plus me-2"></i>Test Master</a>
-            <a class="nav-link @(currentLabAction == "Mappings" ? "active" : "")" asp-controller="Lab" asp-action="Mappings"><i class="bi bi-box me-2"></i>Item Test Mapping</a>
-            <a class="nav-link @(currentLabAction == "Reports" || currentLabAction == "Report" ? "active" : "")" asp-controller="Lab" asp-action="Reports"><i class="bi bi-file-earmark-bar-graph me-2"></i>Lab Reports</a>
+
+        <nav aria-label="Laboratory navigation">
+
+            <a class="lab-nav-link @(checks ? "active" : "")"
+               aria-current="@(checks ? "page" : null)"
+               asp-controller="Lab"
+               asp-action="Index">
+
+                <span class="lab-nav-symbol"
+                      aria-hidden="true">
+                    01
+                </span>
+
+                RST quality checks
+            </a>
+
+            <a class="lab-nav-link @(reports ? "active" : "")"
+               aria-current="@(reports ? "page" : null)"
+               asp-controller="Lab"
+               asp-action="Reports">
+
+                <span class="lab-nav-symbol"
+                      aria-hidden="true">
+                    02
+                </span>
+
+                Lab reports
+            </a>
+
+            <div class="lab-nav-label">
+                CONFIGURATION
+            </div>
+
+            <a class="lab-nav-link @(action == "Tests" ? "active" : "")"
+               aria-current="@(action == "Tests" ? "page" : null)"
+               asp-controller="Lab"
+               asp-action="Tests">
+
+                <span class="lab-nav-symbol"
+                      aria-hidden="true">
+                    03
+                </span>
+
+                Test master
+            </a>
+
+            <a class="lab-nav-link @(action == "Mappings" ? "active" : "")"
+               aria-current="@(action == "Mappings" ? "page" : null)"
+               asp-controller="Lab"
+               asp-action="Mappings">
+
+                <span class="lab-nav-symbol"
+                      aria-hidden="true">
+                    04
+                </span>
+
+                Item test mapping
+            </a>
+
         </nav>
-        <div class="mt-auto border-top border-light border-opacity-25 pt-3">
-            <div class="small mb-3"><i class="bi bi-person-badge me-2"></i>@User.Identity?.Name<br /><span class="text-white-50">Lab Technician</span></div>
-            <a asp-controller="Account" asp-action="Logout" class="btn btn-light text-dark fw-bold w-100"><i class="bi bi-power me-2"></i>Logout</a>
+
+        <div class="lab-sidebar-bottom">
+
+            <span class="lab-nav-label">
+                SIGNED IN AS
+            </span>
+
+            <strong>
+                @User.Identity?.Name
+            </strong>
+
+            <a asp-controller="Home"
+               asp-action="Index">
+                Home dashboard
+            </a>
+
+            <a asp-controller="Account"
+               asp-action="Logout">
+                Sign out &rarr;
+            </a>
+
         </div>
+
     </aside>
 
-    <main class="lab-content">
-    <div class="container-fluid p-4">
-        @RenderBody()
+    <button class="lab-backdrop"
+            type="button"
+            aria-label="Close navigation"
+            hidden>
+    </button>
+
+    <div class="lab-workspace">
+
+        <header class="lab-topbar">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <button type="button"
+                        class="btn btn-outline-secondary lab-menu-toggle"
+                        aria-controls="lab-sidebar"
+                        aria-expanded="false">
+                    Menu
+                </button>
+
+                <span>
+                    Quality control
+                    <span class="lab-divider">/</span>
+                    <strong>@ViewData["Title"]</strong>
+                </span>
+
+            </div>
+
+            <span class="lab-workspace-tag">
+                Laboratory workspace
+            </span>
+
+        </header>
+
+        <main id="lab-content"
+              class="lab-content"
+              tabindex="-1">
+
+            @RenderBody()
+
+        </main>
+
+        <footer class="lab-footer">
+            Annapurna Agro &middot; Laboratory &amp; quality control
+        </footer>
+
     </div>
-    </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/lab-shell.js"
+            asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script src="~/js/annapurna-ui.js"
+            asp-append-version="true"></script>
+
+    <partial name="_Appearance" />
+
 </body>
 </html>

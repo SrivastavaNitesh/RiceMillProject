@@ -1,13 +1,13 @@
 @model RiceMillProject.Models.LabReportsPage
 @{ ViewData["Title"] = "Lab reports"; }
 <partial name="_Navigation" />
-<h2>Lab reports</h2>
-<form method="get" asp-action="Reports" class="row g-3 align-items-end mb-4">
+<h2>Lab reports</h2><p class="text-muted">Find saved results by RST number or date. Open a report to review, print or download.</p>
+<form method="get" asp-action="Reports" class="row g-3 align-items-end lab-filter">
     <div asp-validation-summary="All" class="text-danger"></div>
-    <div class="col-md-4"><label asp-for="RstNumber" class="form-label">RST number</label><input asp-for="RstNumber" class="form-control" maxlength="50" /></div>
-    <div class="col-md-3"><label asp-for="From" class="form-label">From</label><input asp-for="From" class="form-control" type="date" /></div>
-    <div class="col-md-3"><label asp-for="To" class="form-label">To</label><input asp-for="To" class="form-control" type="date" /></div>
-    <div class="col-md-2"><button class="btn btn-primary">Filter</button> <a asp-action="Reports" class="btn btn-outline-secondary">Clear</a></div>
+    <div class="col-md-4 col-xl-4"><label asp-for="RstNumber" class="form-label">RST number</label><input asp-for="RstNumber" class="form-control" maxlength="50" /></div>
+    <div class="col-md-4 col-xl-3"><label asp-for="From" class="form-label">From</label><input asp-for="From" class="form-control" type="date" /></div>
+    <div class="col-md-4 col-xl-3"><label asp-for="To" class="form-label">To</label><input asp-for="To" class="form-control" type="date" /></div>
+    <div class="col-md-12 col-xl-2 d-flex gap-2"><button class="btn btn-primary">Filter</button> <a asp-action="Reports" class="btn btn-outline-secondary">Clear</a></div>
 </form>
 <div class="table-responsive"><table class="table table-striped align-middle">
     <thead><tr><th>Report</th><th>RST</th><th>Tested at</th><th>Technician</th><th>Items / results</th><th>Actions</th></tr></thead><tbody>

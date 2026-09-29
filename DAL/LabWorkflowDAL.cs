@@ -37,13 +37,53 @@ public class LabWorkflowDAL(IConfiguration configuration)
     private static LabTestMaster Test(DataRow r) => new()
     {
         TestId = I(r, "TestId"), TestName = S(r, "TestName"), Unit = S(r, "Unit"),
-        ResultType = S(r, "ResultType"), Description = S(r, "Description"), IsActive = Convert.ToBoolean(r["IsActive"])
+        ResultType = S(r, "ResultType"), Description = S(r, "Description"), IsActive = Convert.ToBoolean(r["IsActive"]),
+        Deducations = r.Table.Columns.Contains("Deducations") && !r.IsNull("Deducations") ? I(r, "Deducations") : null,
+        UnitId = r.Table.Columns.Contains("UnitId") && !r.IsNull("UnitId") ? I(r, "UnitId") : null,
+        UnitName = r.Table.Columns.Contains("UnitName") ? S(r, "UnitName") : null
     };
     public List<LabTestMaster> GetTests() => Read("sp_LabTestList").AsEnumerable().Select(Test).ToList();
-    public void SaveTest(LabTestMaster test, int userId) => Execute("sp_LabTestSave",
-        P("@TestId", SqlDbType.Int, test.TestId), P("@TestName", SqlDbType.NVarChar, test.TestName.Trim(), 120),
-        P("@Unit", SqlDbType.NVarChar, test.Unit?.Trim(), 30), P("@ResultType", SqlDbType.VarChar, test.ResultType, 10),
-        P("@Description", SqlDbType.NVarChar, test.Description, 500), P("@UserId", SqlDbType.Int, userId));
+    public void SaveTest(LabTestMaster test, int userId) => Execute(
+    "sp_LabTestSave",
+
+    P("@TestId", SqlDbType.Int, test.TestId),
+
+    P("@TestName", SqlDbType.NVarChar, test.TestName.Trim(), 120),
+
+    P("@Unit", SqlDbType.NVarChar, test.Unit?.Trim(), 30),
+
+    P("@ResultType", SqlDbType.VarChar, test.ResultType, 10),
+
+    P("@Description", SqlDbType.NVarChar, test.Description, 500),
+
+    P("@Deducations", SqlDbType.Int, test.Deducations),
+
+    P("@UnitId", SqlDbType.Int, test.UnitId),
+
+    P("@UserId", SqlDbType.Int, userId)
+);
+    public DataTable GetUnits()
+    {
+        DataTable dt = new DataTable();
+
+        using var con = new SqlConnection(connectionString);
+        using var cmd = new SqlCommand(@"
+        SELECT 
+            UnitId,
+            UnitName,
+            UnitCode
+        FROM dbo.tbl_Masterofunit
+        WHERE IsActive = 1
+        ORDER BY UnitId
+    ", con);
+
+        using var da = new SqlDataAdapter(cmd);
+
+        con.Open();
+        da.Fill(dt);
+
+        return dt;
+    }
     public void RemoveTest(int id, int userId) => Execute("sp_LabTestRemove", P("@TestId", SqlDbType.Int, id), P("@UserId", SqlDbType.Int, userId));
     public List<LabItemTestMapping> GetMappings() => Read("sp_LabMappingList").AsEnumerable().Select(r => new LabItemTestMapping
     {
@@ -53,6 +93,11 @@ public class LabWorkflowDAL(IConfiguration configuration)
     public void SaveMapping(LabItemTestMapping mapping, int userId) => Execute("sp_LabMappingSave",
         P("@MappingId", SqlDbType.Int, mapping.MappingId), P("@CategoryId", SqlDbType.Int, mapping.CategoryId),
         P("@ItemId", SqlDbType.Int, mapping.ItemId), P("@TestId", SqlDbType.Int, mapping.TestId), P("@UserId", SqlDbType.Int, userId));
+    public void SaveMappings(LabItemTestSelection form, int userId) => Execute("sp_LabMappingSetSave",
+        P("@CategoryId", SqlDbType.Int, form.CategoryId), P("@ItemId", SqlDbType.Int, form.ItemId),
+        P("@TestIds", SqlDbType.NVarChar, JsonSerializer.Serialize(form.SelectedTestIds), -1),
+        P("@OriginalTestIds", SqlDbType.NVarChar, JsonSerializer.Serialize(form.OriginalTestIds), -1),
+        P("@UserId", SqlDbType.Int, userId));
     public void RemoveMapping(int id, int userId) => Execute("sp_LabMappingRemove", P("@MappingId", SqlDbType.Int, id), P("@UserId", SqlDbType.Int, userId));
     public List<LabItemOption> GetItems(string? rstNumber = null)
     {

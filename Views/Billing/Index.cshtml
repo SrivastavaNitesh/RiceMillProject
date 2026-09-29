@@ -1,0 +1,16 @@
+@model List<RiceMillProject.Models.BillingRst>
+@{ ViewData["Title"]="RST billing register"; }
+<partial name="_Messages" />
+<h2>Billing register</h2>
+<p class="text-muted">Review RST details, prepare bills after laboratory completion and track recorded payments.</p>
+<div class="lab-metrics"><div class="lab-metric"><span>RST records</span><strong>@Model.Count</strong></div><div class="lab-metric"><span>Ready to bill</span><strong>@Model.Count(r=>r.LabComplete && !r.BillId.HasValue)</strong></div><div class="lab-metric"><span>Outstanding</span><strong class="bill-money">@Model.Where(r=>r.BillId.HasValue).Sum(r=>r.TotalAmount-r.PaidAmount).ToString("N2")</strong></div></div>
+<form method="get" class="bill-search"><label for="search" class="form-label">Find RST, party or mobile</label><div class="d-flex gap-2"><input id="search" name="search" value="@ViewBag.Search" class="form-control" maxlength="100" /><button class="btn btn-primary">Search</button><a asp-action="Index" class="btn btn-outline-secondary">Clear</a></div></form>
+<div class="table-responsive"><table class="table bill-register"><thead><tr><th>RST / generated</th><th>Party / mobile</th><th>Driver</th><th>Tare kg</th><th>Net kg</th><th>Supervisor</th><th>Current status</th><th>Actions</th></tr></thead><tbody>
+@if(Model.Count==0){<tr><td colspan="8" class="text-center py-5 text-muted">No RST records match your search.</td></tr>}
+@foreach(var row in Model){
+<tr><td><strong>@row.RSTNumber</strong><small class="d-block text-muted">@row.GeneratedAt?.ToString("dd MMM yyyy HH:mm")</small></td><td>@row.PartyName<small class="d-block text-muted">@row.PartyMobile</small></td><td>@row.DriverName<small class="d-block text-muted">@row.VehicleNumber</small></td><td>@row.TareWeight?.ToString("N3")</td><td>@row.NetWeight?.ToString("N3")</td><td>@row.SupervisorName</td><td><span class="bill-status">@row.Status</span><small class="d-block text-muted">Lab: @row.CompletedTests / @row.RequiredTests</small><small class="d-block text-muted">@row.GateStatus</small></td><td><div class="bill-actions"><a asp-action="Details" asp-route-rstNumber="@row.RSTNumber" class="btn btn-sm btn-outline-secondary">View details</a>
+@if(row.BillId.HasValue){<a asp-action="Bill" asp-route-id="@row.BillId" class="btn btn-sm btn-primary">View bill</a>}
+else if(row.LabComplete){<a asp-action="Generate" asp-route-rstNumber="@row.RSTNumber" class="btn btn-sm btn-primary">Generate bill</a>}
+</div></td></tr>
+}
+</tbody></table></div>

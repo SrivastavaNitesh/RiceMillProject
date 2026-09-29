@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy("BillingAccess", policy => policy.RequireAuthenticatedUser().RequireAssertion(context => context.User.IsAdminUser()));
     options.AddPolicy("GatemanAccess", policy => policy.RequireAuthenticatedUser()
         .RequireAssertion(context => context.User.IsGatemanUser() || context.User.IsAdminUser()));
     options.AddPolicy("WeightmanAccess", policy => policy.RequireAuthenticatedUser()

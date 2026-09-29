@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
+using System.Data;
 using System.Security.Claims;
 using System.Text;
 
@@ -20,6 +21,11 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     public IActionResult Create(string? rstNumber)
     {
         if (string.IsNullOrWhiteSpace(rstNumber)) return RedirectToAction(nameof(Index));
+        if (lab.GetRsts().Any(r => r.RSTNumber == rstNumber && r.IsComplete))
+        {
+            TempData["LabInfo"] = "All item tests for this RST are submitted. Entry is closed; saved reports are available below.";
+            return RedirectToAction(nameof(Reports), new { rstNumber });
+        }
         return View(new LabEntryViewModel { RSTNumber = rstNumber, AvailableItems = lab.GetItems(rstNumber) });
     }
     [HttpPost]
@@ -30,10 +36,24 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
             try
             {
                 var reportId = lab.SaveReport(model, UserId);
-                TempData["LabSuccess"] = "Lab results saved successfully.";
-                return RedirectToAction(nameof(Report), new { id = reportId });
+                var savedReport = reportId > 0 ? lab.GetReport(reportId) : null;
+                if (savedReport == null || savedReport.RSTNumber != model.RSTNumber || savedReport.Results.Count == 0)
+                {
+                    logger.LogError("Lab save returned {ReportId} for RST {RSTNumber}, but no readable report was found.", reportId, model.RSTNumber);
+                    ModelState.AddModelError("", "The saved report could not be confirmed. Your entered values are retained. Retry saving; the same submission will not create a duplicate report.");
+                }
+                else
+                {
+                    TempData["LabSuccess"] = $"Lab report LAB-{reportId} saved for RST {savedReport.RSTNumber}.";
+                    return RedirectToAction(nameof(Report), new { id = reportId });
+                }
             }
             catch (ArgumentException ex) { ModelState.AddModelError("", ex.Message); }
+            catch (SqlException ex) when (ex.Number == 50002)
+            {
+                TempData["LabInfo"] = ex.Message;
+                return RedirectToAction(nameof(Reports), new { rstNumber = model.RSTNumber });
+            }
             catch (SqlException ex) { DatabaseError(ex); }
         }
         model.AvailableItems = lab.GetItems(model.RSTNumber);
@@ -44,16 +64,23 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     {
         var tests = lab.GetTests();
         var form = id.HasValue ? tests.FirstOrDefault(t => t.TestId == id) : new LabTestMaster();
+        DataTable dtUnits = lab.GetUnits();
+        if (!id.HasValue && form != null)
+            form.UnitId = dtUnits.AsEnumerable().Where(r => string.Equals(Convert.ToString(r["UnitCode"]), "Q", StringComparison.OrdinalIgnoreCase)).Select(r => (int?)Convert.ToInt32(r["UnitId"])).FirstOrDefault();
+        ViewBag.UnitTable = dtUnits;
         return form == null ? NotFound() : View(new LabTestMasterPage { Form = form, Tests = tests });
     }
     [HttpPost]
     public IActionResult Tests([Bind(Prefix = "Form")] LabTestMaster form)
     {
+       
         if (ModelState.IsValid)
         {
             try { lab.SaveTest(form, UserId); TempData["LabSuccess"] = "Test saved."; return RedirectToAction(nameof(Tests)); }
             catch (SqlException ex) { DatabaseError(ex); }
         }
+        DataTable dtUnits = lab.GetUnits();
+        ViewBag.UnitTable = dtUnits;
         return View(new LabTestMasterPage { Form = form, Tests = lab.GetTests() });
     }
     [HttpPost]
@@ -67,15 +94,25 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     public IActionResult Mappings(int? id)
     {
         var mappings = lab.GetMappings();
-        var form = id.HasValue ? mappings.FirstOrDefault(m => m.MappingId == id) : new LabItemTestMapping();
-        return form == null ? NotFound() : View(new LabMappingPage { Form = form, Mappings = mappings, Items = lab.GetItems(), Tests = lab.GetTests() });
+        var form = new LabItemTestSelection();
+        if (id.HasValue)
+        {
+            var mapping = mappings.FirstOrDefault(m => m.MappingId == id);
+            if (mapping == null) return NotFound();
+            form.MappingId = mapping.MappingId;
+            form.CategoryId = mapping.CategoryId;
+            form.ItemId = mapping.ItemId;
+            form.SelectedTestIds = mappings.Where(m => m.CategoryId == form.CategoryId && m.ItemId == form.ItemId).Select(m => m.TestId).Distinct().ToList();
+            form.OriginalTestIds = form.SelectedTestIds.ToList();
+        }
+        return View(new LabMappingPage { Form = form, Mappings = mappings, Items = lab.GetItems(), Tests = lab.GetTests() });
     }
     [HttpPost]
-    public IActionResult Mappings([Bind(Prefix = "Form")] LabItemTestMapping form)
+    public IActionResult Mappings([Bind(Prefix = "Form")] LabItemTestSelection form)
     {
         if (ModelState.IsValid)
         {
-            try { lab.SaveMapping(form, UserId); TempData["LabSuccess"] = "Item test mapping saved."; return RedirectToAction(nameof(Mappings)); }
+            try { lab.SaveMappings(form, UserId); TempData["LabSuccess"] = "Item test selections saved."; return RedirectToAction(nameof(Mappings)); }
             catch (SqlException ex) { DatabaseError(ex); }
         }
         return View(new LabMappingPage { Form = form, Mappings = lab.GetMappings(), Items = lab.GetItems(), Tests = lab.GetTests() });

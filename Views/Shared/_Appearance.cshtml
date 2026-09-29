@@ -1,0 +1,15 @@
+<dialog id="agro-appearance" class="agro-appearance" aria-labelledby="appearance-title">
+    <div class="agro-settings-heading"><div><span class="agro-eyebrow">MAKE IT YOURS</span><h2 id="appearance-title">Appearance settings</h2></div><button type="button" class="btn btn-outline-secondary" data-close-appearance aria-label="Close appearance settings">×</button></div>
+    <p class="text-muted">One color palette across your entire workspace, including Home and Login.</p>
+    <label for="agro-color" class="form-label">Workspace accent color</label>
+    <div class="agro-color-field"><input type="color" id="agro-color" value="#087f78" /><output id="agro-color-value" for="agro-color">#087F78</output></div>
+    <div class="agro-swatches" aria-label="Color presets">
+        <button type="button" data-theme-color="#087f78" style="--swatch:#087f78">Forest</button>
+        <button type="button" data-theme-color="#2458a6" style="--swatch:#2458a6">Ocean</button>
+        <button type="button" data-theme-color="#7047a3" style="--swatch:#7047a3">Plum</button>
+        <button type="button" data-theme-color="#9c5421" style="--swatch:#9c5421">Harvest</button>
+    </div>
+    <div class="agro-theme-preview"><span class="agro-eyebrow">LIVE PREVIEW</span><h3>Your workspace, your style.</h3><span class="btn btn-primary">Primary action</span></div>
+    <p id="agro-theme-status" class="text-muted small" role="status">Saved automatically for this browser. Print documents keep their original colors.</p>
+    <button type="button" class="btn btn-outline-secondary" id="agro-theme-reset">Restore default</button>
+</dialog>

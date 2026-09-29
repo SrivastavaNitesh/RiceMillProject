@@ -1,0 +1,12 @@
+@model RiceMillProject.Models.BillingCalculation
+@{var h=Model.Source.Header;}
+<section class="card card-body mb-4">
+<div class="d-flex align-items-start justify-content-between gap-3 flex-wrap"><div><div class="lab-report-eyebrow">RST / @h.InwardNo</div><h3>@h.RSTNumber</h3></div><span class="bill-status">@h.Status</span></div>
+<dl class="bill-meta">
+<div><dt>Party</dt><dd>@h.PartyName</dd><dd class="text-muted">@h.PartyMobile</dd></div>
+<div><dt>Driver</dt><dd>@h.DriverName</dd><dd class="text-muted">@h.DriverMobile</dd></div>
+<div><dt>Generated</dt><dd>@h.GeneratedAt?.ToString("dd MMM yyyy, HH:mm")</dd><dd class="text-muted">@h.VehicleNumber</dd></div>
+<div><dt>Unloaded by supervisor</dt><dd>@h.SupervisorName</dd><dd class="text-muted">@h.GateStatus</dd></div>
+</dl>
+<div class="bill-weight-strip"><div><span>Gross weight</span><strong>@h.GrossWeight.ToString("N3") kg</strong></div><div><span>Tare weight</span><strong>@h.TareWeight?.ToString("N3") kg</strong></div><div><span>Net weight</span><strong>@h.NetWeight?.ToString("N3") kg</strong></div><div><span>Total bags</span><strong>@Model.Source.Lots.Sum(l=>l.BagCount)</strong></div></div>
+</section>
