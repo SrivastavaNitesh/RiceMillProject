@@ -105,6 +105,11 @@
     }
 
 
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2"></i>@TempData["WarningMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
     <!-- =========================================================
          REGISTER TABLE
          ========================================================= -->
@@ -177,12 +182,7 @@
                                  * has already been entered.
                                  */
 
-                                bool workEntered =
-                                    string.Equals(
-                                        item.Status,
-                                        "Unloaded",
-                                        StringComparison.OrdinalIgnoreCase
-                                    );
+                                bool workEntered = item.IsWorkerWorkCompleted;
 
 
                                 /*
@@ -190,8 +190,8 @@
                                  * already submitted or not.
                                  */
 
-                                bool supervisorCompleted =
-                                    item.IsSupervisorActionCompleted;
+                                bool supervisorCompleted = item.IsSupervisorActionCompleted;
+                                bool overallCompleted = workEntered && supervisorCompleted;
 
 
                                 <tr>
@@ -326,7 +326,7 @@
 
                                     <td class="text-center">
 
-                                        @if (supervisorCompleted)
+                                        @if (overallCompleted)
                                         {
                                             <span class="badge
                                                 bg-success
@@ -339,7 +339,7 @@
 
                                             </span>
                                         }
-                                        else if (workEntered)
+                                        else if (workEntered && supervisorCompleted)
                                         {
                                             <span class="badge
                                                 bg-info-subtle
@@ -349,9 +349,13 @@
 
                                                 <i class="bi bi-clipboard-check me-1"></i>
 
-                                                Work Entered
+                                                Worker Entered / Field Completed
 
                                             </span>
+                                        }
+                                        else if (supervisorCompleted)
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2">Field Entered / Worker Pending</span>
                                         }
                                         else
                                         {
@@ -393,49 +397,34 @@
 
                                             </button>
                                         }
-                                        else if (workEntered)
-                                        {
-                                            <!--
-                                                Worker labour entry done.
-                                                Now Supervisor final
-                                                unloading form.
-                                            -->
-
-                                            <a asp-controller="Unload"
-                                               asp-action="SupervisorAction"
-                                               asp-route-id="@item.UnloadId"
-                                               class="btn
-                                                btn-sm
-                                                btn-primary
-                                                fw-semibold">
-
-                                                <i class="bi bi-clipboard-check me-1"></i>
-
-                                                Take Action
-
-                                            </a>
-                                        }
                                         else
                                         {
-                                            <!--
-                                                Supervisor will enter
-                                                Meth/worker work details
-                                                on behalf of Meth.
-                                            -->
-
-                                            <a asp-controller="Unload"
-                                               asp-action="SupervisorMethWork"
-                                               asp-route-id="@item.UnloadId"
-                                               class="btn
-                                                btn-sm
-                                                btn-warning
-                                                fw-semibold">
-
-                                                <i class="bi bi-pencil-square me-1"></i>
-
-                                                Enter Work Details
-
-                                            </a>
+                                            <button type="button" class="btn btn-sm btn-primary fw-semibold"
+                                                    data-bs-toggle="modal" data-bs-target="#actionModal-@item.UnloadId">
+                                                <i class="bi bi-list-check me-1"></i> Choose Action
+                                            </button>
+                                            <div class="modal fade" id="actionModal-@item.UnloadId" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">RST: @item.RSTNumber</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="d-grid gap-3">
+                                                                @if (workEntered)
+                                                                { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Worker Details <span class="float-end">Completed</span></button> }
+                                                                else
+                                                                { <a class="btn btn-outline-warning text-start p-3" asp-controller="Unload" asp-action="SupervisorMethWork" asp-route-id="@item.UnloadId"><i class="bi bi-people me-2"></i>Worker Details <span class="float-end">Pending</span></a> }
+                                                                @if (supervisorCompleted)
+                                                                { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Field Details <span class="float-end">Completed</span></button> }
+                                                                else
+                                                                { <a class="btn btn-outline-primary text-start p-3" asp-controller="Unload" asp-action="SupervisorAction" asp-route-id="@item.UnloadId"><i class="bi bi-clipboard-check me-2"></i>Field Details <span class="float-end">Pending</span></a> }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         }
 
                                     </td>

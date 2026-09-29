@@ -52,12 +52,28 @@ namespace RiceMillProject.DAL
             string query = @"
 SELECT
     u.*,
+    ge.VehicleId,
+    v.VehicleNumber,
+    p.PersonName AS PartyName,
+    o.OfficeName,
     s.PersonName AS SupervisorName,
     m.PersonName AS MethName,
     b.BagTypeName,
     i.ItemName,
     l.LocationName
 FROM dbo.t_UnloadTransaction u
+
+LEFT JOIN dbo.t_GateEntry ge
+    ON ge.RSTNumber = u.RSTNumber
+
+LEFT JOIN dbo.m_Vehicle v
+    ON v.VehicleId = ge.VehicleId
+
+LEFT JOIN dbo.P02_Person p
+    ON p.PersonId = ge.PartyId
+
+LEFT JOIN dbo.o05_office o
+    ON o.OfficeId = ge.TargetOfficeId
 
 LEFT JOIN dbo.P02_Person s
     ON u.SupervisorId = s.PersonId
@@ -97,6 +113,24 @@ ORDER BY u.UnloadId DESC;";
                         RSTNumber =
                             reader["RSTNumber"]
                                 ?.ToString() ?? "",
+
+                        VehicleNumber =
+                            HasColumn(reader, "VehicleNumber") &&
+                            reader["VehicleNumber"] != DBNull.Value
+                                ? reader["VehicleNumber"].ToString() ?? ""
+                                : "",
+
+                        PartyName =
+                            HasColumn(reader, "PartyName") &&
+                            reader["PartyName"] != DBNull.Value
+                                ? reader["PartyName"].ToString() ?? ""
+                                : "",
+
+                        OfficeName =
+                            HasColumn(reader, "OfficeName") &&
+                            reader["OfficeName"] != DBNull.Value
+                                ? reader["OfficeName"].ToString() ?? ""
+                                : "",
 
                         LocationId =
                             HasColumn(reader, "LocationId") &&
@@ -894,7 +928,8 @@ ORDER BY u.UnloadId DESC;";
     int stackJute,
     int haudiPP,
     int haudiJute,
-    List<SupervisorUnloadCategoryRow> categoryRows)
+    List<SupervisorUnloadCategoryRow> categoryRows,
+    List<SupervisorUnloadLocationBagRow> locationRows)
         {
             string detailJson =
                 JsonSerializer.Serialize(categoryRows);
@@ -957,6 +992,9 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.NVarChar,
                 -1
             ).Value = detailJson;
+
+            cmd.Parameters.Add("@LocationDetailJson", SqlDbType.NVarChar, -1).Value =
+                JsonSerializer.Serialize(locationRows ?? new List<SupervisorUnloadLocationBagRow>());
 
 
             // =====================================================
@@ -1103,7 +1141,11 @@ ORDER BY u.UnloadId DESC;";
                                 &&
                                 Convert.ToBoolean(
                                     reader["IsSupervisorActionCompleted"]
-                                )
+                                ),
+                        IsWorkerWorkCompleted =
+                            HasColumn(reader, "IsWorkerWorkCompleted") &&
+                            reader["IsWorkerWorkCompleted"] != DBNull.Value &&
+                            Convert.ToBoolean(reader["IsWorkerWorkCompleted"])
                     }
                 );
             }

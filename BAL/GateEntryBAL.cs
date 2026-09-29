@@ -24,6 +24,21 @@ namespace RiceMillProject.BAL
 
         public string CreateGateEntry(GateEntry entry)
         {
+            if (entry == null)
+                throw new ArgumentNullException(nameof(entry));
+            if (string.IsNullOrWhiteSpace(entry.InwardNo))
+                throw new ArgumentException("Inward entry is required.", nameof(entry));
+            if (entry.GrossWeight <= 0)
+                throw new ArgumentException("Gross weight must be greater than zero.", nameof(entry));
+            if (entry.ItemId <= 0)
+                throw new ArgumentException("Material / variety is required for the current RST workflow.", nameof(entry));
+            if (entry.PartyId <= 0)
+                throw new ArgumentException("Party is required.", nameof(entry));
+            if (entry.VehicleId <= 0)
+                throw new ArgumentException("Vehicle is required.", nameof(entry));
+            if (entry.DriverId <= 0)
+                throw new ArgumentException("Driver is required.", nameof(entry));
+
             return _gateDal.CreateGateEntry(entry);
         }
 
@@ -34,6 +49,11 @@ namespace RiceMillProject.BAL
 
         public bool CompleteGateExit(string rstNumber, decimal tareWeight)
         {
+            if (string.IsNullOrWhiteSpace(rstNumber))
+                throw new ArgumentException("RST number is required.", nameof(rstNumber));
+            if (tareWeight <= 0)
+                throw new ArgumentException("Tare weight must be greater than zero.", nameof(tareWeight));
+
             return _gateDal.CompleteGateExit(rstNumber, tareWeight);
         }
 
@@ -57,9 +77,64 @@ namespace RiceMillProject.BAL
             return _gateDal.GetVehiclesByParty(partyId);
         }
 
+        public List<dynamic> GetDriversByVehicle(
+            int partyId,
+            int vehicleId)
+        {
+            return _gateDal.GetDriversByVehicle(
+                partyId,
+                vehicleId);
+        }
+
         public List<dynamic> GetDriversByParty(int partyId)
         {
             return _gateDal.GetDriversByParty(partyId);
+        }
+
+
+        public int QuickAddParty(
+            string partyName,
+            string? mobileNumber)
+        {
+            return _gateDal.QuickAddParty(
+                partyName,
+                mobileNumber);
+        }
+
+
+        public int QuickAddVehicle(
+            int partyId,
+            string vehicleNumber)
+        {
+            return _gateDal.QuickAddVehicle(
+                partyId,
+                vehicleNumber);
+        }
+
+
+        public int QuickAddDriver(
+            int partyId,
+            int vehicleId,
+            string driverName,
+            string? mobileNumber)
+        {
+            return _gateDal.QuickAddDriver(
+                partyId,
+                vehicleId,
+                driverName,
+                mobileNumber);
+        }
+
+
+        public void EnsureVehicleMapping(
+            int partyId,
+            int vehicleId,
+            int driverId)
+        {
+            _gateDal.EnsureVehicleMapping(
+                partyId,
+                vehicleId,
+                driverId);
         }
     }
 }
