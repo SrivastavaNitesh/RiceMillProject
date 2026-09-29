@@ -11,8 +11,10 @@
         ?? new List<RiceMillProject.Models.StackTypeMaster>();
     var companyLocations = ViewBag.CompanyLocations as List<RiceMillProject.Models.LocationMaster>
         ?? new List<RiceMillProject.Models.LocationMaster>();
-    var bagTypes = ViewBag.BagTypes as Microsoft.AspNetCore.Mvc.Rendering.SelectList
-        ?? new Microsoft.AspNetCore.Mvc.Rendering.SelectList(Enumerable.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>());
+    var bagTypes = (ViewBag.BagTypes as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)
+        ?.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Value))
+        .ToList()
+        ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
 }
 
 <style>
