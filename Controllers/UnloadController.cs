@@ -661,12 +661,14 @@ namespace RiceMillProject.Controllers
                 var bagTypeTable =
                     _bagBal.GetActiveBagTypes();
 
-                ViewBag.BagTypes =
-                    new SelectList(
-                        bagTypeTable.DefaultView,
-                        "BagTypeId",
-                        "BagTypeName"
-                    );
+                ViewBag.BagTypes = bagTypeTable.AsEnumerable()
+                    .Select(row => new SelectListItem
+                    {
+                        Value = row["BagTypeId"]?.ToString() ?? "",
+                        Text = row["BagTypeName"]?.ToString() ?? ""
+                    })
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                    .ToList();
 
                 ViewBag.CompanyLocations = _locationBal.GetCompanyUnloadingLocations(GetCurrentOfficeId());
 
