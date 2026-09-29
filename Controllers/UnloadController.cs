@@ -23,6 +23,7 @@ namespace RiceMillProject.Controllers
         private readonly BagTypeBAL _bagBal;
         private readonly OfficeBAL _officeBal;
         private readonly LabWorkflowBAL _labWorkflow;
+        private readonly LocationMasterBAL _locationBal;
 
         public UnloadController(IConfiguration configuration)
         {
@@ -33,6 +34,7 @@ namespace RiceMillProject.Controllers
             _bagBal = new BagTypeBAL(configuration);
             _officeBal = new OfficeBAL(configuration);
             _labWorkflow = new LabWorkflowBAL(configuration);
+            _locationBal = new LocationMasterBAL(configuration);
         }
 
         // ============================================================
@@ -613,16 +615,6 @@ namespace RiceMillProject.Controllers
                     return NotFound();
                 }
 
-                // Meth ka work complete hone ke baad hi
-                // Supervisor action lega
-                if (unload.Status != "Unloaded")
-                {
-                    TempData["ErrorMessage"] =
-                        "This RST is not ready for Supervisor action.";
-
-                    return RedirectToAction("Index");
-                }
-
                 var model = new SupervisorUnloadActionViewModel
                 {
                     UnloadId = unload.UnloadId,
@@ -641,7 +633,9 @@ namespace RiceMillProject.Controllers
 
                     MethName = unload.MethName ?? "",
 
-                    MethTotalBags = unload.NumberOfBags ?? 0
+                    MethTotalBags = unload.NumberOfBags ?? 0,
+                    IsWorkerWorkCompleted = unload.IsWorkerWorkCompleted,
+                    IsFieldDetailsCompleted = unload.IsSupervisorActionCompleted
                 };
 
 
@@ -673,6 +667,8 @@ namespace RiceMillProject.Controllers
                         "BagTypeId",
                         "BagTypeName"
                     );
+
+                ViewBag.CompanyLocations = _locationBal.GetCompanyUnloadingLocations(GetCurrentOfficeId());
 
 
                 return View(model);
@@ -733,19 +729,6 @@ namespace RiceMillProject.Controllers
 
 
                 // =====================================================
-                // METH WORK MUST BE COMPLETE
-                // =====================================================
-
-                if (unload.Status != "Unloaded")
-                {
-                    TempData["ErrorMessage"] =
-                        "Meth work is not completed for this RST.";
-
-                    return RedirectToAction(nameof(MethWorkRegister));
-                }
-
-
-                // =====================================================
                 // CLEAN CATEGORY ROWS
                 // =====================================================
 
@@ -755,6 +738,8 @@ namespace RiceMillProject.Controllers
                             x.CategoryId > 0
                             &&
                             x.ItemId > 0
+                            &&
+                            x.LocationId > 0
                             &&
                             x.BagTypeId > 0
                             &&
@@ -790,6 +775,7 @@ namespace RiceMillProject.Controllers
                         {
                             x.CategoryId,
                             x.ItemId,
+                            x.LocationId,
                             x.BagTypeId
                         })
                         .Any(g => g.Count() > 1);
@@ -798,7 +784,7 @@ namespace RiceMillProject.Controllers
                 if (duplicateExists)
                 {
                     TempData["ErrorMessage"] =
-                        "Same Category, Item and Bag Type cannot be entered twice.";
+                        "Same Category, Item, Location and Bag Type cannot be entered twice.";
 
                     return RedirectToAction(
                         nameof(SupervisorAction),
@@ -814,43 +800,15 @@ namespace RiceMillProject.Controllers
                 // SUPERVISOR TOTAL
                 // =====================================================
 
-                int supervisorTotal =
-                    rows.Sum(x => x.BagCount);
-
-
-                // Hidden MethTotalBags par trust nahi kar rahe
-                // DB ki value use hogi
-                int methTotal =
-                    unload.NumberOfBags ?? 0;
-
-
-                if (methTotal <= 0)
+                var locationRows = (model.LocationRows ?? new List<SupervisorUnloadLocationRow>())
+                    .SelectMany(x => (x.BagRows ?? new List<SupervisorUnloadLocationBagRow>())
+                        .Select(b => new SupervisorUnloadLocationBagRow { LocationId = x.LocationId, BagTypeId = b.BagTypeId, BagCount = b.BagCount }))
+                    .Where(x => x.LocationId > 0 && x.BagTypeId > 0 && x.BagCount > 0)
+                    .ToList();
+                if (locationRows.Count == 0)
                 {
-                    TempData["ErrorMessage"] =
-                        "Meth bag total is not available.";
-
-                    return RedirectToAction(
-                        nameof(SupervisorAction),
-                        new
-                        {
-                            id = model.UnloadId
-                        }
-                    );
-                }
-
-
-                if (supervisorTotal != methTotal)
-                {
-                    TempData["ErrorMessage"] =
-                        $"Supervisor total ({supervisorTotal}) must match Meth total ({methTotal}).";
-
-                    return RedirectToAction(
-                        nameof(SupervisorAction),
-                        new
-                        {
-                            id = model.UnloadId
-                        }
-                    );
+                    TempData["ErrorMessage"] = "Please enter at least one positive location bag detail.";
+                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
                 }
 
 
@@ -866,7 +824,8 @@ namespace RiceMillProject.Controllers
                         model.StackJute,
                         model.HaudiPP,
                         model.HaudiJute,
-                        rows
+                        rows,
+                        locationRows
                     );
 
 
@@ -882,8 +841,11 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
-                TempData["SuccessMessage"] =
-                    $"RST {unload.RSTNumber} Supervisor details saved successfully.";
+                int locationTotal = locationRows.Sum(x => x.BagCount);
+                int materialTotal = rows.Sum(x => x.BagCount);
+                TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
+                if (locationTotal != materialTotal)
+                    TempData["WarningMessage"] = $"Location Total ({locationTotal}) and Material Total ({materialTotal}) do not match.";
 
                 return RedirectToAction("Index");
             }

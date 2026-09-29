@@ -6,6 +6,7 @@ namespace RiceMillProject.Models
     {
         public int? LocationId { get; set; }
         public bool IsSupervisorActionCompleted { get; set; }
+        public bool IsWorkerWorkCompleted { get; set; }
         public string? VehicleNumber { get; set; }
 
         public string? PartyName { get; set; }

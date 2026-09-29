@@ -928,7 +928,8 @@ ORDER BY u.UnloadId DESC;";
     int stackJute,
     int haudiPP,
     int haudiJute,
-    List<SupervisorUnloadCategoryRow> categoryRows)
+    List<SupervisorUnloadCategoryRow> categoryRows,
+    List<SupervisorUnloadLocationBagRow> locationRows)
         {
             string detailJson =
                 JsonSerializer.Serialize(categoryRows);
@@ -991,6 +992,9 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.NVarChar,
                 -1
             ).Value = detailJson;
+
+            cmd.Parameters.Add("@LocationDetailJson", SqlDbType.NVarChar, -1).Value =
+                JsonSerializer.Serialize(locationRows ?? new List<SupervisorUnloadLocationBagRow>());
 
 
             // =====================================================
@@ -1137,7 +1141,11 @@ ORDER BY u.UnloadId DESC;";
                                 &&
                                 Convert.ToBoolean(
                                     reader["IsSupervisorActionCompleted"]
-                                )
+                                ),
+                        IsWorkerWorkCompleted =
+                            HasColumn(reader, "IsWorkerWorkCompleted") &&
+                            reader["IsWorkerWorkCompleted"] != DBNull.Value &&
+                            Convert.ToBoolean(reader["IsWorkerWorkCompleted"])
                     }
                 );
             }

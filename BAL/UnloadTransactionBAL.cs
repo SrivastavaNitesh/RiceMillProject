@@ -122,7 +122,8 @@ namespace RiceMillProject.BAL
     int stackJute,
     int haudiPP,
     int haudiJute,
-    List<SupervisorUnloadCategoryRow> categoryRows)
+    List<SupervisorUnloadCategoryRow> categoryRows,
+    List<SupervisorUnloadLocationBagRow> locationRows)
         {
             return _unloadDal.SaveSupervisorUnloadAction(
                 unloadId,
@@ -131,7 +132,8 @@ namespace RiceMillProject.BAL
                 stackJute,
                 haudiPP,
                 haudiJute,
-                categoryRows
+                categoryRows,
+                locationRows
             );
         }
         public List<UnloadTransaction> GetSupervisorMethWorkRegister(

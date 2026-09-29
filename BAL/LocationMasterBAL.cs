@@ -20,6 +20,7 @@ namespace RiceMillProject.BAL
         public bool DeleteLocation(int id) => _dal.DeleteLocation(id);
         public List<Office> GetActiveOffices() => _dal.GetActiveOffices();
         public List<LocationTypeOption> GetActiveLocationTypes() => _dal.GetActiveLocationTypes();
+        public List<LocationMaster> GetCompanyUnloadingLocations(int officeId) => _dal.GetCompanyUnloadingLocations(officeId);
 
         public List<OfficeLocationMapping> GetAllOfficeLocationMappings() => _dal.GetAllOfficeLocationMappings();
         public bool SaveOfficeLocationMapping(OfficeLocationMapping model) => _dal.SaveOfficeLocationMapping(model);

@@ -9,6 +9,10 @@
     var stackTypes =
         ViewBag.StackTypes as List<RiceMillProject.Models.StackTypeMaster>
         ?? new List<RiceMillProject.Models.StackTypeMaster>();
+    var companyLocations = ViewBag.CompanyLocations as List<RiceMillProject.Models.LocationMaster>
+        ?? new List<RiceMillProject.Models.LocationMaster>();
+    var bagTypes = ViewBag.BagTypes as Microsoft.AspNetCore.Mvc.Rendering.SelectList
+        ?? new Microsoft.AspNetCore.Mvc.Rendering.SelectList(Enumerable.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>());
 }
 
 <style>
@@ -482,6 +486,35 @@
 
         </div>
 
+        <div class="sup-card">
+            <div class="sup-section-title"><i class="bi bi-geo-alt me-2"></i>Location-wise Bag Details</div>
+            <div class="sup-section-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead><tr><th>Location</th>@foreach (var bag in bagTypes) { <th>@bag.Text</th> }</tr></thead>
+                        <tbody>
+                        @for (var li = 0; li < companyLocations.Count; li++)
+                        {
+                            var location = companyLocations[li];
+                            <tr>
+                                <td class="fw-semibold">@location.LocationName</td>
+                                @for (var bi = 0; bi < bagTypes.Count(); bi++)
+                                {
+                                    var bag = bagTypes.ElementAt(bi);
+                                    <td><input type="number" min="0" class="form-control location-count" name="LocationRows[@li].BagRows[@bi].BagCount" data-location-id="@location.LocationId" data-bag-type-id="@bag.Value" value="0" />
+                                        <input type="hidden" name="LocationRows[@li].LocationId" value="@location.LocationId" />
+                                        <input type="hidden" name="LocationRows[@li].BagRows[@bi].LocationId" value="@location.LocationId" />
+                                        <input type="hidden" name="LocationRows[@li].BagRows[@bi].BagTypeId" value="@bag.Value" /></td>
+                                }
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="small text-muted mt-2">Location total is compared with Material total as a warning only.</div>
+            </div>
+        </div>
+
 
         <!-- =================================================
              STACK / HAUDI
@@ -780,6 +813,13 @@
 
                                 <th style="min-width:180px;">
 
+                                    Location
+                                    <span class="required">*</span>
+
+                                </th>
+
+                                <th style="min-width:180px;">
+
                                     Bag Type
 
                                     <span class="required">*</span>
@@ -846,6 +886,16 @@
 
 
                                 <!-- BAG TYPE -->
+
+                                <td>
+                                    <select name="CategoryRows[0].LocationId" class="form-select location-select">
+                                        <option value="">-- Select Location --</option>
+                                        @foreach (var location in companyLocations)
+                                        {
+                                            <option value="@location.LocationId">@location.LocationName</option>
+                                        }
+                                    </select>
+                                </td>
 
                                 <td>
 
@@ -1480,6 +1530,8 @@
                     ).value =
                         "";
 
+                    row.querySelector(".location-select").value = "";
+
 
                     rowsContainer.appendChild(
                         row
@@ -1572,6 +1624,9 @@
                                 index
                                 +
                                 "].ItemId";
+
+                            row.querySelector(".location-select").name =
+                                "CategoryRows[" + index + "].LocationId";
 
 
                             row.querySelector(
@@ -1744,6 +1799,8 @@
                             ".bag-type-select"
                         ).value;
 
+                    const locationId = row.querySelector(".location-select").value;
+
 
                     const count =
                         parseInt(
@@ -1757,6 +1814,8 @@
                         !categoryId
                         ||
                         !itemId
+                        ||
+                        !locationId
                         ||
                         !bagTypeId
                         ||
@@ -1781,6 +1840,8 @@
 
                 const materialTotal =
                     calculateMaterialTotal();
+                const locationTotal = Array.from(document.querySelectorAll(".location-count"))
+                    .reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
 
                 const mastersReady =
                     categoryMaster.length > 0
@@ -1788,9 +1849,7 @@
                     bagTypeMaster.length > 0;
 
                 const valid =
-                    stackTotal > 0
-                    &&
-                    stackTotal === materialTotal
+                    locationTotal > 0
                     &&
                     rowsComplete()
                     &&
@@ -1801,12 +1860,9 @@
                     statusBox.className =
                         "total-status total-status-success";
 
-                    statusBox.innerHTML =
-                        '<i class="bi bi-check-circle-fill me-1"></i>'
-                        +
-                        "Stack / Haudi Total and Material Total matched: "
-                        +
-                        stackTotal;
+                    statusBox.innerHTML = locationTotal === materialTotal
+                        ? '<i class="bi bi-check-circle-fill me-1"></i>Location Total and Material Total matched: ' + materialTotal
+                        : '<i class="bi bi-exclamation-circle me-1"></i>Warning: Location Total (' + locationTotal + ') and Material Total (' + materialTotal + ') do not match.';
 
                     saveButton.disabled =
                         false;
@@ -1815,14 +1871,7 @@
                     statusBox.className =
                         "total-status total-status-warning";
 
-                    statusBox.innerHTML =
-                        "Stack / Haudi Total: "
-                        +
-                        stackTotal
-                        +
-                        " | Material Total: "
-                        +
-                        materialTotal;
+                    statusBox.innerHTML = "Enter valid material rows and at least one location bag detail.";
 
                     saveButton.disabled =
                         true;
@@ -1847,7 +1896,7 @@
 
 
                         alert(
-                            "Please complete all details and make sure all bag totals match."
+                            "Please complete all required material and location details."
                         );
 
 
