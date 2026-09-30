@@ -843,7 +843,8 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
-                int locationTotal = locationRows.Sum(x => x.BagCount);
+                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
+                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
                 int materialTotal = rows.Sum(x => x.BagCount);
                 TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
                 if (locationTotal != materialTotal)

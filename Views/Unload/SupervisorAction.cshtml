@@ -11,6 +11,10 @@
         ?? new List<RiceMillProject.Models.StackTypeMaster>();
     var companyLocations = ViewBag.CompanyLocations as List<RiceMillProject.Models.LocationMaster>
         ?? new List<RiceMillProject.Models.LocationMaster>();
+    var detailLocations = companyLocations
+        .Where(x => !string.Equals(x.LocationName, "Stack", StringComparison.OrdinalIgnoreCase)
+                 && !string.Equals(x.LocationName, "Haudi", StringComparison.OrdinalIgnoreCase))
+        .ToList();
     var bagTypes = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
     if (ViewData.TryGetValue("BagTypes", out var bagTypeObject) &&
         bagTypeObject is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> bagTypeItems)
@@ -499,9 +503,9 @@
                     <table class="table table-bordered align-middle mb-0">
                         <thead><tr><th>Location</th>@foreach (var bag in bagTypes) { <th>@bag.Text</th> }</tr></thead>
                         <tbody>
-                        @for (var li = 0; li < companyLocations.Count; li++)
+                        @for (var li = 0; li < detailLocations.Count; li++)
                         {
-                            var location = companyLocations[li];
+                            var location = detailLocations[li];
                             <tr>
                                 <td class="fw-semibold">@location.LocationName</td>
                                 @for (var bi = 0; bi < bagTypes.Count(); bi++)
@@ -527,7 +531,7 @@
              MASTER DRIVEN SECTION
              ================================================= -->
 
-        <div class="sup-card d-none">
+        <div class="sup-card">
 
             <div class="sup-section-title">
 
@@ -1846,7 +1850,7 @@
 
                 const materialTotal =
                     calculateMaterialTotal();
-                const locationTotal = Array.from(document.querySelectorAll(".location-count"))
+                const locationTotal = calculateStackTotal() + Array.from(document.querySelectorAll(".location-count"))
                     .reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
 
                 const mastersReady =
