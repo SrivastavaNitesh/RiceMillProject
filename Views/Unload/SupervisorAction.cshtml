@@ -11,10 +11,7 @@
         ?? new List<RiceMillProject.Models.StackTypeMaster>();
     var companyLocations = ViewBag.CompanyLocations as List<RiceMillProject.Models.LocationMaster>
         ?? new List<RiceMillProject.Models.LocationMaster>();
-    var detailLocations = companyLocations
-        .Where(x => !string.Equals(x.LocationName, "Stack", StringComparison.OrdinalIgnoreCase)
-                 && !string.Equals(x.LocationName, "Haudi", StringComparison.OrdinalIgnoreCase))
-        .ToList();
+    var detailLocations = companyLocations.ToList();
     var bagTypes = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
     if (ViewData.TryGetValue("BagTypes", out var bagTypeObject) &&
         bagTypeObject is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> bagTypeItems)
@@ -309,7 +306,7 @@
              RST DETAILS
              ================================================= -->
 
-        <div class="sup-card">
+        <div class="sup-card d-none">
 
             <div class="sup-section-title">
 
