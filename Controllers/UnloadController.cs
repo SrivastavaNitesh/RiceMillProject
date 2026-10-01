@@ -188,12 +188,15 @@ namespace RiceMillProject.Controllers
                 );
             }
 
-            if (!unload.LocationId.HasValue ||
-                unload.LocationId.Value <= 0)
+            var selectedLocationIds = (unload.SelectedLocationIds ?? Array.Empty<int>())
+                .Where(x => x > 0).Distinct().ToArray();
+            if (selectedLocationIds.Length == 0 && unload.LocationId.GetValueOrDefault() > 0)
+                selectedLocationIds = new[] { unload.LocationId.GetValueOrDefault() };
+            if (selectedLocationIds.Length == 0)
             {
                 ModelState.AddModelError(
-                    nameof(unload.LocationId),
-                    "Please select unloading location."
+                    nameof(unload.SelectedLocationIds),
+                    "Please select at least one unloading location."
                 );
             }
 
@@ -205,8 +208,7 @@ namespace RiceMillProject.Controllers
                 officeId > 0 &&
                 !string.IsNullOrWhiteSpace(unload.RSTNumber) &&
                 unload.MethId > 0 &&
-                unload.LocationId.HasValue &&
-                unload.LocationId.Value > 0)
+                selectedLocationIds.Length > 0)
             {
                 try
                 {
@@ -215,7 +217,8 @@ namespace RiceMillProject.Controllers
                         supervisorId,
                         unload.MethId,
                         unload.ItemId,
-                        unload.LocationId.Value
+                        selectedLocationIds[0],
+                        selectedLocationIds
                     );
 
                     if (unloadId > 0)

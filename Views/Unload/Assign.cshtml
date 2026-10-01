@@ -82,8 +82,7 @@
                     <!-- Unloading Location -->
                     <div class="col-md-12">
 
-                        <label asp-for="LocationId"
-                               class="form-label">
+                        <label class="form-label">
 
                             Unloading Location
 
@@ -93,20 +92,17 @@
 
                         </label>
 
-                        <select asp-for="LocationId"
-                                class="form-select"
-                                asp-items="ViewBag.Locations"
-                                required>
-
-                            <option value="">
-                                -- Select Unloading Location --
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="LocationId"
-                              class="text-danger">
-                        </span>
+                        <div class="border rounded p-3 bg-light" id="locationChoices">
+                            @foreach (var location in (ViewBag.Locations as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>()))
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input location-choice" type="checkbox" name="SelectedLocationIds" value="@location.Value" id="location-@location.Value" />
+                                    <label class="form-check-label" for="location-@location.Value">@location.Text</label>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="LocationId" id="primaryLocationId" />
+                        <span asp-validation-for="SelectedLocationIds" class="text-danger"></span>
 
                         <small class="text-muted">
                             Select the location where this vehicle will be unloaded.
@@ -179,6 +175,17 @@
 
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.location-choice').forEach(function (box) {
+            box.addEventListener('change', function () {
+                const first = document.querySelector('.location-choice:checked');
+                document.getElementById('primaryLocationId').value = first ? first.value : '';
+            });
+        });
+    </script>
+}
 
 @section Scripts
 {

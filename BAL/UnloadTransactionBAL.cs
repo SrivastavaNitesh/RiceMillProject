@@ -42,7 +42,8 @@ namespace RiceMillProject.BAL
     int supervisorId,
     int methId,
     int? itemId,
-    int locationId)
+    int locationId,
+    int[]? locationIds = null)
         {
             if (string.IsNullOrWhiteSpace(rstNumber))
                 throw new ArgumentException("RST number is required.", nameof(rstNumber));
@@ -52,13 +53,16 @@ namespace RiceMillProject.BAL
                 throw new ArgumentException("Meth is required.", nameof(methId));
             if (locationId <= 0)
                 throw new ArgumentException("Unloading location is required.", nameof(locationId));
+            locationIds = (locationIds ?? Array.Empty<int>()).Where(x => x > 0).Distinct().ToArray();
+            if (locationIds.Length == 0) locationIds = new[] { locationId };
 
             return _unloadDal.AssignUnloading(
                 rstNumber,
                 supervisorId,
                 methId,
                 itemId,
-                locationId
+                locationId,
+                locationIds
             );
         }
 

@@ -362,7 +362,7 @@ ORDER BY u.UnloadId DESC;";
         // Supervisor assigns Meth + Location
         // ============================================================
 
-        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId)
+        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId,int[]? locationIds = null)
         {
             int unloadId = 0;
 
@@ -409,6 +409,18 @@ ORDER BY u.UnloadId DESC;";
             {
                 unloadId =
                     Convert.ToInt32(result);
+            }
+
+            if (unloadId > 0 && locationIds != null && locationIds.Length > 0)
+            {
+                using SqlCommand locationCmd = new SqlCommand("sp_SaveUnloadLocations", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                locationCmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+                locationCmd.Parameters.Add("@LocationIds", SqlDbType.NVarChar, -1).Value =
+                    JsonSerializer.Serialize(locationIds.Where(x => x > 0).Distinct());
+                locationCmd.ExecuteNonQuery();
             }
 
             return unloadId;

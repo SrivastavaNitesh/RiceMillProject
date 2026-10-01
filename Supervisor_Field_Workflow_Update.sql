@@ -3,6 +3,27 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
+/* Multi-location assignment helper; existing sp_AssignUnloading remains unchanged. */
+CREATE OR ALTER PROCEDURE dbo.sp_SaveUnloadLocations
+    @UnloadId INT,
+    @LocationIds NVARCHAR(MAX)
+AS
+BEGIN
+    SET NOCOUNT ON; SET XACT_ABORT ON;
+    IF @UnloadId <= 0 OR ISNULL(ISJSON(@LocationIds),0) <> 1
+        THROW 50100, 'Valid unload locations are required.', 1;
+    DECLARE @Locations TABLE(LocationId INT PRIMARY KEY);
+    INSERT @Locations SELECT DISTINCT TRY_CONVERT(INT,[value]) FROM OPENJSON(@LocationIds) WHERE TRY_CONVERT(INT,[value]) > 0;
+    IF NOT EXISTS(SELECT 1 FROM @Locations) THROW 50101, 'Select at least one unloading location.', 1;
+    IF EXISTS(SELECT 1 FROM @Locations x WHERE NOT EXISTS(SELECT 1 FROM dbo.m_LocationMaster l WHERE l.LocationId=x.LocationId AND l.IsActive=1))
+        THROW 50102, 'One or more unloading locations are invalid.', 1;
+    BEGIN TRANSACTION;
+    DELETE FROM dbo.t_UnloadLocation WHERE UnloadId=@UnloadId;
+    INSERT dbo.t_UnloadLocation(UnloadId,LocationId) SELECT @UnloadId,LocationId FROM @Locations;
+    COMMIT;
+END;
+GO
+
 IF COL_LENGTH('dbo.t_SupervisorUnloadDetail', 'LocationId') IS NULL
     ALTER TABLE dbo.t_SupervisorUnloadDetail ADD LocationId INT NULL;
 GO
