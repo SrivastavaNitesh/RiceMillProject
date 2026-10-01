@@ -443,6 +443,23 @@
 
 
                         <!-- =================================================
+                             MATERIAL / VARIETY
+                             ================================================= -->
+
+                        <div class="col-md-6">
+                            <label asp-for="ItemId" class="form-label fw-bold text-dark">
+                                Material / Variety <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="ItemId"
+                                    asp-items="ViewBag.Items"
+                                    id="ddlItem"
+                                    class="form-select form-select-lg border-primary-subtle"
+                                    required>
+                                <option value="">-- Select Material / Variety --</option>
+                            </select>
+                        </div>
+
+                        <!-- =================================================
                              GROSS WEIGHT
                              ================================================= -->
 
@@ -1845,6 +1862,8 @@ catch (Exception ex)
                                     || '0'
                                 );
 
+                            const item = document.getElementById('ddlItem')?.value;
+
 
                             let missing = [];
 
@@ -1897,6 +1916,10 @@ catch (Exception ex)
                                 missing.push(
                                     'Gross Weight (KG)'
                                 );
+                            }
+
+                            if (!item) {
+                                missing.push('Material / Variety');
                             }
 
 
