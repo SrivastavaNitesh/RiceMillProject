@@ -1858,6 +1858,8 @@
                 const valid =
                     locationTotal > 0
                     &&
+                    locationTotal === materialTotal
+                    &&
                     rowsComplete()
                     &&
                     mastersReady;
@@ -1867,9 +1869,7 @@
                     statusBox.className =
                         "total-status total-status-success";
 
-                    statusBox.innerHTML = locationTotal === materialTotal
-                        ? '<i class="bi bi-check-circle-fill me-1"></i>Location Total and Material Total matched: ' + materialTotal
-                        : '<i class="bi bi-exclamation-circle me-1"></i>Warning: Location Total (' + locationTotal + ') and Material Total (' + materialTotal + ') do not match.';
+                    statusBox.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Location Total and Material Total matched: ' + materialTotal;
 
                     saveButton.disabled =
                         false;
@@ -1878,7 +1878,9 @@
                     statusBox.className =
                         "total-status total-status-warning";
 
-                    statusBox.innerHTML = "Enter valid material rows and at least one location bag detail.";
+                    statusBox.innerHTML = locationTotal !== materialTotal
+                        ? "Location Total (" + locationTotal + ") must equal Material Total (" + materialTotal + ")."
+                        : "Enter valid material rows and at least one location bag detail.";
 
                     saveButton.disabled =
                         true;
@@ -1903,7 +1905,7 @@
 
 
                         alert(
-                            "Please complete all required material and location details."
+                            "Please complete all required details and make Location Total equal Material Total."
                         );
 
 

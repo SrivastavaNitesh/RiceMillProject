@@ -110,6 +110,8 @@ BEGIN
         THROW 50011,'One or more location details are not mapped to the company.',1;
     IF EXISTS(SELECT 1 FROM @Locations l WHERE NOT EXISTS(SELECT 1 FROM dbo.m_BagType b WHERE b.BagTypeId=l.BagTypeId AND b.IsActive=1))
         THROW 50012,'Invalid location bag type.',1;
+    IF (SELECT ISNULL(SUM(BagCount),0) FROM @Locations) <> (SELECT ISNULL(SUM(BagCount),0) FROM @Details)
+        THROW 50013,'Location total must equal Material total.',1;
 
     BEGIN TRANSACTION;
     DECLARE @ActionId INT;
