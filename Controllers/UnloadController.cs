@@ -477,7 +477,7 @@ namespace RiceMillProject.Controllers
             if (officeId > 0)
             {
                 ViewBag.Locations = new SelectList(
-                    _officeBal.GetOfficeLocations(officeId),
+                    _locationBal.GetCompanyUnloadingLocations(officeId),
                     "LocationId",
                     "LocationName",
                     locationId
@@ -486,7 +486,7 @@ namespace RiceMillProject.Controllers
             else
             {
                 ViewBag.Locations = new SelectList(
-                    new List<OfficeLocation>(),
+                    new List<LocationMaster>(),
                     "LocationId",
                     "LocationName"
                 );

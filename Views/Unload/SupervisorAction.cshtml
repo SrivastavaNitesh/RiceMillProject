@@ -518,7 +518,12 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="small text-muted mt-2">Location total is compared with Material total as a warning only.</div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4"><div class="summary-box"><div class="summary-label">Labour Total Bags</div><div class="summary-value">@labourTotalBags</div></div></div>
+                    <div class="col-md-4"><div class="summary-box"><div class="summary-label">Location Total</div><div class="summary-value" id="locationTotalDisplay">0</div></div></div>
+                    <div class="col-md-4"><div class="summary-box"><div class="summary-label">Material Total</div><div class="summary-value" id="locationMaterialTotalDisplay">0</div></div></div>
+                </div>
+                <div class="small text-muted mt-2">Location-wise count must match Material Type / Variety count.</div>
             </div>
         </div>
 
@@ -528,7 +533,7 @@
              MASTER DRIVEN SECTION
              ================================================= -->
 
-        <div class="sup-card">
+        <div class="sup-card d-none">
 
             <div class="sup-section-title">
 
@@ -1850,6 +1855,11 @@
                 const locationTotal = calculateStackTotal() + Array.from(document.querySelectorAll(".location-count"))
                     .reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
 
+                const locationDisplay = document.getElementById("locationTotalDisplay");
+                const materialDisplay = document.getElementById("locationMaterialTotalDisplay");
+                if (locationDisplay) locationDisplay.textContent = locationTotal;
+                if (materialDisplay) materialDisplay.textContent = materialTotal;
+
                 const mastersReady =
                     categoryMaster.length > 0
                     &&
@@ -1932,6 +1942,11 @@
             reIndexRows();
 
             updateRemoveButtons();
+
+            document.querySelectorAll(".location-count").forEach(function (input) {
+                input.addEventListener("input", validateForm);
+                input.addEventListener("change", validateForm);
+            });
 
             validateForm();
 

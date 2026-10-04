@@ -82,7 +82,10 @@ BEGIN
     SET NOCOUNT ON; SET XACT_ABORT ON;
     IF @UnloadId<=0 OR @SupervisorId<=0 THROW 50001,'Valid unloading and supervisor are required.',1;
     DECLARE @OfficeId INT;
-    SELECT @OfficeId=ge.TargetOfficeId FROM dbo.t_UnloadTransaction u JOIN dbo.t_GateEntry ge ON ge.RSTNumber=u.RSTNumber
+    SELECT @OfficeId=COALESCE(ge.TargetOfficeId, su.OfficeId)
+    FROM dbo.t_UnloadTransaction u
+    JOIN dbo.t_GateEntry ge ON ge.RSTNumber=u.RSTNumber
+    LEFT JOIN dbo.sa05_user su ON su.PersonId=@SupervisorId AND su.IsActive=1
     WHERE u.UnloadId=@UnloadId AND u.SupervisorId=@SupervisorId;
     IF ISNULL(@OfficeId,0)<=0 THROW 50002,'The unloading company could not be determined.',1;
     IF ISNULL(ISJSON(@DetailJson),0)<>1 OR ISNULL(ISJSON(@LocationDetailJson),0)<>1 THROW 50003,'Invalid Supervisor detail data.',1;

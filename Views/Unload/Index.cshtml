@@ -1,5 +1,8 @@
 @using System.Linq
 @model List<RiceMillProject.Models.UnloadTransaction>
+<style>
+    .variety-badge { background:#e6f7f5 !important; color:#087f78 !important; border:1px solid #73cfc8; }
+</style>
 @{
     ViewData["Title"] = "Supervisor Unloading Board";
     var pendingAssignments = ViewBag.PendingAssignments as List<RiceMillProject.Models.GateEntry>;
@@ -143,7 +146,7 @@
                                     @unload.RSTNumber
                                     <div class="small text-muted"><a asp-action="Assign" asp-route-rstNumber="@unload.RSTNumber" class="text-decoration-none small">+ Add Variety</a></div>
                                 </td>
-                                <td><span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1"><i class="bi bi-box-seam me-1"></i> @(string.IsNullOrEmpty(unload.ItemName) ? "Mansuri Paddy" : unload.ItemName)</span></td>
+                                <td><span class="badge variety-badge fw-bold px-2 py-1"><i class="bi bi-box-seam me-1"></i> @(string.IsNullOrWhiteSpace(unload.ItemName) ? "Mansuri Paddy" : unload.ItemName)</span></td>
                                 <td><strong class="text-dark"><i class="bi bi-person-badge me-1 text-secondary"></i> @(string.IsNullOrEmpty(unload.SupervisorName) ? "Rajesh Kumar Sharma" : unload.SupervisorName)</strong></td>
                                 <td><strong class="text-dark">@(string.IsNullOrEmpty(unload.MethName) ? "Meth Ramu Yadav" : unload.MethName)</strong></td>
                                 <td><span class="badge-erp badge-erp-info">@(unload.NumberOfBags ?? 0) Bags</span></td>
