@@ -177,6 +177,7 @@
 </div>
 
 @section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
         document.querySelectorAll('.location-choice').forEach(function (box) {
             box.addEventListener('change', function () {
@@ -185,13 +186,4 @@
             });
         });
     </script>
-}
-
-@section Scripts
-{
-    @{
-        await Html.RenderPartialAsync(
-            "_ValidationScriptsPartial"
-        );
-    }
 }
