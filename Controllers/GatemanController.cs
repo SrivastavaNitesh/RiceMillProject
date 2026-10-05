@@ -66,7 +66,7 @@ namespace RiceMillProject.Controllers
             try
             {
                 int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                var allEntries = _inwardBal.GetAllInwardEntries();
+                var allEntries = _inwardBal.GetAllInwardEntries(includeItemCategories: true);
                 
                 bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
                 var myEntries = allEntries;

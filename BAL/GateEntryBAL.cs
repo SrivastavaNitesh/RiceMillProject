@@ -30,8 +30,8 @@ namespace RiceMillProject.BAL
                 throw new ArgumentException("Inward entry is required.", nameof(entry));
             if (entry.GrossWeight <= 0)
                 throw new ArgumentException("Gross weight must be greater than zero.", nameof(entry));
-            if (entry.ItemId <= 0)
-                throw new ArgumentException("Material / variety is required for the current RST workflow.", nameof(entry));
+            if (entry.ItemCategoryId <= 0)
+                throw new ArgumentException("Item category is required.", nameof(entry));
             if (entry.PartyId <= 0)
                 throw new ArgumentException("Party is required.", nameof(entry));
             if (entry.VehicleId <= 0)
@@ -46,6 +46,8 @@ namespace RiceMillProject.BAL
         {
             return _gateDal.GetDriversWithMobile();
         }
+
+        public System.Data.DataTable GetItemCategories() => _gateDal.GetItemCategories();
 
         public bool CompleteGateExit(string rstNumber, decimal tareWeight)
         {

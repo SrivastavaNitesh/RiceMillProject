@@ -19,6 +19,15 @@
     </a>
 </div>
 
+<form asp-action="EmployeeList" method="get" class="erp-card mb-3">
+    <div class="erp-card-body">
+        <label for="officeId" class="form-label">Company</label>
+        @Html.DropDownList("officeId", new SelectList(ViewBag.Offices, "Value", "Text", ViewBag.SelectedOfficeId),
+            new { @class = "form-select", onchange = "this.form.submit()" })
+        <noscript><button type="submit" class="btn-erp-primary mt-2">Filter</button></noscript>
+    </div>
+</form>
+
 <div class="erp-card">
     <div class="erp-card-header">
         <span><i class="bi bi-list-ul text-primary me-2"></i> Employee & Staff Registry</span>

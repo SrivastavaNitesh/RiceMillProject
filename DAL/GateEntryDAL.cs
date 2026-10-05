@@ -171,6 +171,22 @@ namespace RiceMillProject.DAL
                 }
             }
 
+            // ItemId on gate entries stores the category ID in this workflow.
+            using (var con = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(@"
+                SELECT ge.RSTNumber, c.CategoryName
+                FROM dbo.t_GateEntry ge
+                INNER JOIN dbo.m_ItemCategory c ON c.CategoryId = ge.ItemId", con))
+            {
+                con.Open();
+                using var reader = cmd.ExecuteReader();
+                var categories = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                while (reader.Read())
+                    categories[reader.GetString(0)] = reader.GetString(1);
+                foreach (var entry in entries)
+                    entry.ItemCategoryName = categories.GetValueOrDefault(entry.RSTNumber, string.Empty);
+            }
+
             return entries;
         }
 
@@ -246,6 +262,17 @@ namespace RiceMillProject.DAL
         // CREATE RST FROM INWARD
         // ============================================================
 
+        public DataTable GetItemCategories()
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(
+                "SELECT CategoryId, CategoryName FROM dbo.m_ItemCategory WHERE IsActive = 1 ORDER BY CategoryName", con);
+            using var adapter = new SqlDataAdapter(cmd);
+            var categories = new DataTable();
+            adapter.Fill(categories);
+            return categories;
+        }
+
         public string CreateGateEntry(
             GateEntry entry)
         {
@@ -290,7 +317,9 @@ namespace RiceMillProject.DAL
                 ?? DBNull.Value;
 
             cmd.Parameters.Add("@ItemId", SqlDbType.Int).Value =
-                entry.ItemId > 0 ? entry.ItemId : DBNull.Value;
+                entry.ItemCategoryId > 0 ? entry.ItemCategoryId : DBNull.Value;
+
+            //cmd.Parameters.Add("@ItemCategoryId", SqlDbType.Int).Value = entry.ItemCategoryId;
 
             var chargeParameter = cmd.Parameters.Add("@WeightCharge", SqlDbType.Decimal);
             chargeParameter.Precision = 18;

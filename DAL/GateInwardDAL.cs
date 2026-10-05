@@ -113,6 +113,30 @@ namespace RiceMillProject.DAL
             return list;
         }
 
+        public void PopulateItemCategoryNames(List<InwardHeader> entries)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(@"
+                SELECT DISTINCT ge.InwardNo, c.CategoryName
+                FROM dbo.t_GateEntry ge
+                INNER JOIN dbo.m_ItemCategory c ON c.CategoryId = ge.ItemId
+                WHERE ge.InwardNo IS NOT NULL
+                ORDER BY ge.InwardNo, c.CategoryName", con);
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            var categories = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            while (reader.Read())
+            {
+                var inwardNo = reader.GetString(0);
+                if (!categories.TryGetValue(inwardNo, out var names))
+                    categories[inwardNo] = names = new List<string>();
+                names.Add(reader.GetString(1));
+            }
+            foreach (var entry in entries)
+                entry.ItemCategoryName = categories.TryGetValue(entry.InwardNo ?? "", out var names)
+                    ? string.Join(", ", names) : string.Empty;
+        }
+
         public bool SaveInwardEntry(InwardHeader model)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))

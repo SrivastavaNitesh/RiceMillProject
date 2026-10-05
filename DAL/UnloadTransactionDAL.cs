@@ -87,8 +87,16 @@ LEFT JOIN dbo.m_BagType b
 LEFT JOIN dbo.m_Item i
     ON u.ItemId = i.ItemId
 
-LEFT JOIN dbo.m_LocationMaster l
-    ON u.LocationId = l.LocationId
+OUTER APPLY (
+    SELECT STRING_AGG(CONVERT(nvarchar(max), selected.LocationName), ', ')
+        WITHIN GROUP (ORDER BY selected.LocationName) AS LocationName
+    FROM (
+        SELECT DISTINCT location.LocationId, location.LocationName
+        FROM dbo.t_GateEntryLocations gl
+        INNER JOIN dbo.m_LocationMaster location ON location.LocationId = gl.LocationId
+        WHERE gl.RSTNumber = u.RSTNumber
+    ) selected
+) l
 
 ORDER BY u.UnloadId DESC;";
 
@@ -362,7 +370,7 @@ ORDER BY u.UnloadId DESC;";
         // Supervisor assigns Meth + Location
         // ============================================================
 
-        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId)
+        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int[] locationIds,int officeId)
         {
             int unloadId = 0;
 
@@ -395,9 +403,12 @@ ORDER BY u.UnloadId DESC;";
                 ?? DBNull.Value;
 
             cmd.Parameters.Add(
-                "@LocationId",
-                SqlDbType.Int
-            ).Value = locationId;
+                "@LocationIds",
+                SqlDbType.NVarChar,
+                -1
+            ).Value = string.Join(",", locationIds.Distinct());
+
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
 
             con.Open();
 
@@ -1149,6 +1160,20 @@ ORDER BY u.UnloadId DESC;";
                     }
                 );
             }
+
+            reader.Close();
+            using var inwardCmd = new SqlCommand(@"
+                SELECT u.UnloadId, ge.InwardNo
+                FROM dbo.t_UnloadTransaction u
+                INNER JOIN dbo.t_GateEntry ge ON ge.RSTNumber = u.RSTNumber
+                WHERE u.SupervisorId = @SupervisorId", con);
+            inwardCmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
+            using var inwardReader = inwardCmd.ExecuteReader();
+            var inwardNumbers = new Dictionary<int, string>();
+            while (inwardReader.Read())
+                inwardNumbers[inwardReader.GetInt32(0)] = inwardReader.IsDBNull(1) ? "" : inwardReader.GetString(1);
+            foreach (var entry in list)
+                entry.InwardNo = inwardNumbers.GetValueOrDefault(entry.UnloadId, "");
 
             return list;
         }

@@ -442,6 +442,16 @@
                         </div>
 
 
+                        <div class="col-md-6">
+                            <label asp-for="ItemCategoryId" class="form-label fw-bold text-dark">
+                                Item Category <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="ItemCategoryId" asp-items="ViewBag.ItemCategories" class="form-select" required>
+                                <option value="">-- Select Item Category --</option>
+                            </select>
+                            <span asp-validation-for="ItemCategoryId" class="text-danger"></span>
+                        </div>
+
                         <!-- =================================================
                              GROSS WEIGHT
                              ================================================= -->

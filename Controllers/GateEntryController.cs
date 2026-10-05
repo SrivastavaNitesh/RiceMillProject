@@ -396,6 +396,21 @@ namespace RiceMillProject.Controllers
         private void PopulateDropdowns(
             GateEntry entry)
         {
+            ViewBag.ItemCategories = Enumerable.Empty<SelectListItem>();
+            try
+            {
+                ViewBag.ItemCategories = new SelectList(
+                    _gateBal.GetItemCategories().AsEnumerable().Select(row => new
+                    {
+                        CategoryId = Convert.ToInt32(row["CategoryId"]),
+                        CategoryName = row["CategoryName"].ToString()
+                    }), "CategoryId", "CategoryName", entry.ItemCategoryId);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Item categories could not be loaded. Please reload and try again.");
+            }
+
             // -----------------------------------------------------
             // Defaults
             // -----------------------------------------------------

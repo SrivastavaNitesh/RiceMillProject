@@ -130,7 +130,7 @@
                         <tr>
 
                             <th class="ps-4">
-                                RST Number
+                                RST / Inward Number
                             </th>
 
                             <th>
@@ -205,6 +205,7 @@
                                         <div class="fw-bold text-primary">
 
                                             @item.RSTNumber
+                                            <span class="d-block small text-secondary fw-normal">Inward: @(string.IsNullOrWhiteSpace(item.InwardNo) ? "-" : item.InwardNo)</span>
 
                                         </div>
 

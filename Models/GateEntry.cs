@@ -37,8 +37,13 @@ namespace RiceMillProject.Models
         // Property is preserved because other project code may use ItemId.
         public int ItemId { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "Select an item category.")]
+        public int ItemCategoryId { get; set; }
+
 
         public string ItemName { get; set; } = string.Empty;
+
+        public string ItemCategoryName { get; set; } = string.Empty;
 
 
         public int? TargetOfficeId { get; set; }

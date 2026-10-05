@@ -22,9 +22,9 @@ namespace RiceMillProject.BAL
         {
             return _personDal.GetActivePersonsByPost(postId);
         }
-        public List<Person> GetEmployeeList(string Mode)
+        public List<Person> GetEmployeeList(string Mode, int? officeId = null)
         {
-            return _personDal.GetEmployeeList(Mode);
+            return _personDal.GetEmployeeList(Mode, officeId);
         }
         public bool IsMobileNumberUnique(string mobileNumber, int excludePersonId = 0)
         {

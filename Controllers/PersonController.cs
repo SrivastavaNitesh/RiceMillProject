@@ -25,10 +25,15 @@ namespace RiceMillProject.Controllers
             return View(persons);
         }
 
-        public IActionResult EmployeeList()
+        public IActionResult EmployeeList(int? officeId)
         {
+            var offices = Allclass.CreateDropdown(_BusLayer.GetAllMainoffice());
+            offices[0].Text = "All Companies";
+            offices[0].Value = "";
+            ViewBag.Offices = offices;
+            ViewBag.SelectedOfficeId = officeId;
             string Mode = "emp";
-            var persons = _personBal.GetEmployeeList(Mode);
+            var persons = _personBal.GetEmployeeList(Mode, officeId);
             return View(persons);
         }
 

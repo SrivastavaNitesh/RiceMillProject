@@ -82,7 +82,12 @@
                     <!-- Unloading Location -->
                     <div class="col-md-12">
 
-                        <label asp-for="LocationId"
+                        @if (ViewBag.AssignmentLocationWarning is string locationWarning)
+                        {
+                            <div class="alert alert-warning" role="alert">@locationWarning</div>
+                        }
+
+                        <label for="unloadingLocationSummary"
                                class="form-label">
 
                             Unloading Location
@@ -93,23 +98,29 @@
 
                         </label>
 
-                        <select asp-for="LocationId"
-                                class="form-select"
-                                asp-items="ViewBag.Locations"
-                                required>
+                        <details id="unloadingLocations" class="position-relative">
+                            <summary id="unloadingLocationSummary" class="form-select" aria-label="Unloading locations">
+                                Select unloading locations
+                            </summary>
+                            <div class="border rounded bg-white p-2 shadow-sm position-absolute w-100"
+                                 style="z-index: 10; max-height: 240px; overflow: auto;">
+                                @foreach (var location in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Locations)
+                                {
+                                    <label class="d-flex align-items-center gap-2 p-2">
+                                        <input type="checkbox" class="form-check-input m-0" name="SelectedLocationIds"
+                                               value="@location.Value" checked="@location.Selected" />
+                                        <span>@location.Text</span>
+                                    </label>
+                                }
+                            </div>
+                        </details>
 
-                            <option value="">
-                                -- Select Unloading Location --
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="LocationId"
+                        <span asp-validation-for="SelectedLocationIds"
                               class="text-danger">
                         </span>
 
                         <small class="text-muted">
-                            Select the location where this vehicle will be unloaded.
+                            Select one or more locations where this vehicle will be unloaded.
                         </small>
 
                     </div>
@@ -182,9 +193,46 @@
 
 @section Scripts
 {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @{
         await Html.RenderPartialAsync(
             "_ValidationScriptsPartial"
         );
     }
+    <script>
+        (() => {
+            @if (ViewBag.AssignmentFailed == true)
+            {
+                <text>Swal.fire({ icon: 'error', title: 'Some error occurred', text: 'Assignment was not saved. Please check the details below and try again.' });</text>
+            }
+            const dropdown = document.getElementById('unloadingLocations');
+            const summary = dropdown.querySelector('summary');
+            const options = [...dropdown.querySelectorAll('input[type="checkbox"]')];
+            const error = document.querySelector('[data-valmsg-for="SelectedLocationIds"]');
+            function updateLabel() {
+                const selected = options.filter(option => option.checked);
+                summary.textContent = selected.length
+                    ? selected.map(option => option.nextElementSibling.textContent.trim()).join(', ')
+                    : 'Select unloading locations';
+                if (selected.length) error.textContent = '';
+            }
+            dropdown.addEventListener('change', updateLabel);
+            dropdown.closest('form').addEventListener('submit', event => {
+                if (!options.some(option => option.checked)) {
+                    event.preventDefault();
+                    error.textContent = 'Please select at least one unloading location.';
+                    Swal.fire({ icon: 'error', title: 'Some error occurred', text: error.textContent });
+                    dropdown.open = true;
+                    summary.focus();
+                }
+            });
+            document.addEventListener('click', event => {
+                if (!dropdown.contains(event.target)) dropdown.open = false;
+            });
+            dropdown.addEventListener('keydown', event => {
+                if (event.key === 'Escape') { dropdown.open = false; summary.focus(); }
+            });
+            updateLabel();
+        })();
+    </script>
 }

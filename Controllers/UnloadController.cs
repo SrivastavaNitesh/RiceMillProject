@@ -92,12 +92,7 @@ namespace RiceMillProject.Controllers
                 return Forbid();
             }
 
-            /*
-             * IMPORTANT:
-             * OfficeId claim se nahi.
-             * Logged-in PersonId se DB se OfficeId niklega.
-             */
-            int officeId = GetCurrentOfficeId();
+            int officeId = GetAssignmentCompanyId();
 
             ViewBag.RSTNumber = rstNumber;
 
@@ -106,12 +101,12 @@ namespace RiceMillProject.Controllers
                 PopulateAssignLookups(
                     0,
                     methId: 0,
-                    locationId: null
+                    locationIds: null
                 );
 
                 ModelState.AddModelError(
                     string.Empty,
-                    "Supervisor company mapping was not found."
+                    "Company was not found in your login session. Please sign in again."
                 );
 
                 return View(new UnloadTransaction
@@ -125,7 +120,7 @@ namespace RiceMillProject.Controllers
             PopulateAssignLookups(
                 officeId,
                 methId: 0,
-                locationId: null
+                locationIds: null
             );
 
             var model = new UnloadTransaction
@@ -147,7 +142,7 @@ namespace RiceMillProject.Controllers
         public IActionResult Assign(UnloadTransaction unload)
         {
             int supervisorId = GetCurrentPersonId();
-            int officeId = GetCurrentOfficeId();
+            int officeId = GetAssignmentCompanyId();
 
             // Supervisor logged-in user se hi lenge
             unload.SupervisorId = supervisorId;
@@ -168,7 +163,7 @@ namespace RiceMillProject.Controllers
             {
                 ModelState.AddModelError(
                     string.Empty,
-                    "Supervisor company mapping was not found."
+                    "Company was not found in your login session. Please sign in again."
                 );
             }
 
@@ -188,12 +183,12 @@ namespace RiceMillProject.Controllers
                 );
             }
 
-            if (!unload.LocationId.HasValue ||
-                unload.LocationId.Value <= 0)
+            var locationIds = unload.SelectedLocationIds ?? Array.Empty<int>();
+            if (locationIds.Length == 0 || locationIds.Any(id => id <= 0))
             {
                 ModelState.AddModelError(
-                    nameof(unload.LocationId),
-                    "Please select unloading location."
+                    nameof(unload.SelectedLocationIds),
+                    "Please select at least one unloading location."
                 );
             }
 
@@ -205,8 +200,9 @@ namespace RiceMillProject.Controllers
                 officeId > 0 &&
                 !string.IsNullOrWhiteSpace(unload.RSTNumber) &&
                 unload.MethId > 0 &&
-                unload.LocationId.HasValue &&
-                unload.LocationId.Value > 0)
+                locationIds.Length > 0 &&
+                locationIds.All(id => id > 0) &&
+                (!ModelState.TryGetValue(nameof(unload.SelectedLocationIds), out var locationState) || locationState.Errors.Count == 0))
             {
                 try
                 {
@@ -215,13 +211,13 @@ namespace RiceMillProject.Controllers
                         supervisorId,
                         unload.MethId,
                         unload.ItemId,
-                        unload.LocationId.Value
+                        locationIds.Distinct().ToArray(),
+                        officeId
                     );
 
                     if (unloadId > 0)
                     {
-                        TempData["SuccessMessage"] =
-                            $"RST {unload.RSTNumber} assigned successfully.";
+                        TempData["AssignmentSuccessMessage"] = "Successfully assigned";
 
                         return RedirectToAction(
                             nameof(PrintChallan),
@@ -254,10 +250,11 @@ namespace RiceMillProject.Controllers
             }
 
             // Error aaye to dropdown dobara load honge
+            ViewBag.AssignmentFailed = true;
             PopulateAssignLookups(
                 officeId,
                 unload.MethId,
-                unload.LocationId
+                locationIds
             );
 
             return View(unload);
@@ -454,7 +451,7 @@ namespace RiceMillProject.Controllers
         private void PopulateAssignLookups(
             int officeId,
             int methId = 0,
-            int? locationId = null)
+            IEnumerable<int>? locationIds = null)
         {
             var allPersons = _personBal.GetAllPersons();
 
@@ -473,16 +470,19 @@ namespace RiceMillProject.Controllers
 
             if (officeId > 0)
             {
-                ViewBag.Locations = new SelectList(
-                    _officeBal.GetOfficeLocations(officeId),
+                var locations = _officeBal.GetOfficeLocations(officeId);
+                if (locations.Count == 0)
+                    ViewBag.AssignmentLocationWarning = "No active unloading locations are mapped to your login company.";
+                ViewBag.Locations = new MultiSelectList(
+                    locations,
                     "LocationId",
                     "LocationName",
-                    locationId
+                    locationIds
                 );
             }
             else
             {
-                ViewBag.Locations = new SelectList(
+                ViewBag.Locations = new MultiSelectList(
                     new List<OfficeLocation>(),
                     "LocationId",
                     "LocationName"
@@ -574,6 +574,12 @@ namespace RiceMillProject.Controllers
         // ============================================================
         // CURRENT LOGIN OFFICE / COMPANY
         // ============================================================
+
+        private int GetAssignmentCompanyId()
+        {
+            return int.TryParse(User.FindFirst("CompanyId")?.Value, out var companyId) && companyId > 0
+                ? companyId : 0;
+        }
 
         private int GetCurrentOfficeId()
         {

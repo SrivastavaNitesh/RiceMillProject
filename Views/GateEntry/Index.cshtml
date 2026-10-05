@@ -50,7 +50,7 @@
 
 <div class="erp-table-container">
 
-    <div class="table-responsive">
+    <div class="table-responsive" style="overflow: auto; max-width: 100%;">
 
         <table class="erp-table">
 
@@ -73,6 +73,8 @@
                     <th>
                         Driver
                     </th>
+
+                    <th>Item Category</th>
 
                     <th>
                         Gross Wt.
@@ -138,6 +140,8 @@
 
                         </td>
 
+
+                        <td>@(string.IsNullOrWhiteSpace(item.ItemCategoryName) ? "-" : item.ItemCategoryName)</td>
 
                         <!-- GROSS -->
                         <td>
