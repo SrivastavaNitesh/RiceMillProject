@@ -1,5 +1,8 @@
 @using System.Linq
 @model List<RiceMillProject.Models.UnloadTransaction>
+<style>
+    .variety-badge { background:#e6f7f5 !important; color:#087f78 !important; border:1px solid #73cfc8; }
+</style>
 @{
     ViewData["Title"] = "Supervisor Unloading Board";
     var pendingAssignments = ViewBag.PendingAssignments as List<RiceMillProject.Models.GateEntry>;

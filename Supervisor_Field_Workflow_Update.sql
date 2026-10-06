@@ -3,6 +3,27 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
+/* Multi-location assignment helper; existing sp_AssignUnloading remains unchanged. */
+CREATE OR ALTER PROCEDURE dbo.sp_SaveUnloadLocations
+    @UnloadId INT,
+    @LocationIds NVARCHAR(MAX)
+AS
+BEGIN
+    SET NOCOUNT ON; SET XACT_ABORT ON;
+    IF @UnloadId <= 0 OR ISNULL(ISJSON(@LocationIds),0) <> 1
+        THROW 50100, 'Valid unload locations are required.', 1;
+    DECLARE @Locations TABLE(LocationId INT PRIMARY KEY);
+    INSERT @Locations SELECT DISTINCT TRY_CONVERT(INT,[value]) FROM OPENJSON(@LocationIds) WHERE TRY_CONVERT(INT,[value]) > 0;
+    IF NOT EXISTS(SELECT 1 FROM @Locations) THROW 50101, 'Select at least one unloading location.', 1;
+    IF EXISTS(SELECT 1 FROM @Locations x WHERE NOT EXISTS(SELECT 1 FROM dbo.m_LocationMaster l WHERE l.LocationId=x.LocationId AND l.IsActive=1))
+        THROW 50102, 'One or more unloading locations are invalid.', 1;
+    BEGIN TRANSACTION;
+    DELETE FROM dbo.t_UnloadLocation WHERE UnloadId=@UnloadId;
+    INSERT dbo.t_UnloadLocation(UnloadId,LocationId) SELECT @UnloadId,LocationId FROM @Locations;
+    COMMIT;
+END;
+GO
+
 IF COL_LENGTH('dbo.t_SupervisorUnloadDetail', 'LocationId') IS NULL
     ALTER TABLE dbo.t_SupervisorUnloadDetail ADD LocationId INT NULL;
 GO
@@ -61,7 +82,10 @@ BEGIN
     SET NOCOUNT ON; SET XACT_ABORT ON;
     IF @UnloadId<=0 OR @SupervisorId<=0 THROW 50001,'Valid unloading and supervisor are required.',1;
     DECLARE @OfficeId INT;
-    SELECT @OfficeId=ge.TargetOfficeId FROM dbo.t_UnloadTransaction u JOIN dbo.t_GateEntry ge ON ge.RSTNumber=u.RSTNumber
+    SELECT @OfficeId=COALESCE(ge.TargetOfficeId, su.OfficeId)
+    FROM dbo.t_UnloadTransaction u
+    JOIN dbo.t_GateEntry ge ON ge.RSTNumber=u.RSTNumber
+    LEFT JOIN dbo.sa05_user su ON su.PersonId=@SupervisorId AND su.IsActive=1
     WHERE u.UnloadId=@UnloadId AND u.SupervisorId=@SupervisorId;
     IF ISNULL(@OfficeId,0)<=0 THROW 50002,'The unloading company could not be determined.',1;
     IF ISNULL(ISJSON(@DetailJson),0)<>1 OR ISNULL(ISJSON(@LocationDetailJson),0)<>1 THROW 50003,'Invalid Supervisor detail data.',1;
@@ -89,6 +113,8 @@ BEGIN
         THROW 50011,'One or more location details are not mapped to the company.',1;
     IF EXISTS(SELECT 1 FROM @Locations l WHERE NOT EXISTS(SELECT 1 FROM dbo.m_BagType b WHERE b.BagTypeId=l.BagTypeId AND b.IsActive=1))
         THROW 50012,'Invalid location bag type.',1;
+    IF (SELECT ISNULL(SUM(BagCount),0) FROM @Locations) <> (SELECT ISNULL(SUM(BagCount),0) FROM @Details)
+        THROW 50013,'Location total must equal Material total.',1;
 
     BEGIN TRANSACTION;
     DECLARE @ActionId INT;

@@ -11,6 +11,7 @@
         ?? new List<RiceMillProject.Models.StackTypeMaster>();
     var companyLocations = ViewBag.CompanyLocations as List<RiceMillProject.Models.LocationMaster>
         ?? new List<RiceMillProject.Models.LocationMaster>();
+    var detailLocations = companyLocations.ToList();
     var bagTypes = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
     if (ViewData.TryGetValue("BagTypes", out var bagTypeObject) &&
         bagTypeObject is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> bagTypeItems)
@@ -305,7 +306,7 @@
              RST DETAILS
              ================================================= -->
 
-        <div class="sup-card">
+        <div class="sup-card d-none">
 
             <div class="sup-section-title">
 
@@ -499,9 +500,9 @@
                     <table class="table table-bordered align-middle mb-0">
                         <thead><tr><th>Location</th>@foreach (var bag in bagTypes) { <th>@bag.Text</th> }</tr></thead>
                         <tbody>
-                        @for (var li = 0; li < companyLocations.Count; li++)
+                        @for (var li = 0; li < detailLocations.Count; li++)
                         {
-                            var location = companyLocations[li];
+                            var location = detailLocations[li];
                             <tr>
                                 <td class="fw-semibold">@location.LocationName</td>
                                 @for (var bi = 0; bi < bagTypes.Count(); bi++)
@@ -517,7 +518,12 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="small text-muted mt-2">Location total is compared with Material total as a warning only.</div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4"><div class="summary-box"><div class="summary-label">Labour Total Bags</div><div class="summary-value">@labourTotalBags</div></div></div>
+                    <div class="col-md-4"><div class="summary-box"><div class="summary-label">Location Total</div><div class="summary-value" id="locationTotalDisplay">0</div></div></div>
+                    <div class="col-md-4"><div class="summary-box"><div class="summary-label">Material Total</div><div class="summary-value" id="locationMaterialTotalDisplay">0</div></div></div>
+                </div>
+                <div class="small text-muted mt-2">Location-wise count must match Material Type / Variety count.</div>
             </div>
         </div>
 
@@ -1846,8 +1852,13 @@
 
                 const materialTotal =
                     calculateMaterialTotal();
-                const locationTotal = Array.from(document.querySelectorAll(".location-count"))
+                const locationTotal = calculateStackTotal() + Array.from(document.querySelectorAll(".location-count"))
                     .reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
+
+                const locationDisplay = document.getElementById("locationTotalDisplay");
+                const materialDisplay = document.getElementById("locationMaterialTotalDisplay");
+                if (locationDisplay) locationDisplay.textContent = locationTotal;
+                if (materialDisplay) materialDisplay.textContent = materialTotal;
 
                 const mastersReady =
                     categoryMaster.length > 0
@@ -1856,6 +1867,8 @@
 
                 const valid =
                     locationTotal > 0
+                    &&
+                    locationTotal === materialTotal
                     &&
                     rowsComplete()
                     &&
@@ -1866,9 +1879,7 @@
                     statusBox.className =
                         "total-status total-status-success";
 
-                    statusBox.innerHTML = locationTotal === materialTotal
-                        ? '<i class="bi bi-check-circle-fill me-1"></i>Location Total and Material Total matched: ' + materialTotal
-                        : '<i class="bi bi-exclamation-circle me-1"></i>Warning: Location Total (' + locationTotal + ') and Material Total (' + materialTotal + ') do not match.';
+                    statusBox.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Location Total and Material Total matched: ' + materialTotal;
 
                     saveButton.disabled =
                         false;
@@ -1877,7 +1888,9 @@
                     statusBox.className =
                         "total-status total-status-warning";
 
-                    statusBox.innerHTML = "Enter valid material rows and at least one location bag detail.";
+                    statusBox.innerHTML = locationTotal !== materialTotal
+                        ? "Location Total (" + locationTotal + ") must equal Material Total (" + materialTotal + ")."
+                        : "Enter valid material rows and at least one location bag detail.";
 
                     saveButton.disabled =
                         true;
@@ -1902,7 +1915,7 @@
 
 
                         alert(
-                            "Please complete all required material and location details."
+                            "Please complete all required details and make Location Total equal Material Total."
                         );
 
 
@@ -1929,6 +1942,11 @@
             reIndexRows();
 
             updateRemoveButtons();
+
+            document.querySelectorAll(".location-count").forEach(function (input) {
+                input.addEventListener("input", validateForm);
+                input.addEventListener("change", validateForm);
+            });
 
             validateForm();
 

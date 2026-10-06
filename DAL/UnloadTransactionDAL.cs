@@ -422,6 +422,7 @@ ORDER BY u.UnloadId DESC;";
                     Convert.ToInt32(result);
             }
 
+            // sp_AssignUnloading saves all selected locations in the same transaction.
             return unloadId;
         }
 

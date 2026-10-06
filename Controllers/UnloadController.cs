@@ -824,6 +824,15 @@ namespace RiceMillProject.Controllers
                 // SAVE
                 // =====================================================
 
+                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
+                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
+                int materialTotal = rows.Sum(x => x.BagCount);
+                if (locationTotal != materialTotal)
+                {
+                    TempData["ErrorMessage"] = $"Location Total ({locationTotal}) must equal Material Total ({materialTotal}).";
+                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
+                }
+
                 int supervisorActionId =
                     _unloadBal.SaveSupervisorUnloadAction(
                         model.UnloadId,
@@ -849,11 +858,7 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
-                int locationTotal = locationRows.Sum(x => x.BagCount);
-                int materialTotal = rows.Sum(x => x.BagCount);
                 TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
-                if (locationTotal != materialTotal)
-                    TempData["WarningMessage"] = $"Location Total ({locationTotal}) and Material Total ({materialTotal}) do not match.";
 
                 return RedirectToAction("Index");
             }
