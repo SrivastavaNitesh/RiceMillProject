@@ -21,6 +21,7 @@ public class LabWorkflowBAL(IConfiguration configuration)
     public void RemoveMapping(int id, int userId) => dal.RemoveMapping(id, userId);
     public List<LabItemOption> GetItems(string? rst = null) => dal.GetItems(rst);
     public List<LabRstSummary> GetRsts() => dal.GetRsts();
+    public List<LabRstSummary> GetRstsForOffice(int officeId) => dal.GetRstsForOffice(officeId);
     public List<LabReport> GetReports(string? rst, DateTime? from, DateTime? to) => dal.GetReports(rst, from, to);
     public LabReport? GetReport(int id) => dal.GetReport(id);
     public int SaveReport(LabEntryViewModel model, int userId)

@@ -14,14 +14,18 @@ namespace RiceMillProject.Controllers;
 public class LabController(IConfiguration configuration, ILogger<LabController> logger) : Controller
 {
     private readonly LabWorkflowBAL lab = new(configuration);
+    private readonly OfficeBAL office = new(configuration);
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    public IActionResult Index() => View(lab.GetRsts());
+    private int OfficeId => office.GetOfficeIdByPersonId(UserId);
+    public IActionResult Index() => View(lab.GetRstsForOffice(OfficeId));
 
     [HttpGet]
     public IActionResult Create(string? rstNumber)
     {
         if (string.IsNullOrWhiteSpace(rstNumber)) return RedirectToAction(nameof(Index));
-        if (lab.GetRsts().Any(r => r.RSTNumber == rstNumber && r.IsComplete))
+        var companyRsts = lab.GetRstsForOffice(OfficeId);
+        if (!companyRsts.Any(r => string.Equals(r.RSTNumber, rstNumber, StringComparison.OrdinalIgnoreCase))) return Forbid();
+        if (companyRsts.Any(r => r.RSTNumber == rstNumber && r.IsComplete))
         {
             TempData["LabInfo"] = "All item tests for this RST are submitted. Entry is closed; saved reports are available below.";
             return RedirectToAction(nameof(Reports), new { rstNumber });
@@ -31,6 +35,7 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     [HttpPost]
     public IActionResult Create(LabEntryViewModel model)
     {
+        if (!lab.GetRstsForOffice(OfficeId).Any(r => string.Equals(r.RSTNumber, model.RSTNumber, StringComparison.OrdinalIgnoreCase))) return Forbid();
         if (ModelState.IsValid)
         {
             try
