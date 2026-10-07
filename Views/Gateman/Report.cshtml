@@ -180,16 +180,17 @@
                                 @if (isWeightman)
                                 {
                                     <td class="text-nowrap">
-                                        @if (item.RSTRequired)
+                                        @if (item.RSTRequired && (!item.IsRSTGenerated || item.RstStatus == "UnloadingAssigned" || item.RstStatus == "WaitingForTare"))
                                         {
                                             <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">
                                                 <i class="bi bi-speedometer2 me-1"></i> @(item.IsRSTGenerated ? "Add Variety RST" : "Take Gross Weight")
                                             </a>
                                         }
-                                        else
+                                        else if (item.RSTRequired)
                                         {
-                                            <span class="text-muted">Not required</span>
+                                            <span class="erp-badge bg-info-subtle text-info-emphasis border border-info-subtle">@((item.RstStatusName ?? item.StatusName ?? "Pending").Replace("Gadi In", "Vehicle Inward"))</span>
                                         }
+                                        else { <span class="erp-badge bg-secondary-subtle text-secondary">@((item.StatusName ?? "Pending").Replace("Gadi In", "Vehicle Inward"))</span> }
                                     </td>
                                 }
                             </tr>

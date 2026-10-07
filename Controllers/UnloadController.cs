@@ -92,7 +92,12 @@ namespace RiceMillProject.Controllers
                 return Forbid();
             }
 
-            int officeId = GetAssignmentCompanyId();
+            /*
+             * IMPORTANT:
+             * OfficeId claim se nahi.
+             * Logged-in PersonId se DB se OfficeId niklega.
+             */
+            int officeId = GetCurrentOfficeId();
 
             ViewBag.RSTNumber = rstNumber;
 
@@ -101,12 +106,12 @@ namespace RiceMillProject.Controllers
                 PopulateAssignLookups(
                     0,
                     methId: 0,
-                    locationIds: null
+                    locationId: null
                 );
 
                 ModelState.AddModelError(
                     string.Empty,
-                    "Company was not found in your login session. Please sign in again."
+                    "Supervisor company mapping was not found."
                 );
 
                 return View(new UnloadTransaction
@@ -120,7 +125,7 @@ namespace RiceMillProject.Controllers
             PopulateAssignLookups(
                 officeId,
                 methId: 0,
-                locationIds: null
+                locationId: null
             );
 
             var model = new UnloadTransaction
@@ -142,7 +147,7 @@ namespace RiceMillProject.Controllers
         public IActionResult Assign(UnloadTransaction unload)
         {
             int supervisorId = GetCurrentPersonId();
-            int officeId = GetAssignmentCompanyId();
+            int officeId = GetCurrentOfficeId();
 
             // Supervisor logged-in user se hi lenge
             unload.SupervisorId = supervisorId;
@@ -163,7 +168,7 @@ namespace RiceMillProject.Controllers
             {
                 ModelState.AddModelError(
                     string.Empty,
-                    "Company was not found in your login session. Please sign in again."
+                    "Supervisor company mapping was not found."
                 );
             }
 
@@ -183,8 +188,11 @@ namespace RiceMillProject.Controllers
                 );
             }
 
-            var locationIds = unload.SelectedLocationIds ?? Array.Empty<int>();
-            if (locationIds.Length == 0 || locationIds.Any(id => id <= 0))
+            var selectedLocationIds = (unload.SelectedLocationIds ?? Array.Empty<int>())
+                .Where(x => x > 0).Distinct().ToArray();
+            if (selectedLocationIds.Length == 0 && unload.LocationId.GetValueOrDefault() > 0)
+                selectedLocationIds = new[] { unload.LocationId.GetValueOrDefault() };
+            if (selectedLocationIds.Length == 0)
             {
                 ModelState.AddModelError(
                     nameof(unload.SelectedLocationIds),
@@ -200,9 +208,7 @@ namespace RiceMillProject.Controllers
                 officeId > 0 &&
                 !string.IsNullOrWhiteSpace(unload.RSTNumber) &&
                 unload.MethId > 0 &&
-                locationIds.Length > 0 &&
-                locationIds.All(id => id > 0) &&
-                (!ModelState.TryGetValue(nameof(unload.SelectedLocationIds), out var locationState) || locationState.Errors.Count == 0))
+                selectedLocationIds.Length > 0)
             {
                 try
                 {
@@ -211,13 +217,14 @@ namespace RiceMillProject.Controllers
                         supervisorId,
                         unload.MethId,
                         unload.ItemId,
-                        locationIds.Distinct().ToArray(),
-                        officeId
+                        selectedLocationIds[0],
+                        selectedLocationIds, officeId
                     );
 
                     if (unloadId > 0)
                     {
-                        TempData["AssignmentSuccessMessage"] = "Successfully assigned";
+                        TempData["SuccessMessage"] =
+                            $"RST {unload.RSTNumber} assigned successfully.";
 
                         return RedirectToAction(
                             nameof(PrintChallan),
@@ -250,11 +257,10 @@ namespace RiceMillProject.Controllers
             }
 
             // Error aaye to dropdown dobara load honge
-            ViewBag.AssignmentFailed = true;
             PopulateAssignLookups(
                 officeId,
                 unload.MethId,
-                locationIds
+                unload.LocationId
             );
 
             return View(unload);
@@ -451,7 +457,7 @@ namespace RiceMillProject.Controllers
         private void PopulateAssignLookups(
             int officeId,
             int methId = 0,
-            IEnumerable<int>? locationIds = null)
+            int? locationId = null)
         {
             var allPersons = _personBal.GetAllPersons();
 
@@ -470,20 +476,17 @@ namespace RiceMillProject.Controllers
 
             if (officeId > 0)
             {
-                var locations = _officeBal.GetOfficeLocations(officeId);
-                if (locations.Count == 0)
-                    ViewBag.AssignmentLocationWarning = "No active unloading locations are mapped to your login company.";
-                ViewBag.Locations = new MultiSelectList(
-                    locations,
+                ViewBag.Locations = new SelectList(
+                    _locationBal.GetCompanyUnloadingLocations(officeId),
                     "LocationId",
                     "LocationName",
-                    locationIds
+                    locationId
                 );
             }
             else
             {
-                ViewBag.Locations = new MultiSelectList(
-                    new List<OfficeLocation>(),
+                ViewBag.Locations = new SelectList(
+                    new List<LocationMaster>(),
                     "LocationId",
                     "LocationName"
                 );
@@ -575,12 +578,6 @@ namespace RiceMillProject.Controllers
         // CURRENT LOGIN OFFICE / COMPANY
         // ============================================================
 
-        private int GetAssignmentCompanyId()
-        {
-            return int.TryParse(User.FindFirst("CompanyId")?.Value, out var companyId) && companyId > 0
-                ? companyId : 0;
-        }
-
         private int GetCurrentOfficeId()
         {
             /*
@@ -592,12 +589,18 @@ namespace RiceMillProject.Controllers
 
             int personId = GetCurrentPersonId();
 
-            if (personId <= 0)
+            if (personId > 0)
             {
-                return 0;
+                var mappedOffice = _officeBal.GetOfficeIdByPersonId(personId);
+                if (mappedOffice > 0) return mappedOffice;
             }
 
-            return _officeBal.GetOfficeIdByPersonId(personId);
+            // Login creates CompanyId from sa05_user.OfficeId; use it as a safe
+            // fallback when the person-to-company mapping is not populated yet.
+            var companyClaim = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
+            if (int.TryParse(companyClaim, out var companyId) && companyId > 0) return companyId;
+            var username = User.Identity?.Name;
+            return string.IsNullOrWhiteSpace(username) ? 0 : _officeBal.GetOfficeIdByUsername(username);
         }
 
         [HttpGet]
@@ -824,15 +827,6 @@ namespace RiceMillProject.Controllers
                 // SAVE
                 // =====================================================
 
-                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
-                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
-                int materialTotal = rows.Sum(x => x.BagCount);
-                if (locationTotal != materialTotal)
-                {
-                    TempData["ErrorMessage"] = $"Location Total ({locationTotal}) must equal Material Total ({materialTotal}).";
-                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
-                }
-
                 int supervisorActionId =
                     _unloadBal.SaveSupervisorUnloadAction(
                         model.UnloadId,
@@ -858,6 +852,14 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
+                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
+                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
+                int materialTotal = rows.Sum(x => x.BagCount);
+                if (locationTotal != materialTotal)
+                {
+                    TempData["ErrorMessage"] = $"Location Total ({locationTotal}) must equal Material Total ({materialTotal}).";
+                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
+                }
                 TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
 
                 return RedirectToAction("Index");

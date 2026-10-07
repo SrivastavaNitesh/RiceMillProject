@@ -15,18 +15,18 @@ BEGIN
  IF @Technician IS NULL THROW 50001,'An active lab technician or administrator login is required.',1;
  SELECT @ReportId=ReportId FROM dbo.t_LabReport WITH(UPDLOCK,HOLDLOCK) WHERE SubmissionId=@SubmissionId AND RSTNumber=@RSTNumber AND TestedByUserId=@UserId;
  IF @ReportId IS NOT NULL BEGIN COMMIT; SELECT @ReportId AS ReportId; RETURN; END;
- IF NOT EXISTS(SELECT 1 FROM dbo.t_GateEntry WHERE RSTNumber=@RSTNumber) THROW 50001,'RST number does not exist.',1;
+ IF NOT EXISTS(SELECT 1 FROM dbo.t_GateEntry WHERE RSTNumber=@RSTNumber AND ISNULL(IsFinalRST,1)=1) THROW 50001,'Only the final RST can be sent for lab testing.',1;
  DECLARE @Selected TABLE(ItemId int PRIMARY KEY);
  INSERT @Selected SELECT DISTINCT TRY_CONVERT(int,value) FROM OPENJSON(@SelectedItems) WHERE TRY_CONVERT(int,value)>0;
  IF NOT EXISTS(SELECT 1 FROM @Selected) THROW 50001,'Select at least one unloaded item.',1;
- IF EXISTS(SELECT 1 FROM @Selected s WHERE NOT EXISTS(SELECT 1 FROM dbo.t_UnloadItem ui JOIN dbo.t_UnloadTransaction u ON u.UnloadId=ui.UnloadId WHERE u.RSTNumber=@RSTNumber AND u.Status IN ('Unloaded','Verified') AND ui.ItemId=s.ItemId)) THROW 50001,'Only items unloaded against this RST can be tested.',1;
+ IF EXISTS(SELECT 1 FROM @Selected s WHERE NOT EXISTS(SELECT 1 FROM dbo.t_UnloadItem ui JOIN dbo.t_UnloadTransaction u ON u.UnloadId=ui.UnloadId WHERE u.RSTNumber=@RSTNumber AND u.Status IN ('Unloaded','Verified') AND ui.ItemId=s.ItemId AND EXISTS(SELECT 1 FROM dbo.t_GateEntry g WHERE g.RSTNumber=u.RSTNumber AND ISNULL(g.IsFinalRST,1)=1))) THROW 50001,'Only items unloaded against the final RST can be tested.',1;
  DECLARE @Expected TABLE(CategoryId int,ItemId int,TestId int,CategoryName nvarchar(100),ItemName nvarchar(100),TestName nvarchar(120),Unit nvarchar(30),ResultType varchar(10),PRIMARY KEY(ItemId,TestId));
  INSERT @Expected
  SELECT DISTINCT m.CategoryId,m.ItemId,m.TestId,c.CategoryName,i.ItemName,t.TestName,t.Unit,t.ResultType
  FROM @Selected s JOIN dbo.m_ItemLabTest m WITH(HOLDLOCK) ON m.ItemId=s.ItemId AND m.IsActive=1
  JOIN dbo.m_LabTestMaster t WITH(HOLDLOCK) ON t.TestId=m.TestId AND t.IsActive=1
  JOIN dbo.m_Item i ON i.ItemId=m.ItemId AND i.CategoryId=m.CategoryId JOIN dbo.m_ItemCategory c ON c.CategoryId=m.CategoryId
- WHERE EXISTS(SELECT 1 FROM dbo.t_UnloadItem ui JOIN dbo.t_UnloadTransaction u ON u.UnloadId=ui.UnloadId WHERE u.RSTNumber=@RSTNumber AND u.Status IN ('Unloaded','Verified') AND ui.ItemId=m.ItemId AND ui.CategoryId=m.CategoryId);
+ WHERE EXISTS(SELECT 1 FROM dbo.t_UnloadItem ui JOIN dbo.t_UnloadTransaction u ON u.UnloadId=ui.UnloadId WHERE u.RSTNumber=@RSTNumber AND u.Status IN ('Unloaded','Verified') AND ui.ItemId=m.ItemId AND ui.CategoryId=m.CategoryId AND EXISTS(SELECT 1 FROM dbo.t_GateEntry g WHERE g.RSTNumber=u.RSTNumber AND ISNULL(g.IsFinalRST,1)=1));
  IF EXISTS(SELECT 1 FROM @Selected s WHERE NOT EXISTS(SELECT 1 FROM @Expected e WHERE e.ItemId=s.ItemId)) THROW 50001,'One or more selected items have no active tests. Configure their test mappings first.',1;
  DECLARE @Input TABLE(CategoryId int,ItemId int,TestId int,Value nvarchar(max));
  INSERT @Input SELECT CategoryId,ItemId,TestId,Value FROM OPENJSON(@Results) WITH(CategoryId int,ItemId int,TestId int,Value nvarchar(max));

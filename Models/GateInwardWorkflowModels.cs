@@ -63,5 +63,7 @@ namespace RiceMillProject.Models
         public string? GateManName { get; set; } = "Gateman";
         public string StatusName { get; set; } = "Pending";
         public bool IsRSTGenerated { get; set; }
+        public string? RstStatus { get; set; }
+        public string? RstStatusName { get; set; }
     }
 }

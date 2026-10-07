@@ -119,6 +119,17 @@ public class LabWorkflowDAL(IConfiguration configuration)
         RSTNumber = S(r, "RSTNumber"), VehicleNumber = S(r, "VehicleNumber"), PartyName = S(r, "PartyName"),
         ItemCount = I(r, "ItemCount"), RequiredTests = I(r, "RequiredTests"), CompletedTests = I(r, "CompletedTests"), UnmappedItems = I(r, "UnmappedItems")
     }).ToList();
+    public List<LabRstSummary> GetRstsForOffice(int officeId)
+    {
+        var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using (var con = new SqlConnection(connectionString))
+        using (var cmd = new SqlCommand(@"SELECT DISTINCT g.RSTNumber FROM dbo.t_GateEntry g LEFT JOIN dbo.t_UnloadTransaction u ON u.RSTNumber=g.RSTNumber LEFT JOIN dbo.sa05_user su ON su.PersonId=u.SupervisorId AND su.IsActive=1 WHERE COALESCE(g.TargetOfficeId,su.OfficeId)=@OfficeId", con))
+        {
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
+            con.Open(); using var reader = cmd.ExecuteReader(); while (reader.Read()) allowed.Add(Convert.ToString(reader[0]) ?? "");
+        }
+        return GetRsts().Where(r => allowed.Contains(r.RSTNumber)).ToList();
+    }
     public int SaveReport(LabEntryViewModel entry, int userId) => Execute("sp_LabReportSave",
         P("@RSTNumber", SqlDbType.NVarChar, entry.RSTNumber, 50), P("@SubmissionId", SqlDbType.UniqueIdentifier, entry.SubmissionId),
         P("@SelectedItems", SqlDbType.NVarChar, JsonSerializer.Serialize(entry.SelectedItemIds), -1),

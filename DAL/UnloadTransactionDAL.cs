@@ -87,16 +87,8 @@ LEFT JOIN dbo.m_BagType b
 LEFT JOIN dbo.m_Item i
     ON u.ItemId = i.ItemId
 
-OUTER APPLY (
-    SELECT STRING_AGG(CONVERT(nvarchar(max), selected.LocationName), ', ')
-        WITHIN GROUP (ORDER BY selected.LocationName) AS LocationName
-    FROM (
-        SELECT DISTINCT location.LocationId, location.LocationName
-        FROM dbo.t_GateEntryLocations gl
-        INNER JOIN dbo.m_LocationMaster location ON location.LocationId = gl.LocationId
-        WHERE gl.RSTNumber = u.RSTNumber
-    ) selected
-) l
+LEFT JOIN dbo.m_LocationMaster l
+    ON u.LocationId = l.LocationId
 
 ORDER BY u.UnloadId DESC;";
 
@@ -370,7 +362,7 @@ ORDER BY u.UnloadId DESC;";
         // Supervisor assigns Meth + Location
         // ============================================================
 
-        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int[] locationIds,int officeId)
+        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId,int[]? locationIds = null, int officeId = 0)
         {
             int unloadId = 0;
 
@@ -403,11 +395,9 @@ ORDER BY u.UnloadId DESC;";
                 ?? DBNull.Value;
 
             cmd.Parameters.Add(
-                "@LocationIds",
-                SqlDbType.NVarChar,
-                -1
-            ).Value = string.Join(",", locationIds.Distinct());
-
+                "@LocationId",
+                SqlDbType.Int
+            ).Value = locationId;
             cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
 
             con.Open();
@@ -422,7 +412,18 @@ ORDER BY u.UnloadId DESC;";
                     Convert.ToInt32(result);
             }
 
-            // sp_AssignUnloading saves all selected locations in the same transaction.
+            if (unloadId > 0 && locationIds != null && locationIds.Length > 0)
+            {
+                using SqlCommand locationCmd = new SqlCommand("sp_SaveUnloadLocations", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                locationCmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+                locationCmd.Parameters.Add("@LocationIds", SqlDbType.NVarChar, -1).Value =
+                    JsonSerializer.Serialize(locationIds.Where(x => x > 0).Distinct());
+                locationCmd.ExecuteNonQuery();
+            }
+
             return unloadId;
         }
 
@@ -1161,20 +1162,6 @@ ORDER BY u.UnloadId DESC;";
                     }
                 );
             }
-
-            reader.Close();
-            using var inwardCmd = new SqlCommand(@"
-                SELECT u.UnloadId, ge.InwardNo
-                FROM dbo.t_UnloadTransaction u
-                INNER JOIN dbo.t_GateEntry ge ON ge.RSTNumber = u.RSTNumber
-                WHERE u.SupervisorId = @SupervisorId", con);
-            inwardCmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
-            using var inwardReader = inwardCmd.ExecuteReader();
-            var inwardNumbers = new Dictionary<int, string>();
-            while (inwardReader.Read())
-                inwardNumbers[inwardReader.GetInt32(0)] = inwardReader.IsDBNull(1) ? "" : inwardReader.GetString(1);
-            foreach (var entry in list)
-                entry.InwardNo = inwardNumbers.GetValueOrDefault(entry.UnloadId, "");
 
             return list;
         }

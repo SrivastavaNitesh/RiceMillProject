@@ -59,6 +59,13 @@ namespace RiceMillProject.BAL
             return _gateDal.CompleteGateExit(rstNumber, tareWeight);
         }
 
+        public WeightmanRstActionResult RecordWeightmanAction(WeightmanRstAction action, int userId)
+        {
+            if (!string.Equals(action.ActionType, "CONTINUE", StringComparison.OrdinalIgnoreCase) && !string.Equals(action.ActionType, "END", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Invalid Weightman action.");
+            return _gateDal.RecordWeightmanAction(action, userId);
+        }
+
         public System.Data.DataTable GetInwardDetails(string inwardNo)
         {
             return _gateDal.GetInwardDetails(inwardNo);

@@ -110,6 +110,21 @@ namespace RiceMillProject.DAL
                     }
                 }
             }
+            using (SqlConnection statusCon = new SqlConnection(_connectionString))
+            {
+                statusCon.Open();
+                foreach (var inward in list)
+                {
+                    using var statusCmd = new SqlCommand("SELECT TOP (1) g.Status, COALESCE(s.StatusName,g.Status) AS StatusName FROM dbo.t_GateEntry g LEFT JOIN dbo.m_StatusMaster s ON s.StatusId=g.StatusId WHERE g.InwardNo=@InwardNo ORDER BY g.GateEntryTime DESC", statusCon);
+                    statusCmd.Parameters.AddWithValue("@InwardNo", inward.InwardNo ?? "");
+                    using var statusReader = statusCmd.ExecuteReader();
+                    if (statusReader.Read())
+                    {
+                        inward.RstStatus = statusReader["Status"]?.ToString();
+                        inward.RstStatusName = statusReader["StatusName"]?.ToString();
+                    }
+                }
+            }
             return list;
         }
 

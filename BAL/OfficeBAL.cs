@@ -30,6 +30,7 @@ namespace RiceMillProject.BAL
         {
             return _officeDal.GetOfficeIdByPersonId(personId);
         }
+        public int GetOfficeIdByUsername(string username) => _officeDal.GetOfficeIdByUsername(username);
         public List<OfficeType> GetActiveOfficeTypes()
         {
             return _officeDal.GetActiveOfficeTypes();

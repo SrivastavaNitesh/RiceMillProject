@@ -8,8 +8,8 @@ using RiceMillProject.Models;
 
 namespace RiceMillProject.DAL
 {
-    public class GateEntryDAL
-    {
+public class GateEntryDAL
+{
         private readonly string _connectionString;
 
         public GateEntryDAL(IConfiguration configuration)
@@ -171,22 +171,6 @@ namespace RiceMillProject.DAL
                 }
             }
 
-            // ItemId on gate entries stores the category ID in this workflow.
-            using (var con = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(@"
-                SELECT ge.RSTNumber, c.CategoryName
-                FROM dbo.t_GateEntry ge
-                INNER JOIN dbo.m_ItemCategory c ON c.CategoryId = ge.ItemId", con))
-            {
-                con.Open();
-                using var reader = cmd.ExecuteReader();
-                var categories = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                while (reader.Read())
-                    categories[reader.GetString(0)] = reader.GetString(1);
-                foreach (var entry in entries)
-                    entry.ItemCategoryName = categories.GetValueOrDefault(entry.RSTNumber, string.Empty);
-            }
-
             return entries;
         }
 
@@ -262,17 +246,6 @@ namespace RiceMillProject.DAL
         // CREATE RST FROM INWARD
         // ============================================================
 
-        public DataTable GetItemCategories()
-        {
-            using var con = new SqlConnection(_connectionString);
-            using var cmd = new SqlCommand(
-                "SELECT CategoryId, CategoryName FROM dbo.m_ItemCategory WHERE IsActive = 1 ORDER BY CategoryName", con);
-            using var adapter = new SqlDataAdapter(cmd);
-            var categories = new DataTable();
-            adapter.Fill(categories);
-            return categories;
-        }
-
         public string CreateGateEntry(
             GateEntry entry)
         {
@@ -317,9 +290,9 @@ namespace RiceMillProject.DAL
                 ?? DBNull.Value;
 
             cmd.Parameters.Add("@ItemId", SqlDbType.Int).Value =
-                entry.ItemCategoryId > 0 ? entry.ItemCategoryId : DBNull.Value;
-
-            //cmd.Parameters.Add("@ItemCategoryId", SqlDbType.Int).Value = entry.ItemCategoryId;
+                entry.ItemId.HasValue && entry.ItemId.Value > 0 ? entry.ItemId.Value : DBNull.Value;
+            cmd.Parameters.Add("@CategoryId", SqlDbType.Int).Value =
+                entry.CategoryId.HasValue && entry.CategoryId.Value > 0 ? entry.CategoryId.Value : DBNull.Value;
 
             var chargeParameter = cmd.Parameters.Add("@WeightCharge", SqlDbType.Decimal);
             chargeParameter.Precision = 18;
@@ -831,6 +804,8 @@ namespace RiceMillProject.DAL
                 const string query = @"
                     SELECT DISTINCT
                         D.PersonId AS DriverId,
+                        D.PersonName AS DriverName,
+                        D.MobileNumber AS MobileNumber,
 
                         CASE
                             WHEN D.MobileNumber IS NULL
@@ -887,6 +862,12 @@ namespace RiceMillProject.DAL
                                     Convert.ToInt32(
                                         rdr["DriverId"]
                                     ),
+
+                                DriverName =
+                                    rdr["DriverName"]?.ToString() ?? "",
+
+                                MobileNumber =
+                                    rdr["MobileNumber"]?.ToString() ?? "",
 
                                 DriverNameMobile =
                                     rdr["DriverNameMobile"]
@@ -1853,5 +1834,31 @@ namespace RiceMillProject.DAL
 
             return false;
         }
+
+    public WeightmanRstActionResult RecordWeightmanAction(WeightmanRstAction action, int userId)
+    {
+        if (string.Equals(action.ActionType, "CONTINUE", StringComparison.OrdinalIgnoreCase))
+        {
+            using SqlConnection continueCon = new SqlConnection(_connectionString);
+            using SqlCommand continueCmd = new SqlCommand("sp_ContinueWeightmanRst", continueCon) { CommandType = CommandType.StoredProcedure };
+            continueCmd.Parameters.AddWithValue("@RSTNumber", action.RSTNumber);
+            continueCmd.Parameters.AddWithValue("@CurrentGrossWeight", action.CurrentGrossWeight);
+            continueCmd.Parameters.AddWithValue("@CreatedBy", userId);
+            continueCon.Open(); using var continueReader = continueCmd.ExecuteReader();
+            if (!continueReader.Read()) throw new InvalidOperationException("New RST was not generated.");
+            return new WeightmanRstActionResult { ActionId = 0, NewRSTNumber = Convert.ToString(continueReader["NewRSTNumber"]), ReceivedWeight = Convert.ToDecimal(continueReader["ReceivedWeight"]) };
+        }
+        using SqlConnection con = new SqlConnection(_connectionString);
+        using SqlCommand cmd = new SqlCommand("sp_RecordWeightmanRstAction", con) { CommandType = CommandType.StoredProcedure };
+        cmd.Parameters.AddWithValue("@RSTNumber", action.RSTNumber);
+        cmd.Parameters.AddWithValue("@ActionType", action.ActionType);
+        cmd.Parameters.AddWithValue("@CurrentGrossWeight", action.CurrentGrossWeight);
+        cmd.Parameters.AddWithValue("@NewRSTNumber", (object?)action.NewRSTNumber ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@CreatedBy", userId);
+        con.Open();
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read()) throw new InvalidOperationException("Weightman action was not recorded.");
+        return new WeightmanRstActionResult { ActionId = Convert.ToInt64(reader["ActionId"]), ReceivedWeight = Convert.ToDecimal(reader["ReceivedWeight"]) };
     }
+}
 }
