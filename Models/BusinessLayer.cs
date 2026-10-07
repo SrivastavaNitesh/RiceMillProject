@@ -31,6 +31,7 @@ namespace RiceMillProject.Models
             => _objDal.CreateGatemanInward(vehicleNumber, driverName, gateManId, itemId, quantity, unit);
         internal DataTable GetChallanDetailsForOutward(string challanNo) => _objDal.GetChallanDetailsForOutward(challanNo);
         internal DataTable ApproveOutwardChallan(string challanNo, int gateManId) => _objDal.ApproveOutwardChallan(challanNo, gateManId);
+        internal bool IsFinalRst(string rstNumber) => _objDal.IsFinalRst(rstNumber);
 
         // --- NEW PDF GATE MANAGEMENT MODULE BUSINESS METHODS ---
         internal DataTable ManageGateMaster(string action, GateMaster? gate = null) => _objDal.ManageGateMaster(action, gate);

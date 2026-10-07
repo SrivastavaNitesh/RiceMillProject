@@ -15,12 +15,14 @@ namespace RiceMillProject.Controllers
         private readonly BusinessLayer _busLayer;
         private readonly GateInwardBAL _inwardBal;
         private readonly PersonBAL _personBal;
+        private readonly GateEntryBAL _gateBal;
 
         public GatemanController(IConfiguration configuration)
         {
             _busLayer = new BusinessLayer(configuration);
             _inwardBal = new GateInwardBAL(configuration);
             _personBal = new PersonBAL(configuration);
+            _gateBal = new GateEntryBAL(configuration);
         }
 
         [HttpGet]
@@ -169,6 +171,34 @@ namespace RiceMillProject.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult GetPartyOptions(int partyId)
+        {
+            try
+            {
+                var vehicles = _gateBal.GetVehiclesByParty(partyId);
+                return Json(new { success = true, vehicles, defaultVehicleId = 0 });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, vehicles = Array.Empty<object>(), message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetDriversByVehicle(int partyId, int vehicleId)
+        {
+            try
+            {
+                var drivers = _gateBal.GetDriversByVehicle(partyId, vehicleId);
+                return Json(new { success = true, drivers });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, drivers = Array.Empty<object>(), message = ex.Message });
+            }
+        }
+
         [HttpPost]
         public IActionResult CreateInward(string vehicleNumber, string driverName, int? itemId, decimal? quantity, string? unit)
         {
@@ -231,6 +261,17 @@ namespace RiceMillProject.Controllers
             try
             {
                 int gateManId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                // If the outward record carries an RST, only the final RST may leave the mill.
+                var outwardDetails = _busLayer.GetChallanDetailsForOutward(challanNo);
+                if (outwardDetails.Columns.Contains("RSTNumber") && outwardDetails.Rows.Count > 0)
+                {
+                    var rstNumber = outwardDetails.Rows[0]["RSTNumber"]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(rstNumber) && !_busLayer.IsFinalRst(rstNumber))
+                    {
+                        TempData["ErrorMessage"] = "Outward is allowed only for the final RST.";
+                        return RedirectToAction("Index");
+                    }
+                }
                 var result = _busLayer.ApproveOutwardChallan(challanNo, gateManId);
 
                 if (result != null && result.Rows.Count > 0)

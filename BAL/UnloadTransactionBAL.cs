@@ -43,7 +43,7 @@ namespace RiceMillProject.BAL
     int methId,
     int? itemId,
     int locationId,
-    int[]? locationIds = null)
+    int[]? locationIds = null, int officeId = 0)
         {
             if (string.IsNullOrWhiteSpace(rstNumber))
                 throw new ArgumentException("RST number is required.", nameof(rstNumber));
@@ -62,7 +62,7 @@ namespace RiceMillProject.BAL
                 methId,
                 itemId,
                 locationId,
-                locationIds
+                locationIds, officeId
             );
         }
 

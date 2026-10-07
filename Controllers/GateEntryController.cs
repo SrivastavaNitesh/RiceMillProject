@@ -368,7 +368,13 @@ namespace RiceMillProject.Controllers
                     );
                 }
 
-
+                var validationErrors = string.Join(" ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
+                    .Where(e => !string.IsNullOrWhiteSpace(e)));
+                TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(validationErrors)
+                    ? "Please select Product Category and enter a valid Gross Weight."
+                    : validationErrors;
                 PopulateDropdowns(entry);
 
                 return View(entry);
@@ -380,6 +386,7 @@ namespace RiceMillProject.Controllers
                     "Entry could not be saved: "
                     + ex.Message
                 );
+                TempData["ErrorMessage"] = "Entry could not be saved: " + ex.Message;
 
 
                 PopulateDropdowns(entry);
@@ -419,6 +426,9 @@ namespace RiceMillProject.Controllers
                 Enumerable.Empty<SelectListItem>();
 
             ViewBag.Items =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.Categories =
                 Enumerable.Empty<SelectListItem>();
 
 
@@ -578,6 +588,17 @@ namespace RiceMillProject.Controllers
 
             try
             {
+                ViewBag.Categories = _itemBal.GetActiveItemCategories().AsEnumerable().Select(r => new SelectListItem
+                {
+                    Value = r["CategoryId"].ToString(),
+                    Text = r["CategoryName"].ToString(),
+                    Selected = entry.CategoryId.HasValue && Convert.ToInt32(r["CategoryId"]) == entry.CategoryId.Value
+                }).ToList();
+            }
+            catch { ViewBag.Categories = Enumerable.Empty<SelectListItem>(); }
+
+            try
+            {
                 ViewBag.Items =
                     new SelectList(
                         _itemBal
@@ -602,6 +623,23 @@ namespace RiceMillProject.Controllers
         // =========================================================
         // OUTBOUND - GET
         // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult WeightmanAction(WeightmanRstAction action)
+        {
+            if (!ModelState.IsValid) { TempData["ErrorMessage"] = "Enter a valid current gross weight."; return RedirectToAction(nameof(Index)); }
+            try
+            {
+                int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                var result = _gateBal.RecordWeightmanAction(action, userId);
+                TempData["SuccessMessage"] = string.IsNullOrWhiteSpace(result.NewRSTNumber)
+                    ? $"{action.ActionType} recorded for {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG."
+                    : $"New RST {result.NewRSTNumber} generated from {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG.";
+            }
+            catch (Exception ex) { TempData["ErrorMessage"] = ex.Message; }
+            return RedirectToAction(nameof(Index));
+        }
 
         [HttpGet]
         public IActionResult Outbound(

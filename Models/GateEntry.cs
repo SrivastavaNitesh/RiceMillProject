@@ -35,7 +35,12 @@ namespace RiceMillProject.Models
 
         // Material / Variety is now filled by Supervisor later.
         // Property is preserved because other project code may use ItemId.
-        public int ItemId { get; set; }
+        public int? ItemId { get; set; }
+
+        [Required(ErrorMessage = "Product Category is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Product Category is required.")]
+        public int? CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
 
 
         public string ItemName { get; set; } = string.Empty;

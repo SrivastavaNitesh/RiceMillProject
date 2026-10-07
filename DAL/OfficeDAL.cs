@@ -40,6 +40,16 @@ namespace RiceMillProject.DAL
                 : Convert.ToInt32(result);
         }
 
+        public int GetOfficeIdByUsername(string username)
+        {
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand("SELECT TOP 1 ISNULL(OfficeId,0) FROM dbo.sa05_user WHERE Username=@Username AND IsActive=1 ORDER BY UserId DESC", con);
+            cmd.Parameters.Add("@Username", SqlDbType.NVarChar, 100).Value = username ?? "";
+            con.Open();
+            var result = cmd.ExecuteScalar();
+            return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+        }
+
         public List<OfficeLocation> GetOfficeLocations(int officeId)
         {
             var locations = new List<OfficeLocation>();

@@ -25,17 +25,26 @@
 
     </div>
 
-    <a asp-action="Create"
-       class="btn-erp-primary">
+    <button type="button" class="btn-erp-primary border-0" data-bs-toggle="modal" data-bs-target="#weightmanActionModal">
 
         <i class="bi bi-plus-lg me-1"></i>
 
-        New Inbound Entry
+        Take Action
 
-    </a>
+    </button>
 
 </div>
 
+
+<div class="modal fade" id="weightmanActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="bi bi-lightning-charge me-2"></i>Weightman Action</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body d-grid gap-2">
+            <a asp-action="Create" class="btn btn-outline-primary text-start p-3"><i class="bi bi-plus-circle me-2"></i><strong>New RST / Inbound Weighment</strong><small class="d-block text-muted ms-4">Select pending inward and record gross weight</small></a>
+            <button type="button" class="btn btn-outline-secondary text-start p-3" data-bs-dismiss="modal"><i class="bi bi-list-check me-2"></i><strong>View RST Action Board</strong><small class="d-block text-muted ms-4">Continue, End or take tare action from the list</small></button>
+        </div>
+    </div></div>
+</div>
 
 @if (TempData["ErrorMessage"] is string errorMessage)
 {
@@ -208,7 +217,7 @@
                             {
                                 <span class="badge-erp badge-erp-warning">
 
-                                    Waiting Supervisor
+                                    Supervisor Pending
 
                                 </span>
                             }
@@ -333,13 +342,25 @@
                                     item.Status == "UnloadingAssigned"
                                 )
                                 {
-                                    <button type="button"
-                                            class="btn btn-sm btn-light border text-muted"
-                                            disabled>
-
-                                        Unloading In Progress
-
-                                    </button>
+                                    var actionModalId = "rstAction_" + item.RSTNumber.Replace("-", "_");
+                                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#@actionModalId">Action</button>
+                                    <div class="modal fade" id="@actionModalId" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+                                            <div class="modal-header bg-primary text-white"><h5 class="modal-title">RST Action - @item.RSTNumber</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                                            <form asp-action="WeightmanAction" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="RSTNumber" value="@item.RSTNumber" />
+                                                    <label class="form-label fw-semibold">Current Gross Weight (KG)</label>
+                                                    <input name="CurrentGrossWeight" type="number" min="0.01" step="0.001" class="form-control" placeholder="Enter Gross KG" required />
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" name="ActionType" value="CONTINUE" class="btn btn-outline-primary fw-bold">Continue</button>
+                                                    <button type="submit" name="ActionType" value="END" class="btn btn-outline-success fw-bold">End</button>
+                                                </div>
+                                            </form>
+                                        </div></div>
+                                    </div>
                                 }
                                 else if (
                                     item.Status == "WaitingForSupervisor"
@@ -353,7 +374,7 @@
                                                 class="btn btn-sm btn-light border text-muted"
                                                 disabled>
 
-                                            Waiting Supervisor
+                                            Supervisor Pending
 
                                         </button>
                                     }

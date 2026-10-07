@@ -362,7 +362,7 @@ ORDER BY u.UnloadId DESC;";
         // Supervisor assigns Meth + Location
         // ============================================================
 
-        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId,int[]? locationIds = null)
+        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId,int[]? locationIds = null, int officeId = 0)
         {
             int unloadId = 0;
 
@@ -398,6 +398,7 @@ ORDER BY u.UnloadId DESC;";
                 "@LocationId",
                 SqlDbType.Int
             ).Value = locationId;
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
 
             con.Open();
 

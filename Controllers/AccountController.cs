@@ -19,11 +19,11 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index", "Home");
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             }
             ViewBag.ReturnUrl = returnUrl;
             return View();
@@ -38,6 +38,8 @@ namespace RiceMillProject.Controllers
                 
                 if (user != null)
                 {
+                    // Always replace any previous role session when switching users in the same browser.
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                     var claims = new[]
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),

@@ -1,0 +1,4 @@
+-- The supervisor gate is included in GateEntry_Inward_Workflow.sql.
+-- Run that migration after Product_Category_Migration.sql.
+-- sp_CreateGateEntry blocks a second RST while the current RST is
+-- WaitingForSupervisor/Entered, and allows it after supervisor assignment.

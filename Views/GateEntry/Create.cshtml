@@ -447,15 +447,18 @@
                              ================================================= -->
 
                         <div class="col-md-6">
-                            <label asp-for="ItemId" class="form-label fw-bold text-dark">
-                                Material / Variety <span class="text-danger">*</span>
+                            <label asp-for="CategoryId" class="form-label fw-bold text-dark">
+                                Product Category <span class="text-danger">*</span>
                             </label>
+                            <select asp-for="CategoryId" asp-items="ViewBag.Categories" id="ddlCategory" class="form-select form-select-lg border-primary-subtle" required>
+                                <option value="">-- Select Product Category --</option>
+                            </select>
                             <select asp-for="ItemId"
                                     asp-items="ViewBag.Items"
                                     id="ddlItem"
-                                    class="form-select form-select-lg border-primary-subtle"
-                                    required>
-                                <option value="">-- Select Material / Variety --</option>
+                                    class="form-select form-select-lg border-primary-subtle d-none"
+                                    tabindex="-1">
+                                <option value="">-- Material / Variety handled during unloading --</option>
                             </select>
                         </div>
 
@@ -1862,7 +1865,7 @@ catch (Exception ex)
                                     || '0'
                                 );
 
-                            const item = document.getElementById('ddlItem')?.value;
+                            const category = document.getElementById('ddlCategory')?.value;
 
 
                             let missing = [];
@@ -1918,8 +1921,8 @@ catch (Exception ex)
                                 );
                             }
 
-                            if (!item) {
-                                missing.push('Material / Variety');
+                            if (!category) {
+                                missing.push('Product Category');
                             }
 
 

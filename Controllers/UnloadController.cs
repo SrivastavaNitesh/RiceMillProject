@@ -218,7 +218,7 @@ namespace RiceMillProject.Controllers
                         unload.MethId,
                         unload.ItemId,
                         selectedLocationIds[0],
-                        selectedLocationIds
+                        selectedLocationIds, officeId
                     );
 
                     if (unloadId > 0)
@@ -589,12 +589,18 @@ namespace RiceMillProject.Controllers
 
             int personId = GetCurrentPersonId();
 
-            if (personId <= 0)
+            if (personId > 0)
             {
-                return 0;
+                var mappedOffice = _officeBal.GetOfficeIdByPersonId(personId);
+                if (mappedOffice > 0) return mappedOffice;
             }
 
-            return _officeBal.GetOfficeIdByPersonId(personId);
+            // Login creates CompanyId from sa05_user.OfficeId; use it as a safe
+            // fallback when the person-to-company mapping is not populated yet.
+            var companyClaim = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
+            if (int.TryParse(companyClaim, out var companyId) && companyId > 0) return companyId;
+            var username = User.Identity?.Name;
+            return string.IsNullOrWhiteSpace(username) ? 0 : _officeBal.GetOfficeIdByUsername(username);
         }
 
         [HttpGet]
