@@ -12,6 +12,8 @@ namespace RiceMillProject.Models
 
         public string RSTNumber { get; set; } = "";
 
+        public DateTime? AssignedDateTime { get; set; }
+
         public string VehicleNumber { get; set; } = "";
 
         public string PartyName { get; set; } = "";
@@ -21,6 +23,8 @@ namespace RiceMillProject.Models
         public string ItemName { get; set; } = "";
 
         public string LocationName { get; set; } = "";
+
+        public List<int> AssignedLocationIds { get; set; } = new();
 
         public string MethName { get; set; } = "";
 

@@ -133,6 +133,8 @@
                                 RST / Inward Number
                             </th>
 
+                            <th>Assigned Date &amp; Time</th>
+
                             <th>
                                 Vehicle
                             </th>
@@ -209,6 +211,10 @@
 
                                         </div>
 
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        @(item.UnloadTime.HasValue ? item.UnloadTime.Value.ToString("dd-MMM-yyyy hh:mm tt") : "-")
                                     </td>
 
 

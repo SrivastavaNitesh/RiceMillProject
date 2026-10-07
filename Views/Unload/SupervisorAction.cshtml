@@ -249,6 +249,22 @@
 
     </div>
 
+    <div class="sup-card">
+        <div class="sup-section-title"><i class="bi bi-info-circle me-2"></i>RST Details</div>
+        <div class="sup-section-body">
+            <div class="row g-3">
+                <div class="col-md-3"><span class="sup-label">RST Number</span><div class="sup-readonly sup-rst">@vm.RSTNumber</div></div>
+                <div class="col-md-3"><span class="sup-label">Assigned Date &amp; Time</span><div class="sup-readonly">@(vm.AssignedDateTime?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-")</div></div>
+                <div class="col-md-3"><span class="sup-label">Vehicle</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.VehicleNumber) ? "-" : vm.VehicleNumber)</div></div>
+                <div class="col-md-3"><span class="sup-label">Party / Supplier</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.PartyName) ? "-" : vm.PartyName)</div></div>
+                <div class="col-md-3"><span class="sup-label">Material / Variety</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.ItemName) ? "-" : vm.ItemName)</div></div>
+                <div class="col-md-3"><span class="sup-label">Meth</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.MethName) ? "-" : vm.MethName)</div></div>
+                <div class="col-md-3"><span class="sup-label">Location(s)</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.LocationName) ? "-" : vm.LocationName)</div></div>
+                <div class="col-md-3"><span class="sup-label">Work Status</span><div class="sup-readonly">@(vm.IsFieldDetailsCompleted ? "Completed" : "Pending")</div></div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- =====================================================
          MESSAGES
@@ -1852,6 +1868,24 @@
 
                 const materialTotal =
                     calculateMaterialTotal();
+                const locationBagTotals = {};
+                document.querySelectorAll(".location-count").forEach(function (input) {
+                    const count = parseInt(input.value) || 0;
+                    if (count > 0) {
+                        const key = input.dataset.locationId + "_" + input.dataset.bagTypeId;
+                        locationBagTotals[key] = (locationBagTotals[key] || 0) + count;
+                    }
+                });
+                let locationBagMismatch = false;
+                document.querySelectorAll(".material-row").forEach(function (row) {
+                    const location = row.querySelector(".location-select")?.value;
+                    const bagType = row.querySelector(".bag-type-select")?.value;
+                    const count = parseInt(row.querySelector(".bag-count-input")?.value) || 0;
+                    if (location && bagType && count > 0) {
+                        const key = location + "_" + bagType;
+                        if ((locationBagTotals[key] || 0) < count) locationBagMismatch = true;
+                    }
+                });
                 const locationTotal = calculateStackTotal() + Array.from(document.querySelectorAll(".location-count"))
                     .reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
 
@@ -1869,6 +1903,7 @@
                     locationTotal > 0
                     &&
                     locationTotal === materialTotal
+                    && !locationBagMismatch
                     &&
                     rowsComplete()
                     &&
@@ -1888,7 +1923,9 @@
                     statusBox.className =
                         "total-status total-status-warning";
 
-                    statusBox.innerHTML = locationTotal !== materialTotal
+                    statusBox.innerHTML = locationBagMismatch
+                        ? "Material bag count cannot exceed the selected location and bag type count."
+                        : locationTotal !== materialTotal
                         ? "Location Total (" + locationTotal + ") must equal Material Total (" + materialTotal + ")."
                         : "Enter valid material rows and at least one location bag detail.";
 
