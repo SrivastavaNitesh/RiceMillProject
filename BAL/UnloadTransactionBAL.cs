@@ -37,6 +37,8 @@ namespace RiceMillProject.BAL
             return _unloadDal.GetAllUnloading();
         }
 
+        public List<int> GetAssignedLocationIds(int unloadId) => _unloadDal.GetAssignedLocationIds(unloadId);
+
         public int AssignUnloading(
     string rstNumber,
     int supervisorId,

@@ -60,7 +60,7 @@ SELECT
     m.PersonName AS MethName,
     b.BagTypeName,
     i.ItemName,
-    l.LocationName
+    COALESCE(assigned.LocationName, l.LocationName) AS LocationName
 FROM dbo.t_UnloadTransaction u
 
 LEFT JOIN dbo.t_GateEntry ge
@@ -89,6 +89,15 @@ LEFT JOIN dbo.m_Item i
 
 LEFT JOIN dbo.m_LocationMaster l
     ON u.LocationId = l.LocationId
+
+OUTER APPLY (
+    SELECT STRING_AGG(CONVERT(nvarchar(max), lm.LocationName), ', ')
+           WITHIN GROUP (ORDER BY lm.LocationName) AS LocationName
+    FROM dbo.t_UnloadLocation ul
+    INNER JOIN dbo.m_LocationMaster lm ON lm.LocationId = ul.LocationId
+    WHERE ul.UnloadId = u.UnloadId
+      AND ul.IsActive = 1
+) assigned
 
 ORDER BY u.UnloadId DESC;";
 
@@ -231,6 +240,18 @@ ORDER BY u.UnloadId DESC;";
             }
 
             return list;
+        }
+
+        public List<int> GetAssignedLocationIds(int unloadId)
+        {
+            var ids = new List<int>();
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("SELECT LocationId FROM dbo.t_UnloadLocation WHERE UnloadId=@UnloadId AND IsActive=1", con);
+            cmd.Parameters.AddWithValue("@UnloadId", unloadId);
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read()) ids.Add(Convert.ToInt32(reader["LocationId"]));
+            return ids;
         }
 
 
@@ -1122,6 +1143,11 @@ ORDER BY u.UnloadId DESC;";
                             reader["Status"]
                                 ?.ToString()
                             ?? "",
+
+                        UnloadTime =
+                            reader["UnloadTime"] != DBNull.Value
+                                ? Convert.ToDateTime(reader["UnloadTime"])
+                                : null,
 
                         MethName =
                             reader["MethName"]

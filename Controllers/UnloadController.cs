@@ -630,6 +630,8 @@ namespace RiceMillProject.Controllers
 
                     RSTNumber = unload.RSTNumber ?? "",
 
+                    AssignedDateTime = unload.UnloadTime,
+
                     VehicleNumber = unload.VehicleNumber ?? "",
 
                     PartyName = unload.PartyName ?? "",
@@ -639,6 +641,8 @@ namespace RiceMillProject.Controllers
                     ItemName = unload.ItemName ?? "",
 
                     LocationName = unload.LocationName ?? "",
+
+                    AssignedLocationIds = _unloadBal.GetAssignedLocationIds(unload.UnloadId),
 
                     MethName = unload.MethName ?? "",
 
@@ -679,7 +683,9 @@ namespace RiceMillProject.Controllers
                     .Where(x => !string.IsNullOrWhiteSpace(x.Value))
                     .ToList();
 
-                ViewBag.CompanyLocations = _locationBal.GetCompanyUnloadingLocations(GetCurrentOfficeId());
+                var assignedLocationIds = model.AssignedLocationIds.ToHashSet();
+                ViewBag.CompanyLocations = _locationBal.GetCompanyUnloadingLocations(GetCurrentOfficeId())
+                    .Where(x => assignedLocationIds.Contains(x.LocationId)).ToList();
 
 
                 return View(model);
@@ -822,6 +828,15 @@ namespace RiceMillProject.Controllers
                     return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
                 }
 
+                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
+                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
+                int materialTotal = rows.Sum(x => x.BagCount);
+                if (locationTotal != materialTotal)
+                {
+                    TempData["ErrorMessage"] = $"Location Total ({locationTotal}) must equal Material Total ({materialTotal}).";
+                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
+                }
+
 
                 // =====================================================
                 // SAVE
@@ -852,14 +867,6 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
-                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
-                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
-                int materialTotal = rows.Sum(x => x.BagCount);
-                if (locationTotal != materialTotal)
-                {
-                    TempData["ErrorMessage"] = $"Location Total ({locationTotal}) must equal Material Total ({materialTotal}).";
-                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
-                }
                 TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
 
                 return RedirectToAction("Index");
@@ -912,7 +919,7 @@ namespace RiceMillProject.Controllers
                             supervisorId
                         );
 
-                return View(records);
+                return View(records.OrderByDescending(r => r.UnloadTime ?? DateTime.MinValue).ThenByDescending(r => r.UnloadId).ToList());
             }
             catch (Exception ex)
             {

@@ -49,8 +49,8 @@ CREATE OR ALTER PROCEDURE dbo.sp_GetSupervisorMethWorkRegister
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT u.UnloadId,u.RSTNumber,u.SupervisorId,u.MethId,u.LocationId,u.ItemId,u.NumberOfBags,u.Status,
-           ISNULL(m.PersonName,'') AS MethName, ISNULL(loc.LocationName,'') AS LocationName,
+    SELECT u.UnloadId,u.RSTNumber,u.SupervisorId,u.MethId,u.LocationId,u.ItemId,u.NumberOfBags,u.Status,u.UnloadTime,
+           ISNULL(m.PersonName,'') AS MethName, COALESCE(assigned.LocationName,loc.LocationName,'') AS LocationName,
            ISNULL(v.VehicleNumber,'') AS VehicleNumber, ISNULL(p.PersonName,'') AS PartyName,
            ISNULL(i.ItemName,'') AS ItemName,
            CAST(CASE WHEN EXISTS (SELECT 1 FROM dbo.t_WorkerAllocation wa WHERE wa.UnloadId=u.UnloadId AND ISNULL(wa.BagCount,0)>0) THEN 1 ELSE 0 END AS bit) AS IsWorkerWorkCompleted,
@@ -59,12 +59,18 @@ BEGIN
     LEFT JOIN dbo.t_GateEntry ge ON ge.RSTNumber=u.RSTNumber
     LEFT JOIN dbo.P02_Person m ON m.PersonId=u.MethId
     LEFT JOIN dbo.m_LocationMaster loc ON loc.LocationId=u.LocationId
+    OUTER APPLY (
+        SELECT STRING_AGG(CONVERT(nvarchar(max), lm.LocationName), ', ') WITHIN GROUP (ORDER BY lm.LocationName) AS LocationName
+        FROM dbo.t_UnloadLocation ul
+        INNER JOIN dbo.m_LocationMaster lm ON lm.LocationId=ul.LocationId
+        WHERE ul.UnloadId=u.UnloadId AND ul.IsActive=1
+    ) assigned
     LEFT JOIN dbo.m_Vehicle v ON v.VehicleId=ge.VehicleId
     LEFT JOIN dbo.P02_Person p ON p.PersonId=ge.PartyId
     LEFT JOIN dbo.m_Item i ON i.ItemId=u.ItemId
     LEFT JOIN dbo.t_SupervisorUnloadAction sa ON sa.UnloadId=u.UnloadId
     WHERE u.SupervisorId=@SupervisorId AND ISNULL(u.MethId,0)>0 AND ISNULL(u.LocationId,0)>0
-    ORDER BY u.UnloadId DESC;
+    ORDER BY u.UnloadTime DESC, u.UnloadId DESC;
 END;
 GO
 
@@ -109,8 +115,12 @@ BEGIN
     INSERT @Locations SELECT LocationId,BagTypeId,BagCount FROM OPENJSON(@LocationDetailJson)
     WITH(LocationId INT '$.LocationId',BagTypeId INT '$.BagTypeId',BagCount INT '$.BagCount') WHERE ISNULL(BagCount,0)>0;
     IF NOT EXISTS(SELECT 1 FROM @Locations) THROW 50010,'At least one positive location bag detail is required.',1;
+    IF EXISTS(SELECT 1 FROM @Details d WHERE NOT EXISTS(SELECT 1 FROM dbo.t_UnloadLocation ul WHERE ul.UnloadId=@UnloadId AND ul.LocationId=d.LocationId AND ul.IsActive=1))
+        THROW 50014,'Material detail location is not assigned to this RST.',1;
     IF EXISTS(SELECT 1 FROM @Locations l WHERE NOT EXISTS(SELECT 1 FROM dbo.m_LocationMaster x JOIN dbo.t_OfficeLocationMapping om ON om.LocationId=x.LocationId WHERE x.LocationId=l.LocationId AND om.OfficeId=@OfficeId AND x.IsActive=1 AND om.IsActive=1 AND ISNULL(om.UnloadingAllowed,1)=1))
         THROW 50011,'One or more location details are not mapped to the company.',1;
+    IF EXISTS(SELECT l.LocationId,l.BagTypeId FROM @Locations l GROUP BY l.LocationId,l.BagTypeId HAVING SUM(l.BagCount)>ISNULL((SELECT SUM(d.BagCount) FROM @Details d WHERE d.LocationId=l.LocationId AND d.BagTypeId=l.BagTypeId),0))
+        THROW 50015,'Location bag count cannot exceed the matching material bag count.',1;
     IF EXISTS(SELECT 1 FROM @Locations l WHERE NOT EXISTS(SELECT 1 FROM dbo.m_BagType b WHERE b.BagTypeId=l.BagTypeId AND b.IsActive=1))
         THROW 50012,'Invalid location bag type.',1;
     IF (SELECT ISNULL(SUM(BagCount),0) FROM @Locations) <> (SELECT ISNULL(SUM(BagCount),0) FROM @Details)
