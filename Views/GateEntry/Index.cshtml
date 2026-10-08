@@ -4,6 +4,13 @@
     ViewData["Title"] = "Gate Operations";
 }
 
+<form id="weightmanActionForm" action="@Url.Action("WeightmanAction", "GateEntry")" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="RSTNumber" id="weightmanRstNumber" />
+    <input type="hidden" name="CurrentGrossWeight" id="weightmanGrossWeight" />
+    <input type="hidden" name="ActionType" id="weightmanActionType" />
+</form>
+
 <!-- Page Header -->
 <div class="erp-page-header">
 
@@ -34,6 +41,20 @@
     </button>
 
 </div>
+
+<script>
+    function submitWeightmanAction(rstNumber, actionType, grossInputId) {
+        const gross = document.getElementById(grossInputId)?.value;
+        if (!gross || Number(gross) <= 0) {
+            alert('Enter a valid current gross weight.');
+            return;
+        }
+        document.getElementById('weightmanRstNumber').value = rstNumber;
+        document.getElementById('weightmanGrossWeight').value = gross;
+        document.getElementById('weightmanActionType').value = actionType;
+        document.getElementById('weightmanActionForm').submit();
+    }
+</script>
 
 
 <div class="modal fade" id="weightmanActionModal" tabindex="-1" aria-hidden="true">
@@ -347,18 +368,17 @@
                                     <div class="modal fade" id="@actionModalId" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
                                             <div class="modal-header bg-primary text-white"><h5 class="modal-title">RST Action - @item.RSTNumber</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                                            <form asp-action="WeightmanAction" method="post">
-                                                @Html.AntiForgeryToken()
+                                            <div>
                                                 <div class="modal-body">
-                                                    <input type="hidden" name="RSTNumber" value="@item.RSTNumber" />
+                                                    <input type="hidden" id="rst_@item.RSTNumber.Replace("-", "_")" value="@item.RSTNumber" />
                                                     <label class="form-label fw-semibold">Current Gross Weight (KG)</label>
-                                                    <input name="CurrentGrossWeight" type="number" min="0.01" step="0.001" class="form-control" placeholder="Enter Gross KG" required />
+                                                    <input id="gross_@item.RSTNumber.Replace("-", "_")" type="number" min="0.01" step="0.001" class="form-control" placeholder="Enter Gross KG" required />
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="submit" name="ActionType" value="CONTINUE" class="btn btn-outline-primary fw-bold">Continue</button>
-                                                    <button type="submit" name="ActionType" value="END" class="btn btn-outline-success fw-bold">End</button>
+                                                    <button type="button" onclick="submitWeightmanAction('@item.RSTNumber.Replace("'", "\\'")', 'CONTINUE', 'gross_@item.RSTNumber.Replace("-", "_")')" class="btn btn-outline-primary fw-bold">Continue</button>
+                                                    <button type="button" onclick="submitWeightmanAction('@item.RSTNumber.Replace("'", "\\'")', 'END', 'gross_@item.RSTNumber.Replace("-", "_")')" class="btn btn-outline-success fw-bold">End</button>
                                                 </div>
-                                            </form>
+                                            </div>
                                         </div></div>
                                     </div>
                                 }

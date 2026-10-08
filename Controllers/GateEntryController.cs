@@ -628,11 +628,33 @@ namespace RiceMillProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult WeightmanAction(WeightmanRstAction action)
         {
-            if (!ModelState.IsValid) { TempData["ErrorMessage"] = "Enter a valid current gross weight."; return RedirectToAction(nameof(Index)); }
+            // The action modal is rendered inside a data table. Recover the raw
+            // posted values explicitly so browser form relocation cannot turn a
+            // valid 56000 entry into an empty model value.
+            var postedRst = Request.Form.FirstOrDefault(x => x.Key.Equals("RSTNumber", StringComparison.OrdinalIgnoreCase)).Value.FirstOrDefault();
+            var postedGross = Request.Form.FirstOrDefault(x => x.Key.Equals("CurrentGrossWeight", StringComparison.OrdinalIgnoreCase)).Value.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(action.RSTNumber) && !string.IsNullOrWhiteSpace(postedRst))
+                action.RSTNumber = postedRst.Trim();
+            if (action.CurrentGrossWeight <= 0 && decimal.TryParse(postedGross, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsedGross))
+                action.CurrentGrossWeight = parsedGross;
+            if (action.CurrentGrossWeight <= 0 && decimal.TryParse(postedGross, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.CurrentCulture, out parsedGross))
+                action.CurrentGrossWeight = parsedGross;
+            if (string.IsNullOrWhiteSpace(action.ActionType))
+                action.ActionType = Request.Form["ActionType"].FirstOrDefault() ?? "CONTINUE";
+            if (string.IsNullOrWhiteSpace(action.RSTNumber) || action.CurrentGrossWeight is null || action.CurrentGrossWeight <= 0)
+            {
+                TempData["ErrorMessage"] = $"RST number and a current gross weight greater than 0 are required. (RST: {postedRst ?? "blank"}, Gross: {postedGross ?? "blank"})";
+                return RedirectToAction(nameof(Index));
+            }
             try
             {
                 int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-                var result = _gateBal.RecordWeightmanAction(action, userId);
+                var result = _gateBal.RecordWeightmanAction(new WeightmanRstAction
+                {
+                    RSTNumber = action.RSTNumber.Trim(),
+                    CurrentGrossWeight = action.CurrentGrossWeight.Value,
+                    ActionType = action.ActionType
+                }, userId);
                 TempData["SuccessMessage"] = string.IsNullOrWhiteSpace(result.NewRSTNumber)
                     ? $"{action.ActionType} recorded for {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG."
                     : $"New RST {result.NewRSTNumber} generated from {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG.";

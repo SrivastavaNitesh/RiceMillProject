@@ -4,6 +4,16 @@
     bool isWeightman = User.IsWeightmanUser();
 }
 
+@if (isWeightman)
+{
+    <form id="gatemanWeightmanActionForm" asp-controller="GateEntry" asp-action="WeightmanAction" method="post" class="d-none">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="RSTNumber" id="gatemanActionRst" />
+        <input type="hidden" name="CurrentGrossWeight" id="gatemanActionGross" />
+        <input type="hidden" name="ActionType" id="gatemanActionType" />
+    </form>
+}
+
 <style>
     /* Professional ERP Report Styling */
     .erp-report-card {
@@ -122,6 +132,8 @@
                         <th>Vehicle No</th>
                         <th>Driver Info</th>
                         <th>Inward Type</th>
+                        <th>RST Number</th>
+                        <th>Gross Weight</th>
                         <th>Status</th>
                         <th>Added By</th>
                         @if (isWeightman) { <th>Action</th> }
@@ -157,6 +169,18 @@
                                         <span class="erp-badge bg-secondary-subtle text-secondary border border-secondary-subtle">Without RST</span>
                                     }
                                 </td>
+                                <td class="fw-bold text-primary font-monospace">@(string.IsNullOrWhiteSpace(item.RSTNumber) ? "-" : item.RSTNumber)</td>
+                                <td class="fw-semibold">@(item.RSTGrossWeight.HasValue ? item.RSTGrossWeight.Value.ToString("0.###") + " KG" : "-")</td>
+                                <td>
+                                    @if (item.RSTRequired)
+                                    {
+                                        <span class="erp-badge bg-primary-subtle text-primary border border-primary-subtle">With RST</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="erp-badge bg-secondary-subtle text-secondary border border-secondary-subtle">Without RST</span>
+                                    }
+                                </td>
                                 <td>
                                     @if (item.RSTRequired)
                                     {
@@ -178,11 +202,18 @@
                                 @if (isWeightman)
                                 {
                                     <td class="text-nowrap">
-                                        @if (item.RSTRequired && (!item.IsRSTGenerated || item.RstStatus == "UnloadingAssigned" || item.RstStatus == "WaitingForTare"))
+                                        @if (item.RSTRequired && !item.IsRSTGenerated)
                                         {
                                             <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">
-                                                <i class="bi bi-speedometer2 me-1"></i> @(item.IsRSTGenerated ? "Add Variety RST" : "Take Gross Weight")
+                                                <i class="bi bi-speedometer2 me-1"></i> Take Gross Weight
                                             </a>
+                                        }
+                                        else if (isWeightman && item.RSTRequired && (item.RstStatus == "UnloadingAssigned" || item.RstStatus == "WaitingForTare") && !string.IsNullOrWhiteSpace(item.RSTNumber))
+                                        {
+                                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                <a class="btn btn-sm btn-outline-danger fw-bold" href="@Url.Action("Outbound", "GateEntry", new { id = item.RSTNumber })"><i class="bi bi-speedometer2 me-1"></i>End RST</a>
+                                                <a class="btn btn-sm btn-outline-success fw-bold" href="@Url.Action("Create", "GateEntry", new { inwardId = item.InwardId })"><i class="bi bi-plus-circle me-1"></i>New RST</a>
+                                            </div>
                                         }
                                         else if (item.RSTRequired)
                                         {
@@ -201,6 +232,16 @@
 </div>
 
 @section Scripts {
+    <script>
+        function submitGatemanWeightAction(rstNumber, actionType, inputId) {
+            const gross = document.getElementById(inputId)?.value;
+            if (!gross || Number(gross) <= 0) { alert('Enter a valid current gross weight.'); return; }
+            document.getElementById('gatemanActionRst').value = rstNumber;
+            document.getElementById('gatemanActionGross').value = gross;
+            document.getElementById('gatemanActionType').value = actionType;
+            document.getElementById('gatemanWeightmanActionForm').submit();
+        }
+    </script>
     <script>
         $(document).ready(function () {
             if ($('#erpReportTable').length && $.fn.DataTable) {

@@ -64,5 +64,7 @@ namespace RiceMillProject.Models
         public bool IsRSTGenerated { get; set; }
         public string? RstStatus { get; set; }
         public string? RstStatusName { get; set; }
+        public string? RSTNumber { get; set; }
+        public decimal? RSTGrossWeight { get; set; }
     }
 }
