@@ -23,6 +23,7 @@ namespace RiceMillProject.Models
         public int InwardId { get; set; }
         public string? GateEntryNo { get; set; }
         public string? InwardNo { get; set; }
+        public string ItemCategoryName { get; set; } = string.Empty;
 
         [DataType(DataType.Date)]
         public DateTime InwardDate { get; set; } = DateTime.Now;

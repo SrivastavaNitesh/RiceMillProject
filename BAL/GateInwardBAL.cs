@@ -16,7 +16,13 @@ namespace RiceMillProject.BAL
 
         public List<InwardTypeMaster> GetInwardTypes() => _dal.GetInwardTypes();
         public List<VehicleTypeMaster> GetVehicleTypes() => _dal.GetVehicleTypes();
-        public List<InwardHeader> GetAllInwardEntries() => _dal.GetAllInwardEntries();
+        public List<InwardHeader> GetAllInwardEntries(bool includeItemCategories = false)
+        {
+            var entries = _dal.GetAllInwardEntries();
+            if (includeItemCategories)
+                _dal.PopulateItemCategoryNames(entries);
+            return entries;
+        }
         public bool SaveInwardEntry(InwardHeader model) => _dal.SaveInwardEntry(model);
         public List<dynamic> GetGatemenList() => _dal.GetGatemenList();
         public bool IsDriverMobileDuplicate(string mobileNumber) => _dal.IsDriverMobileDuplicate(mobileNumber);

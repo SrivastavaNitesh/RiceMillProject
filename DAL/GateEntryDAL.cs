@@ -22,6 +22,17 @@ public class GateEntryDAL
         // GET ALL GATE ENTRIES
         // ============================================================
 
+        public DataTable GetItemCategories()
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(
+                "SELECT CategoryId, CategoryName FROM dbo.m_ItemCategory WHERE IsActive = 1 ORDER BY CategoryName", con);
+            using var adapter = new SqlDataAdapter(cmd);
+            var categories = new DataTable();
+            adapter.Fill(categories);
+            return categories;
+        }
+
         public List<GateEntry> GetAllGateEntries()
         {
             var entries = new List<GateEntry>();

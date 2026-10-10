@@ -42,8 +42,13 @@ namespace RiceMillProject.Models
         public int? CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
 
+        [Range(1, int.MaxValue, ErrorMessage = "Select an item category.")]
+        public int ItemCategoryId { get; set; }
+
 
         public string ItemName { get; set; } = string.Empty;
+
+        public string ItemCategoryName { get; set; } = string.Empty;
 
 
         public int? TargetOfficeId { get; set; }
