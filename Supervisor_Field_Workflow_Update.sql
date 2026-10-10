@@ -143,6 +143,14 @@ BEGIN
     DELETE FROM dbo.t_SupervisorUnloadLocationDetail WHERE SupervisorActionId=@ActionId;
     INSERT dbo.t_SupervisorUnloadLocationDetail(SupervisorActionId,LocationId,BagTypeId,BagCount)
     SELECT @ActionId,LocationId,BagTypeId,BagCount FROM @Locations;
+    UPDATE dbo.t_UnloadTransaction
+    SET Status='Unloaded', UnloadTime=COALESCE(UnloadTime,SYSDATETIME())
+    WHERE UnloadId=@UnloadId;
+    UPDATE g
+    SET g.StatusId=4, g.Status='Unloaded'
+    FROM dbo.t_GateEntry g
+    INNER JOIN dbo.t_UnloadTransaction u ON u.RSTNumber=g.RSTNumber
+    WHERE u.UnloadId=@UnloadId;
     COMMIT;
     SELECT @ActionId AS SupervisorActionId;
 END;

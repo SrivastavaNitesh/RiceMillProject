@@ -23,7 +23,7 @@
     <div class="col-lg-6 col-md-8">
         <div class="erp-card">
             <div class="erp-card-header">
-                <span><i class="bi bi-truck text-primary me-2"></i> Phase 2: Outbound Tare Weighment</span>
+        <span><i class="bi bi-truck text-primary me-2"></i> Phase 2: Final Gross Weighment</span>
             </div>
             <div class="erp-card-body">
                 <div class="p-3 bg-light rounded border border-light-subtle mb-4">
@@ -38,12 +38,12 @@
                     <input type="hidden" name="rstNumber" value="@Model.RSTNumber" />
                     
                     <div class="col-md-12">
-                        <label for="tareWeight" class="form-label text-danger">Tare Weight (Empty Truck in KG) <span class="req-star">*</span></label>
+                        <label for="tareWeight" class="form-label text-danger">Current Gross Weight (KG) <span class="req-star">*</span></label>
                         <div class="input-group">
-                            <input type="number" id="tareWeight" name="tareWeight" step="0.01" class="form-control form-control-lg border-danger font-monospace" placeholder="e.g. 8500" required />
+                            <input type="number" id="tareWeight" name="tareWeight" step="0.01" class="form-control form-control-lg border-danger font-monospace" placeholder="e.g. 40000" required />
                             <span class="input-group-text bg-danger text-white border-danger">KG</span>
                         </div>
-                        <small class="text-muted">Net weight will be automatically calculated as (Gross - Tare - Deductions).</small>
+                        <small class="text-muted">Received weight will be calculated as (Previous Gross - Current Gross).</small>
                     </div>
 
                     <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">

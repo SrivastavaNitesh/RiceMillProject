@@ -1,18 +1,12 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace RiceMillProject.Models;
 
 public class WeightmanRstAction
 {
-    [Required]
-    public string RSTNumber { get; set; } = string.Empty;
+    public string? RSTNumber { get; set; }
 
-    [Required]
-    [Range(0.01, 999999999999)]
-    public decimal CurrentGrossWeight { get; set; }
+    public decimal? CurrentGrossWeight { get; set; }
 
-    [Required]
-    public string ActionType { get; set; } = "CONTINUE";
+    public string? ActionType { get; set; } = "CONTINUE";
 
     public string? NewRSTNumber { get; set; }
 }
