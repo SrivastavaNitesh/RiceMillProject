@@ -23,5 +23,7 @@ BEGIN
         IsFinalRST = 1,
         RSTChainStatus = 'Finalized'
     WHERE RSTNumber = @RSTNumber;
+    EXEC dbo.sp_MoveRSTProgress @RSTNumber, 13, 'Completed', NULL;
+    EXEC dbo.sp_MoveRSTProgress @RSTNumber, 9, 'Completed', NULL;
 END;
 GO
