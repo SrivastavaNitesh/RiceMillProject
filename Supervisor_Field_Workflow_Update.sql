@@ -151,6 +151,9 @@ BEGIN
     FROM dbo.t_GateEntry g
     INNER JOIN dbo.t_UnloadTransaction u ON u.RSTNumber=g.RSTNumber
     WHERE u.UnloadId=@UnloadId;
+    DECLARE @ProgressRst nvarchar(50);
+    SELECT @ProgressRst=RSTNumber FROM dbo.t_UnloadTransaction WHERE UnloadId=@UnloadId;
+    EXEC dbo.sp_MoveRSTProgress @ProgressRst, 12, 'Completed', @SupervisorId;
     COMMIT;
     SELECT @ActionId AS SupervisorActionId;
 END;
