@@ -1,0 +1,23 @@
+@model RiceMillProject.Models.PurchaseTable
+<div class="purchase-table-scroll" tabindex="0" aria-label="Purchase report table">
+    <table class="table table-bordered table-sm purchase-table">
+        <thead>
+        @foreach (var row in Model.Rows.Take(Model.HeaderRows))
+        {
+            <tr>@foreach (var cell in row) { <th rowspan="@cell.RowSpan" colspan="@cell.ColSpan">@cell.Value</th> }</tr>
+        }
+        </thead>
+        <tbody>
+        @foreach (var row in Model.Rows.Skip(Model.HeaderRows))
+        {
+            <tr>
+            @foreach (var cell in row)
+            {
+                if (cell.Heading) { <th rowspan="@cell.RowSpan" colspan="@cell.ColSpan">@cell.Value</th> }
+                else { <td rowspan="@cell.RowSpan" colspan="@cell.ColSpan">@(cell.Value is decimal d ? d.ToString("N3") : cell.Value)</td> }
+            }
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
