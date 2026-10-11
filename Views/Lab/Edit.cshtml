@@ -1,0 +1,31 @@
+@model RiceMillProject.Models.LabReportEdit
+@{ ViewData["Title"] = "Edit lab report LAB-" + Model.ReportId; }
+<partial name="_Navigation" />
+<h2>Edit lab report LAB-@Model.ReportId</h2>
+<p class="text-muted">@Model.RSTNumber</p>
+<form asp-action="Edit" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <input asp-for="ReportId" type="hidden" />
+    <input asp-for="Version" type="hidden" />
+    <input asp-for="RSTNumber" type="hidden" />
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>Item</th><th>Test</th><th>Result</th><th>Unit</th></tr></thead>
+            <tbody>
+            @for (var i = 0; i < Model.Results.Count; i++)
+            {
+                <tr>
+                    <td>@Model.Results[i].ItemName<input asp-for="Results[i].ResultId" type="hidden" /></td>
+                    <td><label for="@Html.IdFor(m => m.Results[i].Value)">@Model.Results[i].TestName</label></td>
+                    <td><input asp-for="Results[i].Value" class="form-control" maxlength="500" required /><span asp-validation-for="Results[i].Value" class="text-danger"></span></td>
+                    <td>@Model.Results[i].Unit</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <label asp-for="Remarks" class="form-label"></label>
+    <textarea asp-for="Remarks" class="form-control mb-3" maxlength="1000"></textarea>
+    <button type="submit" class="btn btn-primary">Save changes</button>
+    <a asp-action="Report" asp-route-id="@Model.ReportId" class="btn btn-outline-secondary">Cancel</a>
+</form>

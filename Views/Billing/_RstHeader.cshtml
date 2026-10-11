@@ -1,6 +1,6 @@
 @model RiceMillProject.Models.BillingCalculation
 @{var h=Model.Source.Header;}
-<section class="card card-body mb-4">
+<section class="bill-form-section">
 <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap"><div><div class="lab-report-eyebrow">RST / @h.InwardNo</div><h3>@h.RSTNumber</h3></div><span class="bill-status">@h.Status</span></div>
 <dl class="bill-meta">
 <div><dt>Party</dt><dd>@h.PartyName</dd><dd class="text-muted">@h.PartyMobile</dd></div>

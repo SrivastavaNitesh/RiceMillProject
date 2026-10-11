@@ -24,6 +24,8 @@ public class LabWorkflowBAL(IConfiguration configuration)
     public List<LabRstSummary> GetRstsForOffice(int officeId) => dal.GetRstsForOffice(officeId);
     public List<LabReport> GetReports(string? rst, DateTime? from, DateTime? to) => dal.GetReports(rst, from, to);
     public LabReport? GetReport(int id) => dal.GetReport(id);
+    public LabReportEdit? GetReportEdit(int id) => dal.GetReportEdit(id);
+    public int UpdateReport(LabReportEdit model, int userId) => dal.UpdateReport(model, userId);
     public int SaveReport(LabEntryViewModel model, int userId)
     {
         if (model.SubmissionId == Guid.Empty) throw new ArgumentException("Invalid submission. Reload this RST.");

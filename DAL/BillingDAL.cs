@@ -39,7 +39,9 @@ public class BillingDAL(IConfiguration configuration)
         var data=Read(con,tx,"sp_BillingSource",true,P("@RSTNumber",rst));
         if(data.Tables[0].Rows.Count==0)return null;
         var source=new BillingSource{Header=Rows<BillingRst>(data.Tables[0])[0],Lots=Rows<BillingLot>(data.Tables[1]),Locations=Rows<BillingLocation>(data.Tables[2]),Workers=Rows<BillingWorker>(data.Tables[3]),LabResults=Rows<BillingLabResult>(data.Tables[4]),UnloadStatuses=data.Tables[5].AsEnumerable().Select(r=>Convert.ToString(r["Status"])??"").ToList()};
-        var status=Rows<BillingRst>(Read(con,tx,"sp_BillingRstList",true).Tables[0]).First(r=>string.Equals(r.RSTNumber,rst,StringComparison.OrdinalIgnoreCase));
+        var status=Rows<BillingRst>(Read(con,tx,"sp_BillingRstList",true).Tables[0]).FirstOrDefault(r=>string.Equals(r.RSTNumber,rst,StringComparison.OrdinalIgnoreCase));
+        if(status==null)return null;
+        source.Header.CurrentStageId=status.CurrentStageId;
         source.Header.LabComplete=status.LabComplete;source.Header.ItemCount=status.ItemCount;
         source.Header.RequiredTests=status.RequiredTests;source.Header.CompletedTests=status.CompletedTests;
         source.Header.BillId=status.BillId;source.Header.TotalAmount=status.TotalAmount;source.Header.PaidAmount=status.PaidAmount;

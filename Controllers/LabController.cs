@@ -65,6 +65,42 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
         return View(model);
     }
     [HttpGet]
+    public IActionResult Edit(int id)
+    {
+        var model = lab.GetReportEdit(id);
+        if (model == null) return NotFound();
+        if (!lab.GetRstsForOffice(OfficeId).Any(r => string.Equals(r.RSTNumber, model.RSTNumber, StringComparison.OrdinalIgnoreCase))) return Forbid();
+        return View(model);
+    }
+    [HttpPost]
+    public IActionResult Edit(LabReportEdit model)
+    {
+        var saved = lab.GetReportEdit(model.ReportId);
+        if (saved == null) return NotFound();
+        if (!lab.GetRstsForOffice(OfficeId).Any(r => string.Equals(r.RSTNumber, saved.RSTNumber, StringComparison.OrdinalIgnoreCase))) return Forbid();
+        model.RSTNumber = saved.RSTNumber;
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                lab.UpdateReport(model, UserId);
+                TempData["LabSuccess"] = $"Lab report LAB-{model.ReportId} updated.";
+                return RedirectToAction(nameof(Report), new { id = model.ReportId });
+            }
+            catch (FormatException) { ModelState.AddModelError("", "Invalid report version. Reload the report."); }
+            catch (SqlException ex) { DatabaseError(ex); }
+        }
+        foreach (var result in model.Results)
+        {
+            var original = saved.Results.FirstOrDefault(r => r.ResultId == result.ResultId);
+            if (original == null) continue;
+            result.ItemName = original.ItemName;
+            result.TestName = original.TestName;
+            result.Unit = original.Unit;
+        }
+        return View(model);
+    }
+    [HttpGet]
     public IActionResult Tests(int? id)
     {
         var tests = lab.GetTests();

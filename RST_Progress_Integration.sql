@@ -14,7 +14,14 @@ BEGIN
     IF NULLIF(LTRIM(RTRIM(@Status)), '') IS NULL THROW 50001,'Status is required.',1;
     BEGIN TRY
         BEGIN TRANSACTION;
-        IF EXISTS (SELECT 1 FROM dbo.t_RSTProgressWork WHERE RSTNumber=@RSTNumber AND StageId=@StageId AND IsActive=1)
+        DECLARE @LockResult int,@LockName nvarchar(255)=N'RSTProgress:'+UPPER(LTRIM(RTRIM(@RSTNumber)));
+        EXEC @LockResult=sys.sp_getapplock @Resource=@LockName,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+        IF @LockResult<0 THROW 50001,'This RST is being updated. Please retry.',1;
+        IF NOT EXISTS(SELECT 1 FROM dbo.m_RSTStageMaster WHERE StageId=@StageId AND IsActive=1)
+            THROW 50001,'The RST stage is not active or does not exist.',1;
+        DECLARE @LatestProgressId bigint;
+        SELECT TOP(1) @LatestProgressId=ProgressId FROM dbo.t_RSTProgressWork WITH(UPDLOCK,HOLDLOCK) WHERE RSTNumber=@RSTNumber ORDER BY ProgressId DESC;
+        IF EXISTS (SELECT 1 FROM dbo.t_RSTProgressWork WHERE ProgressId=@LatestProgressId AND StageId=@StageId AND Status=@Status AND IsActive=1)
         BEGIN
             UPDATE dbo.t_RSTMaster SET CurrentStageId=@StageId,CurrentStatus=@Status,UpdatedAt=SYSDATETIME() WHERE RSTNumber=@RSTNumber;
             IF @@ROWCOUNT=0 INSERT dbo.t_RSTMaster(RSTNumber,CurrentStageId,CurrentStatus,UpdatedAt) VALUES(@RSTNumber,@StageId,@Status,SYSDATETIME());

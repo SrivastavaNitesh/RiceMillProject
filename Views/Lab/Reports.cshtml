@@ -15,6 +15,6 @@
     @foreach (var report in Model.Reports)
     {
         <tr><td>LAB-@report.ReportId</td><td>@report.RSTNumber</td><td>@report.TestedAt.ToString("dd MMM yyyy HH:mm")</td><td>@report.TechnicianName</td><td>@report.ItemCount / @report.ResultCount</td>
-            <td><a asp-action="Report" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-primary">View / print</a> <a asp-action="Export" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-secondary">CSV</a></td></tr>
+            <td><a asp-action="Edit" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-primary">Edit</a> <a asp-action="Report" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-primary">View / print</a> <a asp-action="Export" asp-route-id="@report.ReportId" class="btn btn-sm btn-outline-secondary">CSV</a></td></tr>
     }
     </tbody></table></div>

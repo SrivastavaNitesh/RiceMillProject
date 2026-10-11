@@ -54,6 +54,7 @@ public class LabItemOption
 
 public class LabRstSummary
 {
+    public int? LatestReportId { get; set; }
     public string RSTNumber { get; set; } = "";
     public string VehicleNumber { get; set; } = "";
     public string PartyName { get; set; } = "";
@@ -135,4 +136,22 @@ public class LabReportsPage
     [DataType(DataType.Date)] public DateTime? From { get; set; }
     [DataType(DataType.Date)] public DateTime? To { get; set; }
     public List<LabReport> Reports { get; set; } = [];
+}
+
+public class LabReportEdit
+{
+    public int ReportId { get; set; }
+    public string RSTNumber { get; set; } = "";
+    [Required] public string Version { get; set; } = "";
+    [StringLength(1000)] public string? Remarks { get; set; }
+    public List<LabReportEditResult> Results { get; set; } = [];
+}
+
+public class LabReportEditResult
+{
+    public int ResultId { get; set; }
+    public string ItemName { get; set; } = "";
+    public string TestName { get; set; } = "";
+    public string Unit { get; set; } = "";
+    [Required, StringLength(500)] public string Value { get; set; } = "";
 }
