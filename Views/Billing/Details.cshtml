@@ -3,11 +3,11 @@
 <partial name="_Messages" />
 <div class="bill-page-heading"><div><h2>RST details</h2><p class="text-muted">Party, unloading quantities, laboratory coverage and worker allocations.</p></div><div class="bill-actions d-print-none"><a asp-action="Index" class="btn btn-outline-secondary">Back to register</a>
 @if(Model.Source.Header.BillId.HasValue){<a asp-action="Bill" asp-route-id="@Model.Source.Header.BillId" class="btn btn-primary">View bill</a>}
-else if(Model.Source.Header.LabComplete){<a asp-action="Generate" asp-route-rstNumber="@Model.Source.Header.RSTNumber" class="btn btn-primary">Generate bill</a>}
+else if(Model.Source.Header.CanOpenBill){<a asp-action="Generate" asp-route-rstNumber="@Model.Source.Header.RSTNumber" class="btn btn-primary">Generate bill</a>}
 <button onclick="window.print()" class="btn btn-outline-secondary">Print</button></div></div>
 <partial name="_RstHeader" model="Model" />
 <partial name="_Items" model="Model" />
-@if(Model.Issues.Count>0){<div class="alert alert-warning"><strong>Pending before billing</strong><ul class="mb-0">@foreach(var issue in Model.Issues){<li>@issue</li>}</ul></div>}
+<partial name="_Checks" model="Model.Issues" />
 @{
     var labGroups = Model.Source.LabResults.GroupBy(l => new { l.CategoryId, l.ItemId }).ToList();
     var workerGroups = Model.Workers.GroupBy(w => w.WorkerId).OrderBy(g => g.First().WorkerName).ToList();
@@ -40,7 +40,7 @@ else if(Model.Source.Header.LabComplete){<a asp-action="Generate" asp-route-rstN
     </table></div>
 </section>
 <section class="bill-details-section">
-    <div class="bill-section-heading"><div><h4>Worker allocations</h4><p>Unloaded bag counts recorded by Meth. Rates are shown below each count.</p></div><span class="bill-section-count">@workerGroups.Count workers &middot; @Model.Workers.Sum(w => (long)w.BagCount).ToString("N0") bags</span></div>
+    <div class="bill-section-heading"><div><h4>Meth worker record</h4><p>मेठ की बोरियाँ और दर्ज दरें केवल संदर्भ के लिए हैं। नई बिलिंग में कुल पल्लेदारी अलग भरें।</p></div><span class="bill-section-count">@workerGroups.Count workers &middot; @Model.Workers.Sum(w => (long)w.BagCount).ToString("N0") bags</span></div>
     <div class="table-responsive"><table class="table table-bordered bill-detail-table" id="billing-worker-allocations">
         <thead><tr><th scope="col">Worker</th><th scope="col">Work</th>@foreach(var bag in bagTypes){<th scope="col" class="bill-number">@bag.Name<small>Unloaded bags / rate</small></th>}<th scope="col" class="bill-number">Total bags</th><th scope="col" class="bill-number">Amount</th></tr></thead>
         <tbody>
@@ -58,7 +58,7 @@ else if(Model.Source.Header.LabComplete){<a asp-action="Generate" asp-route-rstN
                 <td class="bill-number"><strong>@worker.Sum(w=>(long)w.BagCount).ToString("N0")</strong></td><td class="bill-number"><strong>@worker.Sum(w=>w.Amount).ToString("N2")</strong></td>
             </tr>
         }
-        @if(workerGroups.Count==0){<tr><td colspan="@(bagTypes.Count+4)" class="bill-empty-state">No worker allocations have been recorded.</td></tr>}
+        @if(workerGroups.Count==0){<tr><td colspan="@(bagTypes.Count+4)" class="bill-empty-state">मेठ का worker record उपलब्ध नहीं है।</td></tr>}
         </tbody>
         @if(workerGroups.Count>0){<tfoot><tr><th colspan="2" scope="row">Total</th>@foreach(var bag in bagTypes){<td class="bill-number">@Model.Workers.Where(w=>BagKey(w)==bag.Key).Sum(w=>(long)w.BagCount).ToString("N0")</td>}<td class="bill-number">@Model.Workers.Sum(w=>(long)w.BagCount).ToString("N0")</td><td class="bill-number">@Model.Workers.Sum(w=>w.Amount).ToString("N2")</td></tr></tfoot>}
     </table></div>

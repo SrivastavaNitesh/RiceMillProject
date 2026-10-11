@@ -19,6 +19,8 @@ public class BillingRst
     public string GateStatus { get; set; } = "";
     public string SupervisorName { get; set; } = "";
     public bool LabComplete { get; set; }
+    public int CurrentStageId { get; set; }
+    public bool CanOpenBill => CurrentStageId is 14 or 15;
     public int ItemCount { get; set; }
     public int RequiredTests { get; set; }
     public int CompletedTests { get; set; }
@@ -29,6 +31,8 @@ public class BillingRst
 }
 public class BillingLot
 {
+    public decimal? ActualWeightKg { get; set; }
+    public int? LocationId { get; set; }
     public int DetailId { get; set; }
     public int UnloadId { get; set; }
     public int CategoryId { get; set; }
@@ -112,7 +116,9 @@ public class BillingForm
     [Required,StringLength(50)] public string RSTNumber { get; set; } = "";
     public Guid SubmissionId { get; set; } = Guid.NewGuid();
     [Required] public string SourceVersion { get; set; } = "";
-    [RegularExpression("ByBags|Measured")] public string WeightMode { get; set; } = "ByBags";
+    [RegularExpression("ByBags|Measured|FinalNet")] public string WeightMode { get; set; } = "ByBags";
+    [Required(ErrorMessage="पल्लेदारी राशि भरें; शुल्क नहीं है तो 0 रखें।")]
+    [Range(typeof(decimal),"0","999999999.99")] public decimal? PalledariAmount { get; set; }
     public List<BillingItemInput> Items { get; set; } = [];
     public List<BillingWorkerInput> Workers { get; set; } = [];
     public List<BillingAllocationInput> Allocations { get; set; } = [];
@@ -121,6 +127,7 @@ public class BillingForm
 }
 public class BillingItemLine
 {
+    public bool IsEstimatedWeight { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = "";
     public int ItemId { get; set; }
@@ -147,6 +154,7 @@ public class BillingLocationQuantity
 }
 public class BillingCalculation
 {
+    public decimal? PalledariAmount { get; set; }
     public BillingSource Source { get; set; } = new();
     public string WeightMode { get; set; } = "ByBags";
     public List<BillingItemLine> Items { get; set; } = [];

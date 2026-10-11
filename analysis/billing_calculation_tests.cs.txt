@@ -1,0 +1,63 @@
+using RiceMillProject.Models;
+using RiceMillProject.BAL;
+using System.Text.Json;
+static void Check(bool ok,string name){if(!ok)throw new Exception(name);Console.WriteLine("PASS: "+name);}
+var s=new BillingSource {
+    Header=new(){RSTNumber="TEST",GrossWeight=42000,TareWeight=25000,NetWeight=17000,LabComplete=false},
+    Lots=[new(){DetailId=1,UnloadId=1,ItemId=1,ItemName="Mansuri",BagCount=60,LocationId=10,DeductionWeightGrams=100},
+          new(){DetailId=2,UnloadId=1,ItemId=2,ItemName="Kala pani",BagCount=100,LocationId=11,DeductionWeightGrams=200},
+          new(){DetailId=3,UnloadId=1,ItemId=3,ItemName="Basmati",BagCount=80,LocationId=11,DeductionWeightGrams=100}],
+    Locations=[new(){UnloadId=1,LocationId=10,LocationName="A"},new(){UnloadId=1,LocationId=11,LocationName="B"}],
+    Workers=[new(){AllocationId=1,UnloadId=1,WorkerId=1,BagCount=5,Rate=10}],UnloadStatuses=["Assigned"]
+};
+var f=BillingCalculator.NewForm(s);
+foreach(var item in f.Items){item.Rate=10;item.RateBasis="Kg";}
+var r=BillingCalculator.Calculate(s,f,true);
+Check(f.WeightMode=="ByBags","Mixed items default to proportional weights");
+Check(r.Items.Select(i=>i.GrossKg).SequenceEqual(new decimal[]{4250,7083.333m,5666.667m}),"User's 17000 kg / 60:100:80 example");
+Check(r.Items.Sum(i=>i.GrossKg)==17000,"Rounding preserves net total");
+Check(r.Items.Select(i=>i.BagDeductionKg).SequenceEqual(new decimal[]{6,20,8}),"Bag tare formula");
+Check(r.Items[0].PayableKg==4244,"Billable kg excludes bag tare");
+Check(r.Issues.Count==0,"No-test items and Meth mismatch do not block billing");
+Check(r.Items[0].Locations.Single().LocationId==10 && r.Items[1].Locations.Single().LocationId==11,"Supervisor locations used without allocation prompt");
+Check(r.WorkerAmount==0,"Zero palledari allowed, no duplicate worker charge");
+f.PalledariAmount=500;f.GstPercent=5;
+r=BillingCalculator.Calculate(s,f,true);
+Check(r.WorkerAmount==500 && r.Subtotal==r.ItemAmount-r.LabDeduction+500,"Manual palledari added exactly once");
+Check(r.GstAmount==BillingCalculator.Money(r.Subtotal*.05m),"GST includes palledari");
+var saved=JsonSerializer.Deserialize<BillingCalculation>(JsonSerializer.Serialize(r))!;
+Check(saved.PalledariAmount==500 && saved.Total==r.Total,"Palledari survives saved invoice snapshot");
+s.LabResults.Add(new(){ItemId=1,TestId=1,TestName="Moisture",ResultValue=null,RuleId=1,Threshold=10,DeductionMode="Percent",DeductionValue=2});
+Check(BillingCalculator.Calculate(s,f,true).Issues.Count==1,"Mapped missing test is still blocked");
+s.LabResults[0].ResultValue="9";
+Check(BillingCalculator.Calculate(s,f,true).LabDeduction==0,"Below threshold no deduction");
+s.LabResults[0].ResultValue="10";
+r=BillingCalculator.Calculate(s,f,true);
+Check(r.LabDeduction==BillingCalculator.Money(r.Items[0].BaseAmount*.02m),"At threshold percent deduction");
+s.LabResults[0].DeductionMode="PerQuintal";s.LabResults[0].DeductionValue=5;
+Check(BillingCalculator.Calculate(s,f,true).LabDeduction==212.20m,"Per-quintal deduction uses billable weight");
+f.WeightMode="FinalNet";
+f.Items[0].MeasuredWeight=1;
+Check(BillingCalculator.Calculate(s,f,true).Items[0].GrossKg==4250,"Posted weight mode/weight cannot override backend calculation");
+Check(BillingCalculator.Calculate(s,f,true).Items.All(i=>i.IsEstimatedWeight),"Derived item weights carry estimated marker");
+s.Lots[0].ActualWeightKg=5000;
+r=BillingCalculator.Calculate(s,f,true);
+Check(r.Items[0].GrossKg==5000 && !r.Items[0].IsEstimatedWeight,"Recorded actual weight is retained without star");
+Check(r.Items[1].GrossKg==6666.667m && r.Items[2].GrossKg==5333.333m && r.Items.Skip(1).All(i=>i.IsEstimatedWeight),"Remaining net weight divided only among unknown bags");
+s.Lots[1].ActualWeightKg=7000;s.Lots[2].ActualWeightKg=5000;
+r=BillingCalculator.Calculate(s,f,true);
+Check(r.Items.All(i=>!i.IsEstimatedWeight) && r.Items.Sum(i=>i.GrossKg)==17000,"All measured item weights are preserved");
+s.Lots[0].ActualWeightKg=6000;
+Check(BillingCalculator.Calculate(s,f,true).Issues.Count>0,"Actual weights exceeding net weight block saving");
+s.Lots[0].ActualWeightKg=null;
+s.Lots=s.Lots.Take(1).ToList();s.Lots[0].BagCount=200;s.LabResults.Clear();
+f=BillingCalculator.NewForm(s);f.Items[0].Rate=10;
+r=BillingCalculator.Calculate(s,f,true);
+Check(f.WeightMode=="FinalNet" && r.Items[0].GrossKg==17000,"Single-item 200 bags gets full net weight");
+Check(!r.Items[0].IsEstimatedWeight,"Single item net weight has no estimated star");
+Check(r.Items[0].PayableKg==16980,"Single-item bag tare still deducted");
+f.PalledariAmount=-1;
+Check(BillingCalculator.Calculate(s,f,true).Issues.Count>0,"Negative palledari rejected");
+f.PalledariAmount=1.234m;
+Check(BillingCalculator.Calculate(s,f,true).Issues.Count>0,"Palledari precision validated");
+Console.WriteLine("ALL BILLING RULE TESTS PASSED");

@@ -3,8 +3,9 @@
  var bags=Model.Source.Lots.GroupBy(l=>l.BagTypeId).Select(g=>g.First()).ToList();
  var locations=Model.Items.SelectMany(i=>i.Locations).GroupBy(l=>l.LocationId).Select(g=>g.First()).ToList();
 }
-<div class="bill-section-title"><h4>Item and unloading details</h4><span class="text-muted small">@(Model.WeightMode=="Measured" ? "Measured item weights" : "Net weight allocated by bag count")</span></div>
-<div class="table-responsive mb-4"><table class="table bill-item-table"><thead>
+<partial name="_FormulaHints" />
+<div class="bill-section-title"><h4>Item and unloading details</h4><span class="text-muted small">@(Model.WeightMode=="FinalNet" ? "एक आइटम: पूरा नेट वजन" : Model.WeightMode=="Measured" ? "अलग से तौला हुआ वजन" : "बोरी के अनुपात से अनुमानित वजन")</span></div>
+<div class="table-responsive mb-4"><table class="table table-bordered bill-item-table"><thead>
 <tr><th rowspan="2">Category</th><th rowspan="2">Item</th>@foreach(var bag in bags){<th rowspan="2">@bag.BagTypeName<br /><small>bags</small></th>}
 @foreach(var location in locations){<th colspan="2" class="text-center">@location.LocationName</th>}
 <th rowspan="2">Total bags</th><th rowspan="2">Allocated kg</th><th rowspan="2">Bag tare kg</th><th rowspan="2">Billable kg</th></tr>
@@ -16,10 +17,10 @@ var first=true;
 <td class="bill-item-name"><strong>@item.ItemName</strong></td>
 @foreach(var bag in bags){<td>@Model.Source.Lots.Where(l=>l.ItemId==item.ItemId && l.BagTypeId==bag.BagTypeId).Sum(l=>l.BagCount)</td>}
 @foreach(var location in locations){var q=item.Locations.FirstOrDefault(l=>l.LocationId==location.LocationId);<td>@(q?.Bags??0)</td><td>@((q?.WeightKg??0).ToString("N3"))</td>}
-<td>@item.Bags</td><td>@item.GrossKg.ToString("N3")</td><td>@item.BagDeductionKg.ToString("N3")</td><td>@item.PayableKg.ToString("N3")</td></tr>
+<td>@item.Bags</td><td>@item.GrossKg.ToString("N3")@(item.IsEstimatedWeight ? " *" : "")</td><td>@item.BagDeductionKg.ToString("N3")</td><td>@item.PayableKg.ToString("N3")@(item.IsEstimatedWeight ? " *" : "")</td></tr>
 }}
 @if(Model.Items.Count==0){<tr><td colspan="20" class="text-center py-4 text-muted">Supervisor item details have not been completed.</td></tr>}
 </tbody><tfoot><tr><th colspan="2">Total</th>@foreach(var bag in bags){<th>@Model.Source.Lots.Where(l=>l.BagTypeId==bag.BagTypeId).Sum(l=>l.BagCount)</th>}
 @foreach(var location in locations){<th>@Model.Items.SelectMany(i=>i.Locations).Where(l=>l.LocationId==location.LocationId).Sum(l=>l.Bags)</th><th>@Model.Items.SelectMany(i=>i.Locations).Where(l=>l.LocationId==location.LocationId).Sum(l=>l.WeightKg).ToString("N3")</th>}
 <th>@Model.Items.Sum(i=>i.Bags)</th><th>@Model.Items.Sum(i=>i.GrossKg).ToString("N3")</th><th>@Model.Items.Sum(i=>i.BagDeductionKg).ToString("N3")</th><th>@Model.Items.Sum(i=>i.PayableKg).ToString("N3")</th></tr></tfoot></table></div>
-<p class="small text-muted">Weight reconciliation: allocated @Model.Items.Sum(i=>i.GrossKg).ToString("N3") kg / RST net @Model.Source.Header.NetWeight?.ToString("N3") kg. Bag tare uses each bag type's grams × count ÷ 1,000. Location weights are allocated within each item by its bag count.</p>
+<p class="small text-muted">आइटमों का कुल वजन @Model.Items.Sum(i=>i.GrossKg).ToString("N3") kg / RST नेट वजन @Model.Source.Header.NetWeight?.ToString("N3") kg। स्थान की बोरियाँ सुपरवाइजर के रिकॉर्ड से हैं; स्थान का वजन उसी आइटम की बोरियों के अनुपात से निकाला गया है।</p>

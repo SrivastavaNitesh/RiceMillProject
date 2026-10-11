@@ -39,14 +39,14 @@ public class BillingController(IConfiguration configuration,ILogger<BillingContr
     {
         var source=dal.GetSource(rstNumber);if(source==null)return NotFound();
         if(source.Header.BillId.HasValue)return RedirectToAction(nameof(Bill),new{id=source.Header.BillId});
-        if(!source.Header.LabComplete){TempData["BillingInfo"]="Complete all lab tests before generating a bill.";return RedirectToAction(nameof(Details),new{rstNumber});}
+        if(!source.Header.CanOpenBill)return NotFound();
         var form=BillingCalculator.NewForm(source);
         return View(new BillingPage{Form=form,Calculation=BillingCalculator.Calculate(source,form)});
     }
     [HttpPost] public IActionResult Generate([Bind(Prefix="Form")] BillingForm form,string intent="preview")
     {
         var source=dal.GetSource(form.RSTNumber);if(source==null)return NotFound();
-        if(!source.Header.LabComplete){TempData["BillingInfo"]="Lab tests are incomplete. Bill generation is blocked.";return RedirectToAction(nameof(Details),new{rstNumber=form.RSTNumber});}
+        if(!source.Header.CanOpenBill)return NotFound();
         if(source.Header.BillId.HasValue)return RedirectToAction(nameof(Bill),new{id=source.Header.BillId});
         if(ModelState.IsValid && intent=="save")
         {

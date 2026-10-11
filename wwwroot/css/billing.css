@@ -1,4 +1,10 @@
 .bill-page-heading,.bill-section-title{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.bill-help,.bill-checks{padding:14px 0;border-top:1px solid #ced8dc;border-bottom:1px solid #ced8dc;font-size:14px;line-height:1.65}
+.bill-help summary,.bill-checks summary{cursor:pointer;font-weight:600;color:#24564d}
+.bill-checks summary{color:#814b23}.bill-help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;margin-top:12px}
+.bill-help-grid p{margin:0}.bill-form-section{padding:20px 0;border-top:1px solid #d5e1e5;margin-bottom:16px}
+.lab-content .table-bordered>:not(caption)>*>*{border:1px solid #d5e1e5}
+@media(max-width:640px){.bill-help-grid{grid-template-columns:1fr}}
 .bill-page-heading h2{margin-bottom:8px}.bill-page-heading p{margin:0}.bill-section-title h4{margin:0}
 .bill-actions{display:flex;gap:8px;flex-wrap:wrap}.bill-register{min-width:1200px}.bill-register td{min-width:115px}.bill-register td:first-child{min-width:170px}
 .bill-status{display:inline-block;padding:5px 10px;background:#e8f3ee;border:1px solid #c7e1d3;color:#245f4d;border-radius:20px;font-size:11px;white-space:nowrap}
