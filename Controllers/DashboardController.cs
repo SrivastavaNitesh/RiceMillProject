@@ -43,7 +43,7 @@ namespace RiceMillProject.Controllers
             if (User.IsSupervisorUser())
             {
                 return RedirectToAction(
-                    "Index",
+                    "Dashboard",
                     "Unload"
                 );
             }

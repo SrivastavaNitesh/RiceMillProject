@@ -58,6 +58,7 @@ public class GateEntryDAL
                             entries.Add(
                                 new GateEntry
                                 {
+                                    InwardId = HasColumn(reader, "InwardId") && reader["InwardId"] != DBNull.Value ? Convert.ToInt32(reader["InwardId"]) : 0,
                                     RSTNumber =
                                         reader["RSTNumber"]
                                             ?.ToString()

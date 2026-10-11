@@ -1,6 +1,10 @@
 @model RiceMillProject.Models.Vehicle
 @{
     ViewData["Title"] = "Add New Vehicle";
+    if (string.Equals(Context.Request.Query["source"], "Gateman", StringComparison.OrdinalIgnoreCase))
+    {
+        Layout = "_LayoutGateman";
+    }
 }
 
 <!-- Page Header -->
@@ -14,9 +18,14 @@
             <p class="erp-page-subtitle">Register new vehicle number plate and assign default party/driver</p>
         </div>
     </div>
-    <a asp-action="Index" class="btn-erp-outline">
-        <i class="bi bi-arrow-left"></i> Back to List
-    </a>
+    @if (string.Equals(Context.Request.Query["source"], "Gateman", StringComparison.OrdinalIgnoreCase))
+    {
+        <a href="/Gateman/Index" class="btn-erp-outline"><i class="bi bi-arrow-left"></i> Back to Inward Registration</a>
+    }
+    else
+    {
+        <a asp-action="Index" class="btn-erp-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
+    }
 </div>
 
 <div class="row justify-content-center">

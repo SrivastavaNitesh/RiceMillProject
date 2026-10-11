@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace RiceMillProject.Controllers
 {
@@ -106,6 +107,12 @@ namespace RiceMillProject.Controllers
                         e =>
                             e.NetWeight.HasValue
                     );
+                ViewBag.StatusChart = JsonSerializer.Serialize(new {
+                    pending = entries.Count(e => e.GrossWeight <= 0),
+                    completed = entries.Count(e => e.NetWeight.HasValue),
+                    grossOnly = entries.Count(e => e.GrossWeight > 0 && !e.TareWeight.HasValue)
+                });
+                ViewBag.DailyChart = JsonSerializer.Serialize(entries.GroupBy(e => e.GateEntryTime.Date).OrderBy(g => g.Key).Select(g => new { date = g.Key.ToString("dd-MMM"), count = g.Count() }));
 
                 return View(entries);
             }

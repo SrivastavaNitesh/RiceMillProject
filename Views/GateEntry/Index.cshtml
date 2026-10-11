@@ -32,14 +32,6 @@
 
     </div>
 
-    <button type="button" class="btn-erp-primary border-0" data-bs-toggle="modal" data-bs-target="#weightmanActionModal">
-
-        <i class="bi bi-plus-lg me-1"></i>
-
-        Take Action
-
-    </button>
-
 </div>
 
 <script>
@@ -262,6 +254,14 @@
 
                                 </span>
                             }
+                            else if (item.Status == "Unloaded" || item.Status == "FieldEntered")
+                            {
+                                <span class="badge-erp badge-erp-info">Unloading Completed</span>
+                            }
+                            else if (item.Status == "Continued" || item.Status == "Closed")
+                            {
+                                <span class="badge-erp badge-erp-success">RST Closed</span>
+                            }
                             else if (item.Status == "Tested")
                             {
                                 <span class="badge-erp badge-erp-info">
@@ -379,6 +379,8 @@
                                                     <input id="gross_@item.RSTNumber.Replace("-", "_")" type="number" min="0.01" step="0.001" class="form-control" placeholder="Enter Gross KG" required />
                                                 </div>
                                                 <div class="modal-footer">
+                                                    <a asp-action="Outbound" asp-route-id="@item.RSTNumber" class="btn btn-outline-danger fw-bold"><i class="bi bi-speedometer2 me-1"></i>End RST</a>
+                                                    <a asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-outline-success fw-bold"><i class="bi bi-plus-circle me-1"></i>New RST</a>
                                                     <button type="button" onclick="submitWeightmanAction('@item.RSTNumber.Replace("'", "\\'")', 'CONTINUE', 'gross_@item.RSTNumber.Replace("-", "_")')" class="btn btn-outline-primary fw-bold">Continue</button>
                                                     <button type="button" onclick="submitWeightmanAction('@item.RSTNumber.Replace("'", "\\'")', 'END', 'gross_@item.RSTNumber.Replace("-", "_")')" class="btn btn-outline-success fw-bold">End</button>
                                                 </div>

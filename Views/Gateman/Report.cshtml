@@ -32,20 +32,33 @@
         margin-bottom: 0;
     }
     .erp-table thead th {
-        background-color: #f3f4f6 !important;
-        color: #4b5563 !important;
+        background: linear-gradient(135deg, #123f46, #087f83) !important;
+        color: #ffffff !important;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.025em;
-        border-bottom: 2px solid #d1d5db;
-        padding: 0.6rem 0.75rem;
+        border: 0 !important;
+        padding: 0.75rem 0.8rem;
         white-space: nowrap;
+        vertical-align: middle;
     }
+    .erp-table thead th:first-child { border-radius: 8px 0 0 0; }
+    .erp-table thead th:last-child { border-radius: 0 8px 0 0; }
     .erp-table tbody td {
         padding: 0.5rem 0.75rem;
         vertical-align: middle;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e5edf0;
     }
+    .erp-table tbody tr:nth-child(even) { background-color: #f7fbfb; }
+    .erp-table tbody tr:nth-child(odd) { background-color: #ffffff; }
+    .rst-action-cell { min-width: 135px; text-align: center; vertical-align: middle !important; }
+    .rst-action-dropdown { position: relative; display: inline-block; }
+    .rst-action-btn { min-width: 106px; height: 36px; border: 1px solid #087f83; color: #087f83; background: #fff; border-radius: 7px; font-weight: 600; }
+    .rst-action-btn:hover, .rst-action-btn:focus { background: #087f83; color: #fff; }
+    .rst-action-menu { min-width: 215px; padding: .35rem; border: 1px solid #d7e4e5; border-radius: 9px; box-shadow: 0 8px 24px rgba(15,45,55,.16); }
+    .rst-action-item { display: block; padding: .45rem .6rem; border-radius: 6px; text-decoration: none; white-space: nowrap; }
+    .rst-action-item:hover { background: #f1f7f7; }
+    .rst-action-item small { display: block; color: #6c757d; font-size: .7rem; margin-left: 1.65rem; }
     .erp-table tbody tr:hover {
         background-color: #f1f5f9;
     }
@@ -118,6 +131,16 @@
     </div>
 </div>
 
+<div class="card border-0 erp-report-card mb-3">
+    <div class="card-body py-3">
+        <form asp-controller="Gateman" asp-action="Report" method="get" class="row g-2 align-items-end">
+            <div class="col-sm-4 col-md-3"><label class="form-label fw-semibold mb-1">From date</label><input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" /></div>
+            <div class="col-sm-4 col-md-3"><label class="form-label fw-semibold mb-1">To date</label><input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" /></div>
+            <div class="col-sm-4 col-md-auto"><button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Apply Filter</button><a asp-action="Report" class="btn btn-outline-secondary ms-2">Clear</a></div>
+        </form>
+    </div>
+</div>
+
 <div class="card border-0 erp-report-card">
     <div class="card-body p-3">
         <div class="table-responsive" style="overflow: auto; max-width: 100%;">
@@ -136,8 +159,8 @@
                         <th>Gross Weight</th>
 
                         <th>Status</th>
-                        <th>Added By</th>
-                        @if (isWeightman) { <th>Action</th> }
+                       @*  <th>Added By</th> *@
+                        @if (isWeightman) { <th class="text-center">Action</th> }
                     </tr>
                 </thead>
                 <tbody>
@@ -175,17 +198,6 @@
                                 <td>
                                     @if (item.RSTRequired)
                                     {
-                                        <span class="erp-badge bg-primary-subtle text-primary border border-primary-subtle">With RST</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="erp-badge bg-secondary-subtle text-secondary border border-secondary-subtle">Without RST</span>
-                                    }
-                                </td>
-
-                                <td>
-                                    @if (item.RSTRequired)
-                                    {
                                         if (item.IsRSTGenerated)
                                         {
                                             <span class="erp-badge bg-success-subtle text-success border border-success-subtle">RST Generated</span>
@@ -200,10 +212,10 @@
                                         <span class="erp-badge bg-info-subtle text-info-emphasis border border-info-subtle">Direct Entry</span>
                                     }
                                 </td>
-                                <td class="text-muted">@item.GateManName</td>
+                                @* <td class="text-muted">@item.GateManName</td> *@
                                 @if (isWeightman)
                                 {
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap rst-action-cell">
                                         @if (item.RSTRequired && !item.IsRSTGenerated)
                                         {
                                             <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">
@@ -212,9 +224,12 @@
                                         }
                                         else if (isWeightman && item.RSTRequired && (item.RstStatus == "UnloadingAssigned" || item.RstStatus == "WaitingForTare") && !string.IsNullOrWhiteSpace(item.RSTNumber))
                                         {
-                                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <a class="btn btn-sm btn-outline-danger fw-bold" href="@Url.Action("Outbound", "GateEntry", new { id = item.RSTNumber })"><i class="bi bi-speedometer2 me-1"></i>End RST</a>
-                                                <a class="btn btn-sm btn-outline-success fw-bold" href="@Url.Action("Create", "GateEntry", new { inwardId = item.InwardId })"><i class="bi bi-plus-circle me-1"></i>New RST</a>
+                                            <div class="dropdown rst-action-dropdown">
+                                                <button class="btn rst-action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical me-1"></i>Action</button>
+                                                <div class="dropdown-menu dropdown-menu-end rst-action-menu">
+                                                    <a class="rst-action-item rst-new-action text-success" href="@Url.Action("Create", "GateEntry", new { inwardId = item.InwardId })"><i class="bi bi-plus-circle me-2"></i><strong>New RST</strong><small>Create another RST</small></a>
+                                                    <a class="rst-action-item rst-end-action text-danger" href="@Url.Action("Outbound", "GateEntry", new { id = item.RSTNumber })"><i class="bi bi-x-circle me-2"></i><strong>End RST</strong><small>Close RST entry</small></a>
+                                                </div>
                                             </div>
                                         }
                                         else if (item.RSTRequired)
