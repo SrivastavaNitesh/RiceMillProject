@@ -1,0 +1,32 @@
+// Isolated visual fixture: synthetic data only, no application controllers mapped.
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.Razor;
+using RiceMillProject.Models;
+using RiceMillProject.Controllers;
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions { ContentRootPath=Directory.GetCurrentDirectory(), WebRootPath="wwwroot" });
+builder.Services.AddControllersWithViews().AddApplicationPart(typeof(PurchaseReportsController).Assembly);
+var app = builder.Build();
+app.UseStaticFiles();
+app.MapGet("/preview", async context => {
+    var page = new PurchasePage { Title="Location Wise Purchase Report", Filter=new() { Mode="Locations", CompanyId=1 }, Companies=[new(1,"Main Mill")] };
+    page.Locations = [new() {LocationId=1,LocationName="Main Warehouse",Capacity=2500,CapacityUnit="MT"}, new() {LocationId=2,LocationName="Rice Storage - North Wing",Capacity=1200,CapacityUnit="MT"}, new() {LocationId=3,LocationName="Storage Yard 03",Capacity=800,CapacityUnit="MT"}];
+    page.Headers.Add(new() { Items=[new() { Lots=[new() {LocationId=1,ItemId=1,ItemName="Mansuri",WeightKg=12500.125m,BagCount=250},new() {LocationId=1,ItemId=2,ItemName="Basmati",WeightKg=7500,Estimated=true,BagCount=150},new() {LocationId=2,ItemId=2,ItemName="Basmati",WeightKg=4500,BagCount=90}] }] });
+    var action = new ActionContext(context,new RouteData(),new ActionDescriptor());
+    action.RouteData.Values["controller"]="PurchaseReports";
+    action.RouteData.Values["action"]="Locations";
+    var engine=context.RequestServices.GetRequiredService<IRazorViewEngine>();
+    var result=engine.GetView(null,"/Views/PurchaseReports/Report.cshtml",false);
+    if (!result.Success) throw new Exception(string.Join(",",result.SearchedLocations));
+    using var writer=new StringWriter();
+    var data=new ViewDataDictionary<PurchasePage>(new EmptyModelMetadataProvider(),new ModelStateDictionary()) {Model=page};
+    var temp=new TempDataDictionary(context,context.RequestServices.GetRequiredService<ITempDataProvider>());
+    await result.View.RenderAsync(new ViewContext(action,result.View,data,temp,writer,new HtmlHelperOptions()));
+    context.Response.ContentType="text/html; charset=utf-8";
+    await context.Response.WriteAsync("<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><link rel='stylesheet' href='/lib/bootstrap/dist/css/bootstrap.min.css'><link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css'><style>body{background:#f3f6f8;padding:28px;font-family:Segoe UI,sans-serif}main{max-width:1180px;margin:auto}@media(max-width:600px){body{padding:16px}}</style></head><body><main>"+writer+"</main></body></html>");
+});
+app.Run("http://127.0.0.1:7148");
