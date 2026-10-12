@@ -337,22 +337,27 @@
 
             <ul class="nav flex-column mb-auto">
 
-
-                <!-- DASHBOARD -->
-
-                <li class="nav-item">
-
-                    <a asp-controller="Dashboard"
-                       asp-action="Index">
-
+                <li>
+                    <a asp-controller="Unload" asp-action="Dashboard">
                         <i class="bi bi-speedometer2 me-2"></i>
-
                         Dashboard
-
                     </a>
-
                 </li>
 
+                <li class="nav-item mt-3">
+                    <a class="master-dropdown-toggle" data-bs-toggle="collapse" href="#supervisorMasterMenu" role="button" aria-expanded="false">
+                        <span><i class="bi bi-database-fill me-2"></i>Master Registers</span>
+                        <i class="bi bi-chevron-down master-arrow"></i>
+                    </a>
+                    <div class="collapse" id="supervisorMasterMenu">
+                        <ul class="nav flex-column master-submenu">
+                            <li><a asp-controller="Location" asp-action="Index"><i class="bi bi-geo-alt me-2"></i>Godowns &amp; Stacks</a></li>
+                            <li><a asp-controller="Person" asp-action="Index"><i class="bi bi-people me-2"></i>Labour Workers List</a></li>
+                            <li><a asp-controller="Vehicle" asp-action="Index"><i class="bi bi-truck-front me-2"></i>Vehicles &amp; Drivers</a></li>
+                            <li><a asp-controller="TempMaterial" asp-action="Index"><i class="bi bi-tools me-2"></i>Temp Tools Register</a></li>
+                        </ul>
+                    </div>
+                </li>
 
 
                 <!-- =================================================
@@ -390,129 +395,6 @@
                         Labour Mates (Meth)
 
                     </a>
-
-                </li>
-
-
-
-                <!-- =================================================
-                     LAB QUALITY CHECK
-                     ================================================= -->
-
-                <li>
-
-                    <a asp-controller="Lab"
-                       asp-action="Index">
-
-                        <i class="bi bi-moisture me-2"></i>
-
-                        Lab Quality Check
-
-                    </a>
-
-                </li>
-
-
-
-                <!-- =================================================
-                     MASTER DATA DROPDOWN
-                     ================================================= -->
-
-                <li class="nav-item mt-3">
-
-                    <a class="master-dropdown-toggle"
-                       data-bs-toggle="collapse"
-                       href="#supervisorMasterMenu"
-                       role="button"
-                       aria-expanded="false">
-
-                        <span>
-
-                            <i class="bi bi-database-fill me-2"></i>
-
-                            Master Registers
-
-                        </span>
-
-
-                        <i class="bi bi-chevron-down master-arrow"></i>
-
-                    </a>
-
-
-                    <div class="collapse"
-                         id="supervisorMasterMenu">
-
-
-                        <ul class="nav flex-column master-submenu">
-
-
-                            <!-- GODOWN / STACK -->
-
-                            <li>
-
-                                <a asp-controller="Location"
-                                   asp-action="Index">
-
-                                    <i class="bi bi-geo-alt me-2"></i>
-
-                                    Godowns & Stacks
-
-                                </a>
-
-                            </li>
-
-
-                            <!-- LABOUR WORKERS -->
-
-                            <li>
-
-                                <a asp-controller="Person"
-                                   asp-action="Index">
-
-                                    <i class="bi bi-people me-2"></i>
-
-                                    Labour Workers List
-
-                                </a>
-
-                            </li>
-
-
-                            <!-- VEHICLE -->
-
-                            <li>
-
-                                <a asp-controller="Vehicle"
-                                   asp-action="Index">
-
-                                    <i class="bi bi-truck-front me-2"></i>
-
-                                    Vehicles & Drivers
-
-                                </a>
-
-                            </li>
-
-
-                            <!-- TEMP MATERIAL -->
-
-                            <li>
-
-                                <a asp-controller="TempMaterial"
-                                   asp-action="Index">
-
-                                    <i class="bi bi-tools me-2"></i>
-
-                                    Temp Tools Register
-
-                                </a>
-
-                            </li>
-
-                        </ul>
-
-                    </div>
 
                 </li>
 

@@ -4,6 +4,16 @@
     ViewData["Title"] = "Labour Mates (Meth)";
 }
 
+<style>
+    .meth-report-card { border: 1px solid #d7e4e5; border-radius: 12px; box-shadow: 0 4px 16px rgba(15,45,55,.07); overflow: hidden; }
+    .meth-report-table { min-width: 1120px; margin-bottom: 0; }
+    .meth-report-table thead th { background: linear-gradient(135deg,#123f46,#087f83); color: #fff; border: 0; padding: .75rem .7rem; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; vertical-align: middle; }
+    .meth-report-table tbody td { padding: .7rem; border-bottom: 1px solid #e7eff0; vertical-align: middle; }
+    .meth-report-table tbody tr:nth-child(even) { background: #f7fbfb; }
+    .meth-report-table tbody tr:hover { background: #edf7f6; }
+    .meth-report-table .action-cell { min-width: 145px; }
+</style>
+
 <div class="container-fluid px-0">
 
     <!-- =========================================================
@@ -114,23 +124,20 @@
          REGISTER TABLE
          ========================================================= -->
 
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 meth-report-card">
 
         <div class="card-body p-0">
 
             <div class="table-responsive">
 
-                <table class="table
-                    table-hover
-                    align-middle
-                    mb-0">
+                <table class="table table-hover align-middle meth-report-table no-datatable">
 
                     <thead class="table-light">
 
                         <tr>
 
                             <th class="ps-4">
-                                RST / Inward Number
+                                RST Number
                             </th>
 
                             <th>Assigned Date &amp; Time</th>
@@ -207,7 +214,6 @@
                                         <div class="fw-bold text-primary">
 
                                             @item.RSTNumber
-                                            <span class="d-block small text-secondary fw-normal">Inward: @(string.IsNullOrWhiteSpace(item.InwardNo) ? "-" : item.InwardNo)</span>
 
                                         </div>
 
@@ -386,7 +392,7 @@
                                          ACTION
                                          ===================================== -->
 
-                                    <td class="text-center pe-4">
+                                    <td class="text-center pe-4 action-cell">
 
                                         @if (supervisorCompleted)
                                         {
@@ -447,7 +453,7 @@
 
                             <tr>
 
-                                <td colspan="9"
+                                <td colspan="10"
                                     class="text-center py-5">
 
                                     <i class="bi bi-inbox

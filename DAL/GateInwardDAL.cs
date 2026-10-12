@@ -79,6 +79,7 @@ namespace RiceMillProject.DAL
                     con.Open();
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
+                        var hasCreatedBy = HasColumn(rdr, "CreatedBy");
                         while (rdr.Read())
                         {
                             list.Add(new InwardHeader
@@ -102,6 +103,7 @@ namespace RiceMillProject.DAL
                                 ApproxWeight = rdr["ApproxWeight"] != DBNull.Value ? Convert.ToDecimal(rdr["ApproxWeight"]) : 0,
                                 PurposeRemarks = rdr["PurposeRemarks"]?.ToString(),
                                 GateInDateTime = Convert.ToDateTime(rdr["GateInDateTime"]),
+                                CreatedBy = hasCreatedBy && rdr["CreatedBy"] != DBNull.Value ? Convert.ToInt32(rdr["CreatedBy"]) : 0,
                                 GateManName = rdr["GateManName"]?.ToString() ?? "Gateman",
                                 StatusName = rdr["StatusName"]?.ToString() ?? "Pending",
                                 IsRSTGenerated = Convert.ToBoolean(rdr["IsRSTGenerated"])
@@ -113,21 +115,43 @@ namespace RiceMillProject.DAL
             using (SqlConnection statusCon = new SqlConnection(_connectionString))
             {
                 statusCon.Open();
+                using var statusCmd = new SqlCommand(@"WITH ranked AS (
+                    SELECT g.InwardNo, g.RSTNumber, g.GrossWeight, g.Status,
+                           COALESCE(s.StatusName, g.Status) AS StatusName,
+                           ROW_NUMBER() OVER (PARTITION BY g.InwardNo ORDER BY
+                               CASE WHEN g.Status IN ('UnloadingAssigned','WaitingForTare') THEN 0 ELSE 1 END,
+                               g.GateEntryTime DESC) AS rn
+                    FROM dbo.t_GateEntry g
+                    LEFT JOIN dbo.m_StatusMaster s ON s.StatusId = g.StatusId
+                    WHERE g.InwardNo IS NOT NULL)
+                    SELECT InwardNo, RSTNumber, GrossWeight, Status, StatusName FROM ranked WHERE rn=1", statusCon);
+                using var statusReader = statusCmd.ExecuteReader();
+                var statusByInward = new Dictionary<string, (string? Rst, string? Status, string? StatusName, decimal? Gross)>();
+                while (statusReader.Read())
+                {
+                    statusByInward[statusReader["InwardNo"]?.ToString() ?? ""] = (
+                        statusReader["RSTNumber"]?.ToString(), statusReader["Status"]?.ToString(), statusReader["StatusName"]?.ToString(),
+                        statusReader["GrossWeight"] == DBNull.Value ? null : Convert.ToDecimal(statusReader["GrossWeight"]));
+                }
                 foreach (var inward in list)
                 {
-                    using var statusCmd = new SqlCommand("SELECT TOP (1) g.RSTNumber,g.GrossWeight,g.Status, COALESCE(s.StatusName,g.Status) AS StatusName FROM dbo.t_GateEntry g LEFT JOIN dbo.m_StatusMaster s ON s.StatusId=g.StatusId WHERE g.InwardNo=@InwardNo ORDER BY CASE WHEN g.Status IN ('UnloadingAssigned','WaitingForTare') THEN 0 ELSE 1 END, g.GateEntryTime DESC", statusCon);
-                    statusCmd.Parameters.AddWithValue("@InwardNo", inward.InwardNo ?? "");
-                    using var statusReader = statusCmd.ExecuteReader();
-                    if (statusReader.Read())
+                    if (statusByInward.TryGetValue(inward.InwardNo ?? "", out var status))
                     {
-                        inward.RstStatus = statusReader["Status"]?.ToString();
-                        inward.RstStatusName = statusReader["StatusName"]?.ToString();
-                        inward.RSTNumber = statusReader["RSTNumber"]?.ToString();
-                        inward.RSTGrossWeight = statusReader["GrossWeight"] != DBNull.Value ? Convert.ToDecimal(statusReader["GrossWeight"]) : null;
+                        inward.RstStatus = status.Status;
+                        inward.RstStatusName = status.StatusName;
+                        inward.RSTNumber = status.Rst;
+                        inward.RSTGrossWeight = status.Gross;
                     }
                 }
             }
             return list;
+        }
+
+        private static bool HasColumn(SqlDataReader reader, string columnName)
+        {
+            for (var i = 0; i < reader.FieldCount; i++)
+                if (string.Equals(reader.GetName(i), columnName, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
         }
 
         public void PopulateItemCategoryNames(List<InwardHeader> entries)

@@ -6,6 +6,7 @@ using RiceMillProject.BAL;
 using RiceMillProject.Models;
 using System.Data;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace RiceMillProject.Controllers
 {
@@ -32,6 +33,10 @@ namespace RiceMillProject.Controllers
             {
                 int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 var allEntries = _inwardBal.GetAllInwardEntries();
+                // Older procedure versions do not return CreatedBy; keep legacy rows visible
+                // until the procedure is synchronized, while enforcing ownership when available.
+                if (!User.IsInRole("Admin") && currentUserId > 0 && allEntries.Any(e => e.CreatedBy > 0))
+                    allEntries = allEntries.Where(e => e.CreatedBy == currentUserId).ToList();
                 
                 DateTime today = DateTime.Today;
                 int todayCount = allEntries.Count(e => e.InwardDate.Date == today || e.GateInDateTime.Date == today);
@@ -43,6 +48,16 @@ namespace RiceMillProject.Controllers
                 ViewBag.PendingRstCount = pendingRstCount;
                 ViewBag.WithoutRstCount = withoutRstCount;
                 ViewBag.MyEntriesCount = myEntriesCount;
+
+                ViewBag.StatusChart = JsonSerializer.Serialize(new {
+                    pending = allEntries.Count(e => e.RSTRequired && !e.IsRSTGenerated),
+                    generated = allEntries.Count(e => e.RSTRequired && e.IsRSTGenerated),
+                    withoutRst = allEntries.Count(e => !e.RSTRequired)
+                });
+                ViewBag.DailyChart = JsonSerializer.Serialize(allEntries
+                    .GroupBy(e => e.InwardDate.Date)
+                    .OrderBy(g => g.Key)
+                    .Select(g => new { date = g.Key.ToString("dd-MMM"), count = g.Count() }));
 
                 var recentEntries = allEntries
                                     .OrderByDescending(e => e.InwardId)
@@ -63,7 +78,7 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult Report()
+        public IActionResult Report(DateTime? fromDate, DateTime? toDate)
         {
             try
             {
@@ -71,7 +86,16 @@ namespace RiceMillProject.Controllers
                 var allEntries = _inwardBal.GetAllInwardEntries(includeItemCategories: true);
                 
                 bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
-                var myEntries = allEntries;
+                var myEntries = isAdmin || currentUserId <= 0 || !allEntries.Any(e => e.CreatedBy > 0)
+                    ? allEntries
+                    : allEntries.Where(e => e.CreatedBy == currentUserId).ToList();
+
+                if (fromDate.HasValue)
+                    myEntries = myEntries.Where(e => e.InwardDate.Date >= fromDate.Value.Date).ToList();
+                if (toDate.HasValue)
+                    myEntries = myEntries.Where(e => e.InwardDate.Date <= toDate.Value.Date).ToList();
+                ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+                ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
                 return View(myEntries);
             }
@@ -89,6 +113,8 @@ namespace RiceMillProject.Controllers
                 PopulateDropdowns();
                 var entries = _inwardBal.GetAllInwardEntries();
                 int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (!User.IsInRole("Admin") && currentUserId > 0 && entries.Any(e => e.CreatedBy > 0))
+                    entries = entries.Where(e => e.CreatedBy == currentUserId).ToList();
                 ViewBag.NewInward = new InwardHeader
                 {
                     InwardDate = DateTime.Now,

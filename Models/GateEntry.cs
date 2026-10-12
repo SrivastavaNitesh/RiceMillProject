@@ -6,6 +6,7 @@ namespace RiceMillProject.Models
 {
     public class GateEntry
     {
+        public int InwardId { get; set; }
         public string RSTNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Gate inward entry is required.")]

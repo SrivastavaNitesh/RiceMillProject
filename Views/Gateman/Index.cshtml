@@ -81,7 +81,7 @@
                         <select name="PartyId" id="txtPartyName" class="form-select border-primary-subtle" asp-items="@(ViewBag.Parties as SelectList)" required>
                             <option value="">Select Party / Supplier</option>
                         </select>
-                        <a class="btn btn-outline-primary" href="/Person/Create?post=Party" target="_blank" title="Add Party"><i class="bi bi-plus-lg"></i></a>
+                        <a class="btn btn-outline-primary" href="/Person/Create?post=Party&source=Gateman" title="Add Party"><i class="bi bi-plus-lg"></i></a>
                         </div>
                         <input type="hidden" name="PartyName" id="selectedPartyName" />
                     </div>
@@ -102,7 +102,7 @@
                                 }
                             }
                         </select>
-                        <a class="btn btn-outline-primary" href="/Vehicle/Create" target="_blank" title="Add Vehicle"><i class="bi bi-plus-lg"></i></a>
+                        <a class="btn btn-outline-primary" href="/Vehicle/Create?source=Gateman" title="Add Vehicle"><i class="bi bi-plus-lg"></i></a>
                         </div>
                     </div>
 
@@ -122,7 +122,7 @@
                                 }
                             }
                         </select>
-                        <a class="btn btn-outline-primary" href="/Person/Create?post=Driver" target="_blank" title="Add Driver"><i class="bi bi-plus-lg"></i></a>
+                        <a class="btn btn-outline-primary" href="/Person/Create?post=Driver&source=Gateman" title="Add Driver"><i class="bi bi-plus-lg"></i></a>
                         </div>
                     </div>
                     <div class="col-md-6">

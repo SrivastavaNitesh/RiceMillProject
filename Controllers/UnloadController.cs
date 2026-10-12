@@ -8,6 +8,7 @@ using RiceMillProject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Security.Claims;
 using System.Data;
 
@@ -41,6 +42,49 @@ namespace RiceMillProject.Controllers
         // INDEX
         // ============================================================
 
+        public IActionResult Dashboard()
+        {
+            try
+            {
+                var gateEntries = _gateBal.GetAllGateEntries();
+                var unloads = _unloadBal.GetAllUnloading();
+                var assigned = unloads.Select(u => u.RSTNumber).Distinct().ToList();
+                ViewBag.PendingAssignments = gateEntries.Count(e => (e.Status == "WaitingForSupervisor" || e.Status == "Entered") && !assigned.Contains(e.RSTNumber));
+                ViewBag.PendingVerifications = unloads.Count(u => u.Status == "Unloaded" || u.Status == "Assigned");
+                ViewBag.CompletedUnloading = unloads.Count(u => u.Status == "Completed" || u.Status == "Unloaded");
+                ViewBag.WorkerPending = unloads.Count(u => !u.IsWorkerWorkCompleted && u.Status != "Completed");
+                ViewBag.FieldPending = unloads.Count(u => !u.IsSupervisorActionCompleted && u.Status != "Completed");
+                var bothPending = unloads.Count(u => !u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted && u.Status != "Completed");
+                var workerOnly = unloads.Count(u => !u.IsWorkerWorkCompleted && u.IsSupervisorActionCompleted && u.Status != "Completed");
+                var fieldOnly = unloads.Count(u => u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted && u.Status != "Completed");
+                ViewBag.WorkStatusChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, (int)ViewBag.CompletedUnloading });
+                ViewBag.DailyTrend = JsonSerializer.Serialize(Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).Select(d => new { date = d.ToString("dd-MMM"), count = unloads.Count(u => (u.UnloadTime ?? DateTime.MinValue).Date == d.Date) }));
+                ViewBag.AttentionItems = unloads.Where(u => !u.IsSupervisorActionCompleted || !u.IsWorkerWorkCompleted)
+                    .OrderBy(u => u.UnloadTime ?? DateTime.MaxValue).Take(10).ToList();
+                var todayEntries = gateEntries.Where(e => e.GateEntryTime.Date == DateTime.Today).ToList();
+                ViewBag.TodayBags = todayEntries.Sum(e => e.TotalBags ?? 0);
+                ViewBag.PendingWeighment = gateEntries.Count(e => e.GrossWeight <= 0);
+                var officeId = GetCurrentOfficeId();
+                var meths = _personBal.GetEmployeeList("Meth", officeId > 0 ? officeId : null);
+                var assignedMethIds = unloads.Where(u => u.MethId > 0 && u.Status != "Completed").Select(u => u.MethId).Distinct().ToHashSet();
+                ViewBag.TotalMeth = meths.Count;
+                ViewBag.AssignedMeth = assignedMethIds.Count;
+                ViewBag.FreeMeth = Math.Max(0, meths.Count - assignedMethIds.Count);
+                ViewBag.CategoryChart = JsonSerializer.Serialize(todayEntries.GroupBy(e => string.IsNullOrWhiteSpace(e.ItemCategoryName) ? "Uncategorised" : e.ItemCategoryName).Select(g => new { name = g.Key, y = g.Sum(e => e.TotalBags ?? 0) }));
+                ViewBag.SupervisorChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, (int)ViewBag.CompletedUnloading });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Dashboard data could not be loaded: " + ex.Message;
+                ViewBag.PendingAssignments = ViewBag.PendingVerifications = ViewBag.CompletedUnloading = ViewBag.TodayBags = ViewBag.PendingWeighment = ViewBag.TotalMeth = ViewBag.AssignedMeth = ViewBag.FreeMeth = 0;
+                ViewBag.SupervisorChart = "[0,0,0,0,0]";
+                ViewBag.WorkStatusChart = "[0,0,0,0,0]";
+                ViewBag.DailyTrend = "[]";
+                ViewBag.CategoryChart = "[]";
+            }
+            return View();
+        }
+
         public IActionResult Index()
         {
             var gateEntries = _gateBal.GetAllGateEntries();
@@ -65,7 +109,6 @@ namespace RiceMillProject.Controllers
 
             ViewBag.PendingAssignments = pendingAssignments;
             ViewBag.PendingVerifications = pendingVerifications;
-
             return View(unloads);
         }
 
