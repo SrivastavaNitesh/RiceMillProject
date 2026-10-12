@@ -1189,6 +1189,24 @@ ORDER BY u.UnloadId DESC;";
                 );
             }
 
+            reader.Close();
+
+            // Older deployed versions of the register procedure may return a
+            // null NumberOfBags even though Supervisor Field Details are saved.
+            // Fill that display value from the authoritative supervisor action.
+            if (list.Any(x => !x.NumberOfBags.HasValue || x.NumberOfBags <= 0))
+            {
+                using var fallbackCmd = new SqlCommand(@"SELECT SupervisorActionId, UnloadId, SupervisorTotalBags FROM dbo.t_SupervisorUnloadAction WHERE UnloadId IS NOT NULL", con);
+                using var fallbackReader = fallbackCmd.ExecuteReader();
+                var totals = new Dictionary<int, int>();
+                while (fallbackReader.Read())
+                    if (fallbackReader["SupervisorTotalBags"] != DBNull.Value)
+                        totals[Convert.ToInt32(fallbackReader["UnloadId"])] = Convert.ToInt32(fallbackReader["SupervisorTotalBags"]);
+                foreach (var row in list)
+                    if ((!row.NumberOfBags.HasValue || row.NumberOfBags <= 0) && totals.TryGetValue(row.UnloadId, out var total))
+                        row.NumberOfBags = total;
+            }
+
             return list;
         }
         public void FinalizeSupervisorMethWork(

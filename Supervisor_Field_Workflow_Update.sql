@@ -49,7 +49,9 @@ CREATE OR ALTER PROCEDURE dbo.sp_GetSupervisorMethWorkRegister
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT u.UnloadId,u.RSTNumber,u.SupervisorId,u.MethId,u.LocationId,u.ItemId,u.NumberOfBags,u.Status,u.UnloadTime,
+    SELECT u.UnloadId,u.RSTNumber,u.SupervisorId,u.MethId,u.LocationId,u.ItemId,
+           COALESCE(u.NumberOfBags, sa.SupervisorTotalBags, detail.TotalBags) AS NumberOfBags,
+           u.Status,u.UnloadTime,
            ISNULL(m.PersonName,'') AS MethName, COALESCE(assigned.LocationName,loc.LocationName,'') AS LocationName,
            ISNULL(v.VehicleNumber,'') AS VehicleNumber, ISNULL(p.PersonName,'') AS PartyName,
            ISNULL(i.ItemName,'') AS ItemName,
@@ -69,6 +71,7 @@ BEGIN
     LEFT JOIN dbo.P02_Person p ON p.PersonId=ge.PartyId
     LEFT JOIN dbo.m_Item i ON i.ItemId=u.ItemId
     LEFT JOIN dbo.t_SupervisorUnloadAction sa ON sa.UnloadId=u.UnloadId
+    OUTER APPLY (SELECT SUM(d.BagCount) AS TotalBags FROM dbo.t_SupervisorUnloadDetail d WHERE d.SupervisorActionId=sa.SupervisorActionId) detail
     WHERE u.SupervisorId=@SupervisorId AND ISNULL(u.MethId,0)>0 AND ISNULL(u.LocationId,0)>0
     ORDER BY u.UnloadTime DESC, u.UnloadId DESC;
 END;

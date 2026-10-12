@@ -200,7 +200,9 @@
                                  */
 
                                 bool supervisorCompleted = item.IsSupervisorActionCompleted;
-                                bool overallCompleted = workEntered && supervisorCompleted;
+                                // Supervisor Field Details are the authoritative completion
+                                // for this register; Worker Details are optional follow-up.
+                                bool overallCompleted = supervisorCompleted;
 
 
                                 <tr>
@@ -309,7 +311,7 @@
 
                                     <td class="text-center">
 
-                                        @if (workEntered)
+                                        @if (item.NumberOfBags.GetValueOrDefault() > 0)
                                         {
                                             <span class="badge
                                                 bg-success-subtle

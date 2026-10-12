@@ -59,7 +59,7 @@ namespace RiceMillProject.Controllers
                 var fieldOnly = unloads.Count(u => u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted && u.Status != "Completed");
                 ViewBag.WorkStatusChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, (int)ViewBag.CompletedUnloading });
                 ViewBag.DailyTrend = JsonSerializer.Serialize(Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).Select(d => new { date = d.ToString("dd-MMM"), count = unloads.Count(u => (u.UnloadTime ?? DateTime.MinValue).Date == d.Date) }));
-                ViewBag.AttentionItems = unloads.Where(u => !u.IsSupervisorActionCompleted || !u.IsWorkerWorkCompleted)
+                ViewBag.AttentionItems = unloads.Where(u => !u.IsSupervisorActionCompleted)
                     .OrderBy(u => u.UnloadTime ?? DateTime.MaxValue).Take(10).ToList();
                 var todayEntries = gateEntries.Where(e => e.GateEntryTime.Date == DateTime.Today).ToList();
                 ViewBag.TodayBags = todayEntries.Sum(e => e.TotalBags ?? 0);
@@ -1437,6 +1437,16 @@ namespace RiceMillProject.Controllers
                             }
                         );
                     }
+                }
+
+                // When Supervisor Field Details already contain the bag total,
+                // worker allocations must reconcile to that same total.
+                var workerBagTotal = rows.Sum(x => x.BagCount);
+                var supervisorBagTotal = unload.NumberOfBags.GetValueOrDefault();
+                if (supervisorBagTotal > 0 && workerBagTotal != supervisorBagTotal)
+                {
+                    TempData["ErrorMessage"] = $"Worker bag total ({workerBagTotal}) must match Supervisor bag total ({supervisorBagTotal}) for RST {unload.RSTNumber}.";
+                    return RedirectToAction(nameof(SupervisorMethWork), new { id = model.UnloadId });
                 }
 
 
