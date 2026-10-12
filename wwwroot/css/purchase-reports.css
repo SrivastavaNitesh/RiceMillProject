@@ -1,0 +1,52 @@
+.purchase-report { min-width: 0; color: #223b35; }
+.purchase-report h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+.purchase-filters { display: flex; flex-wrap: wrap; gap: .8rem; align-items: end; margin-bottom: 1rem; }
+.purchase-filters > div { flex: 1 1 150px; max-width: 260px; min-width: 0; }
+.purchase-filters label { display: block; font-size: .85rem; margin-bottom: .3rem; }
+.purchase-filters button { min-height: 38px; }
+.purchase-note { font-size: .88rem; color: #52625c; line-height: 1.7; }
+.purchase-table-scroll { max-width: 100%; overflow: auto; max-height: 72vh; border: 1px solid #ccd8d3; }
+.purchase-table { margin: 0; width: max-content; min-width: 100%; font-size: .8rem; }
+.purchase-table th, .purchase-table td { min-width: 100px; max-width: 260px; white-space: pre-line; overflow-wrap: anywhere; padding: .55rem; vertical-align: top; border-color: #ccd8d3; }
+.purchase-table thead th { background: #e7f0ed; text-align: center; vertical-align: middle; }
+.purchase-table tbody th { background: #f2f5f4; }
+.purchase-report-picker { max-width: 280px; margin-bottom: 1rem; }
+.purchase-report-picker label { display: block; font-size: .85rem; margin-bottom: .3rem; }
+.purchase-locations { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,330px),1fr)); gap: 20px; padding: 8px 0 24px; }
+.purchase-location { --location-accent: #087f72; --location-tint: #e3f5ef; --location-soft: #f1faf6; --location-ink: #146454; display: flex; flex-direction: column; min-width: 0; border: 1px solid #dde3e8; border-top: 4px solid var(--location-accent); border-radius: 8px; color: #243239; background: #fff; text-decoration: none; overflow: hidden; overflow-wrap: anywhere; letter-spacing: 0; box-shadow: 0 3px 12px #263b4910; transition: border-color .18s, box-shadow .18s, transform .18s; }
+.purchase-location:nth-child(4n+2) { --location-accent: #3477d0; --location-tint: #e5efff; --location-soft: #f2f6ff; --location-ink: #275897; }
+.purchase-location:nth-child(4n+3) { --location-accent: #c38416; --location-tint: #fff1ce; --location-soft: #fffbef; --location-ink: #8c6017; }
+.purchase-location:nth-child(4n+4) { --location-accent: #c44d6c; --location-tint: #fce8ee; --location-soft: #fff4f7; --location-ink: #9d3450; }
+.purchase-location:hover { color: #243239; text-decoration: none; border-color: var(--location-accent); box-shadow: 0 9px 24px #263b491a; transform: translateY(-2px); }
+.purchase-location:focus-visible { outline: 3px solid #3971b4; outline-offset: 4px; }
+.purchase-location-head { display: grid; grid-template-columns: 44px minmax(0,1fr); align-items: center; gap: 0 12px; padding: 20px 22px 18px; background: var(--location-tint); }
+.purchase-location-icon { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid transparent; border-radius: 8px; background: var(--location-accent); color: #fff; font-size: 22px; }
+.purchase-location-title { min-width: 0; }
+.purchase-location-eyebrow { display: block; margin-bottom: 3px; font-size: 11px; color: var(--location-ink); }
+.purchase-location h2 { font-size: 17px; font-weight: 650; line-height: 1.4; margin: 0; color: #243239; letter-spacing: 0; }
+.purchase-location-state { grid-column: 2; display: flex; align-items: center; gap: 6px; margin-top: 7px; color: var(--location-ink); font-size: 11px; }
+.purchase-location-state > span { width: 6px; height: 6px; border-radius: 50%; background: var(--location-accent); flex: 0 0 6px; }
+.purchase-location-quantity { padding: 22px 22px 0; }
+.purchase-metric-label { display: block; color: #73808b; font-size: 12px; margin-bottom: 6px; }
+.purchase-location-weight { display: block; color: var(--location-ink); font-size: 28px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.purchase-location-weight small { color: #82909a; font-size: 14px; font-weight: 500; }
+.purchase-location-counts { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 16px 0; margin-top: 4px; }
+.purchase-location-counts > span { display: flex; align-items: center; gap: 6px; color: #74808a; font-size: 12px; }
+.purchase-location-counts strong { color: #35444e; font-size: 15px; font-variant-numeric: tabular-nums; }
+.purchase-location-bags > i { color: #b1822c; font-size: 16px; }
+.purchase-location-items > i { color: #577da6; font-size: 16px; }
+.purchase-location-materials { flex: 1; margin: 0 22px; padding: 0 0 20px; min-height: 38px; color: #7a858d; font-size: 12px; line-height: 1.5; }
+.purchase-location-meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 22px; background: var(--location-soft); border-top: 1px solid var(--location-tint); }
+.purchase-location-capacity { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.purchase-location-capacity > i { font-size: 20px; color: var(--location-accent); }
+.purchase-location-capacity .purchase-metric-label { font-size: 11px; margin-bottom: 3px; }
+.purchase-location-capacity strong { font-size: 14px; color: #42535f; font-variant-numeric: tabular-nums; }
+.purchase-location-capacity strong span { font-size: 11px; font-weight: 500; color: #7a8994; }
+.purchase-location-open { display: inline-flex; align-items: center; gap: 9px; flex: 0 0 auto; font-size: 12px; font-weight: 600; color: var(--location-ink); }
+.purchase-location-open i { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--location-accent); border-radius: 6px; background: var(--location-accent); color: #fff; transition: background .18s, color .18s; }
+.purchase-location:hover .purchase-location-open i { background: var(--location-accent); color: #fff; border-color: var(--location-accent); }
+.purchase-location.no-purchases .purchase-location-state > span { background: transparent; border: 1px solid var(--location-accent); }
+@media (prefers-reduced-motion: reduce) { .purchase-location, .purchase-location-open i { transition: none; } .purchase-location:hover { transform: none; } }
+@media (max-width: 380px) { .purchase-location-head { padding: 18px 16px; } .purchase-location-quantity { padding: 18px 16px 0; } .purchase-location-materials { margin: 0 16px; } .purchase-location-meta { padding: 14px 16px; gap: 8px; } }
+.purchase-empty { padding: 2rem 0; color: #666; }
+@media (max-width: 600px) { .purchase-filters > div { max-width: none; } .purchase-report-picker { max-width: none; } }

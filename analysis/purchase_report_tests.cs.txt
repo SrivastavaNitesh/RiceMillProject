@@ -1,0 +1,89 @@
+using RiceMillProject.BAL;
+using RiceMillProject.Models;
+using RiceMillProject.DAL;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
+using Microsoft.Extensions.Configuration;
+
+var count = 0;
+void Check(bool value, string name) { if (!value) throw new Exception(name); count++; Console.WriteLine("PASS " + name); }
+var filter = new PurchaseFilter();
+PurchaseReportBuilder.Normalize(filter, "Monthly");
+Check(filter.Month == PurchaseReportBuilder.Today.Month && filter.Year == PurchaseReportBuilder.Today.Year, "current month and year");
+filter = new() { Year = 2024, Month = 2 };
+PurchaseReportBuilder.Normalize(filter, "Monthly");
+Check(filter.To == new DateTime(2024, 2, 29), "leap month end");
+filter = new(); PurchaseReportBuilder.Normalize(filter, "Daily");
+Check(filter.From == PurchaseReportBuilder.Today && filter.To == filter.From, "current day");
+try { PurchaseReportBuilder.Normalize(new() { From = new DateTime(2026, 4, 2), To = new DateTime(2026, 4, 1) }, "DateRange"); throw new Exception("range accepted"); }
+catch (ArgumentException) { Check(true, "reversed date range rejected"); }
+var header = new PurchaseHeader { RSTNumber = "test", NetWeight = 17000, GrossWeight = 42000, TareWeight = 25000, WeighingDate = new(2026, 10, 11), CompanyName = "Company A", PartyName = "=1+1", PartyMobile = "0012345678" };
+var lots = new List<PurchaseLot> {
+    new() { RSTNumber="test", DetailId=1, ItemId=1, ItemName="Mansuri", BagCount=60, LocationId=1, LocationName="A", BagTypeId=1, BagTypeName="Jute" },
+    new() { RSTNumber="test", DetailId=2, ItemId=2, ItemName="Kala pani", BagCount=100, LocationId=2, LocationName="B", BagTypeId=2, BagTypeName="Plastic" },
+    new() { RSTNumber="test", DetailId=3, ItemId=3, ItemName="Basmati", BagCount=80, LocationId=1, LocationName="A", BagTypeId=2, BagTypeName="Plastic" }
+};
+var notices = new List<string>();
+PurchaseReportBuilder.Allocate(header, lots, notices);
+Check(lots.Sum(l => l.WeightKg) == 17000, "17000 kg reconciles across three items");
+Check(lots[0].WeightKg == 4250 && lots.All(l => l.Estimated), "bag proportion and estimated marker");
+lots[0].ActualWeightKg = 5000;
+PurchaseReportBuilder.Allocate(header, lots, notices);
+Check(lots[0].WeightKg == 5000 && !lots[0].Estimated && lots.Sum(l => l.WeightKg) == 17000, "preserve actual and allocate only remaining weight");
+var single = new List<PurchaseLot> { new() { ItemId=1, BagCount=200 } };
+PurchaseReportBuilder.Allocate(header, single, notices);
+Check(single[0].WeightKg == 17000 && !single[0].Estimated, "single item full net weight");
+var pending = new List<PurchaseLot> { new() { BagCount=20 } };
+PurchaseReportBuilder.Allocate(new(), pending, notices);
+Check(pending[0].WeightKg == null, "missing net stays pending");
+var invalid = new List<PurchaseLot> { new() { BagCount=2, ActualWeightKg=18000 }, new() { BagCount=1 } };
+PurchaseReportBuilder.Allocate(header, invalid, notices);
+Check(invalid[1].WeightKg == null && notices.Count > 0, "no negative allocations from invalid actual weight");
+Check(PurchaseReportBuilder.Deduction(new() { TestName="Moisture" }).Contains("Pending"), "missing report pending");
+Check(PurchaseReportBuilder.Deduction(new() { ReportId=1, ResultValue="15", MasterDeduction=2, MasterUnit="%" }).Contains("2 %"), "submitted master deduction includes unit");
+Check(PurchaseReportBuilder.Deduction(new() { ReportId=1, ResultValue="10", RuleId=1, Threshold=12, DeductionMode="PerBag", DeductionValue=3 }).Contains("below threshold"), "threshold rule respected");
+Check(PurchaseReportBuilder.Deduction(new() { ReportId=1, ResultValue="15", RuleId=1, Threshold=12, DeductionMode="Percent", DeductionValue=3 }).Contains("3 %"), "percentage shown without fabricated price");
+var page = new PurchasePage { Headers=[header], Filter=filter, Title="Test purchase", Locations=[new() { LocationId=1, LocationName="A" },new() { LocationId=2, LocationName="B" }] };
+PurchaseReportBuilder.Build(page, lots, []);
+Check(header.Items.Sum(i => i.Bags) == 240 && header.Items.Sum(i => i.Weight) == 17000, "item totals reconcile");
+Check(header.Items.All(i => i.Deduction == "Not applicable"), "unmapped lab not pending");
+var table = PurchaseTableBuilder.Register(page);
+Check(!table.Rows.SelectMany(r => r).Any(c => Equals(c.Value, "Company A")), "no company-name separator in report body");
+Check(table.ColumnCount == 25 && table.HeaderRows == 3, "multi-level location and bag headers including empty combinations");
+var bytes = PurchaseExcel.Export(page, table);
+using (var document = SpreadsheetDocument.Open(new MemoryStream(bytes), false))
+    Check(!new OpenXmlValidator().Validate(document).Any(), "Excel passes OpenXML validation");
+using (var wb = new XLWorkbook(new MemoryStream(bytes))) {
+    var sheet = wb.Worksheet(1);
+    Check(sheet.CellsUsed().Any(c => c.GetString() == "0012345678"), "phone leading zeros preserved");
+    Check(sheet.CellsUsed().Any(c => c.GetString() == "=1+1" && !c.HasFormula), "formula-looking names remain text");
+    Check(sheet.MergedRanges.Count() > 10, "Excel grouped headers and RST row spans");
+    Check(sheet.CellsUsed().Any(c => c.DataType == XLDataType.Number && c.Style.NumberFormat.Format.Contains("*")), "estimated Excel weights remain numeric");
+}
+page.Filter.LocationId = 1;
+var detail = PurchaseTableBuilder.Location(page);
+Check(detail.ColumnCount == 8, "location detail bag columns");
+Check(PurchaseTableBuilder.Locations(page).Rows.Count == 3, "location dashboard includes all locations");
+if (args.Contains("--database")) {
+    var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
+    var dal = new PurchaseReportDAL(configuration);
+    var f = new PurchaseFilter(); PurchaseReportBuilder.Normalize(f, "Locations");
+    var all = dal.Load(f);
+    Check(f.CompanyId == all.Companies.Single(c => c.Name == "Main Mill").Id, "Main Mill selected by default");
+    Check(all.Headers.All(h => h.CompanyId == f.CompanyId), "default company isolates report data");
+    Check(all.Locations.Count > 0, "database locations loaded");
+    Check(all.Lots.Select(l => l.DetailId).Distinct().Count() == all.Lots.Count(), "database lots unique");
+    foreach (var mode in new[] { "Monthly", "Daily", "DateRange", "Party" }) {
+        var x = new PurchaseFilter { From=new(2026,1,1), To=new(2026,12,31) }; PurchaseReportBuilder.Normalize(x, mode);
+        var data = dal.Load(x);
+        Check(data.Headers.All(h => h.WeighingDate >= x.From && h.WeighingDate < x.To!.Value.AddDays(1)), mode + " database date filter");
+        using var doc = SpreadsheetDocument.Open(new MemoryStream(PurchaseExcel.Export(data, PurchaseTableBuilder.Register(data))), false);
+        Check(!new OpenXmlValidator().Validate(doc).Any(), mode + " real-data Excel valid");
+    }
+    foreach (var company in all.Companies) {
+        f.CompanyId=company.Id;
+        Check(dal.Load(f).Headers.All(h=>h.CompanyId==company.Id), "company isolation " + company.Id);
+    }
+}
+Console.WriteLine($"{count} checks passed.");

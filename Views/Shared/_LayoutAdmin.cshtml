@@ -733,8 +733,25 @@
                     <!-- =====================================================
                          ANALYSIS
                          ===================================================== -->
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsAdminUser())
                     {
+
+                        var purchaseOpen = ViewContext.RouteData.Values["controller"]?.ToString() == "PurchaseReports";
+                        <li class="nav-item mt-4">
+                            <a class="master-dropdown-toggle" data-bs-toggle="collapse" href="#purchaseReportsMenu" role="button" aria-expanded="@(purchaseOpen ? "true" : "false")" aria-controls="purchaseReportsMenu">
+                                <span><i class="bi bi-journal-text me-2"></i> Purchase Reports</span>
+                                <i class="bi bi-chevron-down master-arrow" aria-hidden="true"></i>
+                            </a>
+                            <div class="collapse @(purchaseOpen ? "show" : "")" id="purchaseReportsMenu">
+                                <ul class="nav flex-column master-submenu">
+                                    <li><a asp-controller="PurchaseReports" asp-action="Monthly"><i class="bi bi-calendar-month me-2"></i> Month Wise</a></li>
+                                    <li><a asp-controller="PurchaseReports" asp-action="Daily"><i class="bi bi-calendar-day me-2"></i> Date Wise</a></li>
+                                    <li><a asp-controller="PurchaseReports" asp-action="DateRange"><i class="bi bi-calendar-range me-2"></i> Date Range</a></li>
+                                    <li><a asp-controller="PurchaseReports" asp-action="Party"><i class="bi bi-people me-2"></i> Party Wise</a></li>
+                                    <li><a asp-controller="PurchaseReports" asp-action="Locations"><i class="bi bi-buildings me-2"></i> Location Wise</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
                         <li class="mt-4 px-3 mb-2 sidebar-section-title text-uppercase">
 
