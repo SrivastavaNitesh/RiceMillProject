@@ -442,10 +442,13 @@
 
     </style>
 
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/annapurna-design.css" asp-append-version="true" />
+<script src="~/js/annapurna-theme.js" asp-append-version="true"></script>
 </head>
 
 
-<body>
+<body class="agro-ui">
 
     <div class="main-wrapper">
 
@@ -459,33 +462,7 @@
 
             <!-- BRAND -->
 
-            <div class="sidebar-brand">
-
-                <div class="d-flex align-items-center gap-2">
-
-                    <div class="bg-white bg-opacity-20 rounded p-1"
-                         style="line-height:1">
-
-                        <i class="bi bi-door-open-fill text-warning fs-5"></i>
-
-                    </div>
-
-
-                    <div>
-
-                        <h5>
-                            Gateman Portal
-                        </h5>
-
-                        <small>
-                            Rice Mill Management
-                        </small>
-
-                    </div>
-
-                </div>
-
-            </div>
+            <partial name="_Brand" />
 
 
             <!-- ==================================
@@ -728,7 +705,7 @@
                     <h5 class="mb-0 fw-bold text-primary"
                         style="letter-spacing:-0.5px;">
 
-                        Sri Balaji Rice Mill
+                        Annapurna Agro
 
                     </h5>
 
@@ -972,6 +949,8 @@
         required: false
     )
 
+    <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>
+    <partial name="_Appearance" />
 </body>
 
 </html>

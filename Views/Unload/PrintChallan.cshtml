@@ -22,8 +22,9 @@
             .print-container { border: none; margin-top: 0; }
         }
     </style>
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
 </head>
-<body>
+<body class="agro-ui">
     <div class="text-center mt-3 no-print">
         <button onclick="window.print()" class="btn btn-primary btn-lg">Print Challan</button>
         <a href="/Unload/Index" class="btn btn-secondary btn-lg ms-2">Back to Dashboard</a>
@@ -31,7 +32,7 @@
 
     <div class="print-container">
         <div class="header-title">
-            <h1>RICE MILL PRO</h1>
+            <h1>Annapurna Agro Industries Pvt. Ltd.</h1>
             <h3>METH ASSIGNMENT CHALLAN</h3>
         </div>
 
@@ -48,6 +49,7 @@
         <h4 class="mt-4 mb-3">Assignment Details</h4>
         <div class="data-row"><span class="data-label">Supervisor Assigned:</span> @Model.SupervisorName</div>
         <div class="data-row"><span class="data-label">Assigned To Meth:</span> @Model.MethName</div>
+        <div class="data-row"><span class="data-label">Unloading Locations:</span> @(string.IsNullOrWhiteSpace(Model.LocationName) ? "-" : Model.LocationName)</div>
         <div class="data-row"><span class="data-label">Status:</span> <strong>@Model.Status</strong></div>
         
         <div class="mt-5 p-3 border" style="min-height: 150px;">
@@ -66,5 +68,13 @@
             </div>
         </div>
     </div>
+    @if (TempData["AssignmentSuccessMessage"] is string assignmentSuccess)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            Swal.fire({ icon: 'success', title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(assignmentSuccess)), confirmButtonText: 'OK' });
+        </script>
+    }
+    <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>
 </body>
 </html>

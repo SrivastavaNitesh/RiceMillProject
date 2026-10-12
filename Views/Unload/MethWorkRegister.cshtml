@@ -6,26 +6,44 @@
 
 <div class="container-fluid px-0">
 
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
     <div class="card border-0 shadow-sm mb-4">
 
         <div class="card-body">
 
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3">
 
                 <div>
+
                     <h4 class="mb-1 fw-bold text-primary">
 
                         <i class="bi bi-person-badge me-2"></i>
+
                         Labour Mates (Meth)
 
                     </h4>
 
                     <div class="text-muted small">
-                        Meth assignment and unloading response register
+
+                        Supervisor labour work entry and unloading register
+
                     </div>
+
                 </div>
 
-                <div class="badge bg-primary-subtle text-primary fs-6 px-3 py-2">
+
+                <div class="badge
+                    bg-primary-subtle
+                    text-primary
+                    fs-6
+                    px-3
+                    py-2">
 
                     Total RST:
                     @(Model?.Count() ?? 0)
@@ -39,9 +57,16 @@
     </div>
 
 
+    <!-- =========================================================
+         SUCCESS MESSAGE
+         ========================================================= -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="alert
+            alert-success
+            alert-dismissible
+            fade
+            show">
 
             <i class="bi bi-check-circle-fill me-2"></i>
 
@@ -56,9 +81,16 @@
     }
 
 
+    <!-- =========================================================
+         ERROR MESSAGE
+         ========================================================= -->
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="alert
+            alert-danger
+            alert-dismissible
+            fade
+            show">
 
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
@@ -73,21 +105,35 @@
     }
 
 
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show"><i class="bi bi-exclamation-circle me-2"></i>@TempData["WarningMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <!-- =========================================================
+         REGISTER TABLE
+         ========================================================= -->
+
     <div class="card border-0 shadow-sm">
 
         <div class="card-body p-0">
 
             <div class="table-responsive">
 
-                <table class="table table-hover align-middle mb-0">
+                <table class="table
+                    table-hover
+                    align-middle
+                    mb-0">
 
                     <thead class="table-light">
 
                         <tr>
 
                             <th class="ps-4">
-                                RST Number
+                                RST / Inward Number
                             </th>
+
+                            <th>Assigned Date &amp; Time</th>
 
                             <th>
                                 Vehicle
@@ -110,11 +156,11 @@
                             </th>
 
                             <th class="text-center">
-                                Meth Bags
+                                Total Bags
                             </th>
 
                             <th class="text-center">
-                                Status
+                                Work Status
                             </th>
 
                             <th class="text-center pe-4">
@@ -132,98 +178,138 @@
                         {
                             foreach (var item in Model)
                             {
-                                bool methCompleted =
-                                    string.Equals(
-                                        item.Status,
-                                        "Unloaded",
-                                        StringComparison.OrdinalIgnoreCase
-                                    );
+                                /*
+                                 * Status = Unloaded
+                                 * means worker-wise labour work
+                                 * has already been entered.
+                                 */
 
-                                bool supervisorCompleted =
-                                    item.IsSupervisorActionCompleted;
+                                bool workEntered = item.IsWorkerWorkCompleted;
+
+
+                                /*
+                                 * Final Supervisor form
+                                 * already submitted or not.
+                                 */
+
+                                bool supervisorCompleted = item.IsSupervisorActionCompleted;
+                                bool overallCompleted = workEntered && supervisorCompleted;
 
 
                                 <tr>
 
-                                    <!-- RST -->
+                                    <!-- =====================================
+                                         RST NUMBER
+                                         ===================================== -->
 
                                     <td class="ps-4">
 
-                                        <span class="fw-bold text-primary">
+                                        <div class="fw-bold text-primary">
 
                                             @item.RSTNumber
+                                            <span class="d-block small text-secondary fw-normal">Inward: @(string.IsNullOrWhiteSpace(item.InwardNo) ? "-" : item.InwardNo)</span>
 
-                                        </span>
+                                        </div>
 
                                     </td>
 
+                                    <td class="text-nowrap">
+                                        @(item.UnloadTime.HasValue ? item.UnloadTime.Value.ToString("dd-MMM-yyyy hh:mm tt") : "-")
+                                    </td>
 
-                                    <!-- VEHICLE -->
+
+                                    <!-- =====================================
+                                         VEHICLE
+                                         ===================================== -->
 
                                     <td>
 
-                                        @(string.IsNullOrWhiteSpace(item.VehicleNumber)
+                                        @(string.IsNullOrWhiteSpace(
+                                            item.VehicleNumber
+                                        )
                                             ? "-"
                                             : item.VehicleNumber)
 
                                     </td>
 
 
-                                    <!-- PARTY -->
+                                    <!-- =====================================
+                                         PARTY
+                                         ===================================== -->
 
                                     <td>
 
-                                        @(string.IsNullOrWhiteSpace(item.PartyName)
+                                        @(string.IsNullOrWhiteSpace(
+                                            item.PartyName
+                                        )
                                             ? "-"
                                             : item.PartyName)
 
                                     </td>
 
 
-                                    <!-- MATERIAL -->
+                                    <!-- =====================================
+                                         MATERIAL
+                                         ===================================== -->
 
                                     <td>
 
-                                        @(string.IsNullOrWhiteSpace(item.ItemName)
+                                        @(string.IsNullOrWhiteSpace(
+                                            item.ItemName
+                                        )
                                             ? "-"
                                             : item.ItemName)
 
                                     </td>
 
 
-                                    <!-- METH -->
+                                    <!-- =====================================
+                                         METH
+                                         ===================================== -->
 
                                     <td>
 
-                                        <span class="fw-semibold">
+                                        <div class="fw-semibold">
 
-                                            @(string.IsNullOrWhiteSpace(item.MethName)
+                                            @(string.IsNullOrWhiteSpace(
+                                                item.MethName
+                                            )
                                                 ? "-"
                                                 : item.MethName)
 
-                                        </span>
+                                        </div>
 
                                     </td>
 
 
-                                    <!-- LOCATION -->
+                                    <!-- =====================================
+                                         LOCATION
+                                         ===================================== -->
 
                                     <td>
 
-                                        @(string.IsNullOrWhiteSpace(item.LocationName)
+                                        @(string.IsNullOrWhiteSpace(
+                                            item.LocationName
+                                        )
                                             ? "-"
                                             : item.LocationName)
 
                                     </td>
 
 
-                                    <!-- METH TOTAL BAGS -->
+                                    <!-- =====================================
+                                         TOTAL BAGS
+                                         ===================================== -->
 
                                     <td class="text-center">
 
-                                        @if (methCompleted)
+                                        @if (workEntered)
                                         {
-                                            <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <span class="badge
+                                                bg-success-subtle
+                                                text-success
+                                                px-3
+                                                py-2">
 
                                                 @(item.NumberOfBags ?? 0)
 
@@ -232,20 +318,27 @@
                                         else
                                         {
                                             <span class="text-muted">
+
                                                 -
+
                                             </span>
                                         }
 
                                     </td>
 
 
-                                    <!-- STATUS -->
+                                    <!-- =====================================
+                                         WORK STATUS
+                                         ===================================== -->
 
                                     <td class="text-center">
 
-                                        @if (supervisorCompleted)
+                                        @if (overallCompleted)
                                         {
-                                            <span class="badge bg-success px-3 py-2">
+                                            <span class="badge
+                                                bg-success
+                                                px-3
+                                                py-2">
 
                                                 <i class="bi bi-check-circle-fill me-1"></i>
 
@@ -253,23 +346,35 @@
 
                                             </span>
                                         }
-                                        else if (methCompleted)
+                                        else if (workEntered && supervisorCompleted)
                                         {
-                                            <span class="badge bg-info-subtle text-info-emphasis px-3 py-2">
+                                            <span class="badge
+                                                bg-info-subtle
+                                                text-info-emphasis
+                                                px-3
+                                                py-2">
 
-                                                <i class="bi bi-check-circle me-1"></i>
+                                                <i class="bi bi-clipboard-check me-1"></i>
 
-                                                Response Received
+                                                Worker Entered / Field Completed
 
                                             </span>
                                         }
+                                        else if (supervisorCompleted)
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2">Field Entered / Worker Pending</span>
+                                        }
                                         else
                                         {
-                                            <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2">
+                                            <span class="badge
+                                                bg-warning-subtle
+                                                text-warning-emphasis
+                                                px-3
+                                                py-2">
 
-                                                <i class="bi bi-hourglass-split me-1"></i>
+                                                <i class="bi bi-pencil-square me-1"></i>
 
-                                                Waiting for Meth
+                                                Work Entry Pending
 
                                             </span>
                                         }
@@ -277,14 +382,20 @@
                                     </td>
 
 
-                                    <!-- ACTION -->
+                                    <!-- =====================================
+                                         ACTION
+                                         ===================================== -->
 
                                     <td class="text-center pe-4">
 
                                         @if (supervisorCompleted)
                                         {
+                                            <!-- FINAL COMPLETED -->
+
                                             <button type="button"
-                                                    class="btn btn-sm btn-success"
+                                                    class="btn
+                                                btn-sm
+                                                btn-success"
                                                     disabled>
 
                                                 <i class="bi bi-check-circle-fill me-1"></i>
@@ -293,30 +404,34 @@
 
                                             </button>
                                         }
-                                        else if (methCompleted)
-                                        {
-                                            <a asp-controller="Unload"
-                                               asp-action="SupervisorAction"
-                                               asp-route-id="@item.UnloadId"
-                                               class="btn btn-sm btn-primary">
-
-                                                <i class="bi bi-pencil-square me-1"></i>
-
-                                                Take Action
-
-                                            </a>
-                                        }
                                         else
                                         {
-                                            <button type="button"
-                                                    class="btn btn-sm btn-secondary"
-                                                    disabled>
-
-                                                <i class="bi bi-clock me-1"></i>
-
-                                                Awaiting Meth
-
+                                            <button type="button" class="btn btn-sm btn-primary fw-semibold"
+                                                    data-bs-toggle="modal" data-bs-target="#actionModal-@item.UnloadId">
+                                                <i class="bi bi-list-check me-1"></i> Choose Action
                                             </button>
+                                            <div class="modal fade" id="actionModal-@item.UnloadId" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">RST: @item.RSTNumber</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="d-grid gap-3">
+                                                                @if (workEntered)
+                                                                { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Worker Details <span class="float-end">Completed</span></button> }
+                                                                else
+                                                                { <a class="btn btn-outline-warning text-start p-3" asp-controller="Unload" asp-action="SupervisorMethWork" asp-route-id="@item.UnloadId"><i class="bi bi-people me-2"></i>Worker Details <span class="float-end">Pending</span></a> }
+                                                                @if (supervisorCompleted)
+                                                                { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Field Details <span class="float-end">Completed</span></button> }
+                                                                else
+                                                                { <a class="btn btn-outline-primary text-start p-3" asp-controller="Unload" asp-action="SupervisorAction" asp-route-id="@item.UnloadId"><i class="bi bi-clipboard-check me-2"></i>Field Details <span class="float-end">Pending</span></a> }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         }
 
                                     </td>
@@ -326,16 +441,29 @@
                         }
                         else
                         {
+                            <!-- =============================================
+                                 EMPTY STATE
+                                 ============================================= -->
+
                             <tr>
 
                                 <td colspan="9"
                                     class="text-center py-5">
 
-                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <i class="bi bi-inbox
+                                        fs-1
+                                        text-muted">
+                                    </i>
 
-                                    <div class="mt-2 text-muted">
+                                    <div class="mt-2 fw-semibold text-muted">
 
                                         No Meth assignments found.
+
+                                    </div>
+
+                                    <div class="small text-muted mt-1">
+
+                                        Assigned RST will appear here.
 
                                     </div>
 

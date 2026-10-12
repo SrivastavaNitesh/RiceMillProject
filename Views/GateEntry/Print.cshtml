@@ -27,8 +27,9 @@
             .challan-container { border: none; padding: 0; }
         }
     </style>
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
 </head>
-<body onload="window.print()">
+<body class="agro-ui" onload="window.print()">
     <div class="challan-container">
         <div class="no-print text-end mb-3">
             <button onclick="window.print()" class="btn btn-primary">Print</button>
@@ -36,7 +37,7 @@
         </div>
         
         <div class="header">
-            <h1>SRI BALAJI RICE MILL</h1>
+            <h1>Annapurna Agro Industries Pvt. Ltd.</h1>
             <h4>INBOUND GATE ENTRY CHALLAN</h4>
         </div>
         
@@ -76,5 +77,6 @@
             <div class="signature-box">Gate Man Signature</div>
         </div>
     </div>
+    <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>
 </body>
 </html>

@@ -77,9 +77,12 @@
                         <label class="form-label fw-bold text-dark">
                             Party / Supplier <span class="text-danger">*</span>
                         </label>
+                        <div class="input-group">
                         <select name="PartyId" id="txtPartyName" class="form-select border-primary-subtle" asp-items="@(ViewBag.Parties as SelectList)" required>
                             <option value="">Select Party / Supplier</option>
                         </select>
+                        <a class="btn btn-outline-primary" href="/Person/Create?post=Party" target="_blank" title="Add Party"><i class="bi bi-plus-lg"></i></a>
+                        </div>
                         <input type="hidden" name="PartyName" id="selectedPartyName" />
                     </div>
 
@@ -88,6 +91,7 @@
                         <label class="form-label fw-bold text-dark">
                             Vehicle Number <span class="text-danger">*</span>
                         </label>
+                        <div class="input-group">
                         <select name="VehicleNo" id="txtVehicleNo" class="form-select border-primary-subtle" required>
                             <option value="">Select Vehicle</option>
                             @if(ViewBag.Vehicles != null)
@@ -98,6 +102,8 @@
                                 }
                             }
                         </select>
+                        <a class="btn btn-outline-primary" href="/Vehicle/Create" target="_blank" title="Add Vehicle"><i class="bi bi-plus-lg"></i></a>
+                        </div>
                     </div>
 
                     <!-- Driver Name & Mobile -->
@@ -105,6 +111,7 @@
                         <label class="form-label fw-bold text-dark">
                             Driver Name <span class="text-danger">*</span>
                         </label>
+                        <div class="input-group">
                         <select name="DriverName" id="txtDriverName" class="form-select" required>
                             <option value="">Select Driver</option>
                             @if(ViewBag.Drivers != null)
@@ -115,12 +122,16 @@
                                 }
                             }
                         </select>
+                        <a class="btn btn-outline-primary" href="/Person/Create?post=Driver" target="_blank" title="Add Driver"><i class="bi bi-plus-lg"></i></a>
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold text-dark">
                             Driver Mobile Number <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="DriverMobile" id="txtDriverMobile" class="form-control" placeholder="Enter 10-digit mobile number" maxLength="10" required />
+                        <select name="DriverMobile" id="txtDriverMobile" class="form-select" required>
+                            <option value="">Select Driver Mobile</option>
+                        </select>
                         <div id="mobileDuplicateWarning" class="text-warning fw-bold small mt-1" style="display:none;">
                             <i class="bi bi-exclamation-triangle-fill me-1"></i> Note: This Driver Mobile Number is already recorded in system.
                         </div>
@@ -226,7 +237,83 @@ catch (Exception ex)
         // Driver Mobile Input Validation & AJAX Duplicate Check
         const txtMobile = document.getElementById('txtDriverMobile');
         const txtDriverName = document.getElementById('txtDriverName');
+        const txtParty = document.getElementById('txtPartyName');
+        const txtVehicle = document.getElementById('txtVehicleNo');
+        const txtDriverMobile = document.getElementById('txtDriverMobile');
         const warningDiv = document.getElementById('mobileDuplicateWarning');
+
+        function setOptions(select, rows, valueKey, textKey, placeholder) {
+            if (!select) return;
+            select.innerHTML = '';
+            const first = document.createElement('option');
+            first.value = '';
+            first.textContent = placeholder;
+            select.appendChild(first);
+            (rows || []).forEach(row => {
+                const option = document.createElement('option');
+                const value = row[valueKey] ?? row[valueKey.charAt(0).toLowerCase() + valueKey.slice(1)] ?? '';
+                const text = row[textKey] ?? row[textKey.charAt(0).toLowerCase() + textKey.slice(1)] ?? value;
+                option.value = value;
+                option.textContent = text;
+                option.dataset.id = row.VehicleId ?? row.vehicleId ?? row.DriverId ?? row.driverId ?? '';
+                select.appendChild(option);
+            });
+        }
+
+        function setDriverOptions(rows) {
+            setOptions(txtDriverName, rows, 'DriverName', 'DriverNameMobile', 'Select Driver');
+            setOptions(txtDriverMobile, [], 'MobileNumber', 'MobileNumber', 'Select Driver Mobile');
+            (rows || []).forEach(row => {
+                const name = row.DriverName || row.driverName || '';
+                const mobile = row.MobileNumber || row.mobileNumber || row.driverNameMobile?.split('/').slice(1).join('/').trim() || (row.DriverNameMobile || '').split('/').slice(1).join('/').trim();
+                const option = document.createElement('option');
+                option.value = mobile;
+                option.textContent = mobile || 'Mobile not available';
+                option.dataset.driver = name;
+                txtDriverMobile?.appendChild(option);
+            });
+        }
+
+        async function loadDriversForVehicle() {
+            const partyId = parseInt(txtParty?.value || '0');
+            const vehicleId = parseInt(txtVehicle?.selectedOptions[0]?.dataset.id || '0');
+            if (!partyId || !vehicleId) {
+                setDriverOptions([]);
+                return;
+            }
+            const response = await fetch('/Gateman/GetDriversByVehicle?partyId=' + partyId + '&vehicleId=' + vehicleId);
+            const data = await response.json();
+            setDriverOptions(data.drivers);
+            if (data.drivers?.length === 1) {
+                txtDriverName.value = data.drivers[0].DriverName || data.drivers[0].driverName || '';
+                txtDriverName.dispatchEvent(new Event('change'));
+            }
+        }
+
+        if (txtParty) {
+            txtParty.addEventListener('change', async function () {
+                const partyId = parseInt(this.value || '0');
+                setOptions(txtVehicle, [], 'VehicleNumber', 'VehicleNumber', 'Select Vehicle');
+                setDriverOptions([]);
+                if (!partyId) return;
+                const response = await fetch('/Gateman/GetPartyOptions?partyId=' + partyId);
+                const data = await response.json();
+                if (data.success) {
+                    setOptions(txtVehicle, data.vehicles, 'VehicleNumber', 'VehicleNumber', 'Select Vehicle');
+                    const defaultVehicle = (data.vehicles || []).find(v => (v.VehicleId ?? v.vehicleId) == (data.defaultVehicleId ?? data.defaultvehicleId));
+                    if (defaultVehicle) {
+                        txtVehicle.value = defaultVehicle.VehicleNumber ?? defaultVehicle.vehicleNumber;
+                        txtVehicle.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+        }
+        if (txtVehicle) txtVehicle.addEventListener('change', loadDriversForVehicle);
+
+        if (txtDriverName) txtDriverName.addEventListener('change', function () {
+            const selected = txtDriverMobile ? Array.from(txtDriverMobile.options).find(o => o.dataset.driver === this.value) : null;
+            if (selected) txtDriverMobile.value = selected.value;
+        });
 
         if (txtDriverName) {
             txtDriverName.addEventListener('change', function() {

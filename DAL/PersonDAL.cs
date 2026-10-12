@@ -125,7 +125,7 @@ namespace RiceMillProject.DAL
             return dt;
 
         }
-        public List<Person> GetEmployeeList(string Mode)
+        public List<Person> GetEmployeeList(string Mode, int? officeId = null)
         {
             var persons = new List<Person>();
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -140,8 +140,17 @@ namespace RiceMillProject.DAL
                                p.IsActive
                         FROM p02_Person p
                         LEFT JOIN o10_post post ON TRY_CAST(p.PersonType AS INT) = post.PostId
-                        WHERE p.PersonType NOT IN ('Kisan', 'Farmer', 'Party', 'Supplier', 'Driver', 'Worker')
-                           OR post.PostId IS NOT NULL
+                        WHERE (p.PersonType NOT IN ('Kisan', 'Farmer', 'Party', 'Supplier', 'Driver', 'Worker')
+                           OR post.PostId IS NOT NULL)
+                          AND (@OfficeId IS NULL OR EXISTS (
+                              SELECT 1
+                              FROM dbo.P11_PersonDesignatation pd
+                              INNER JOIN dbo.O12_Designatation d
+                                  ON d.DesignationId = pd.O12_DesignationId AND d.IsActive = 1
+                              WHERE pd.P02_PersonId = p.PersonId
+                                AND pd.IsActive = 1
+                                AND d.O05_Office_Id = @OfficeId
+                          ))
                         ORDER BY p.PersonId DESC";
                 }
                 else
@@ -160,6 +169,7 @@ namespace RiceMillProject.DAL
 
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
+                    cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = (object?)officeId ?? DBNull.Value;
                     con.Open();
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {

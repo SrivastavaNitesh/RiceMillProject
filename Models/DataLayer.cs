@@ -281,6 +281,16 @@ namespace RiceMillProject.Models
             }
         }
 
+        internal bool IsFinalRst(string rstNumber)
+        {
+            if (string.IsNullOrWhiteSpace(rstNumber)) return false;
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("SELECT TOP (1) 1 FROM dbo.t_GateEntry WHERE RSTNumber=@RSTNumber AND ISNULL(IsFinalRST,1)=1", con);
+            cmd.Parameters.Add(new SqlParameter("@RSTNumber", SqlDbType.NVarChar, 50) { Value = rstNumber.Trim() });
+            con.Open();
+            return cmd.ExecuteScalar() != null;
+        }
+
         // --- NEW PDF GATE MANAGEMENT MODULE DAL METHODS ---
 
         internal DataTable ManageGateMaster(string action, GateMaster? gate = null)

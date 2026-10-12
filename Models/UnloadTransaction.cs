@@ -6,6 +6,7 @@ namespace RiceMillProject.Models
     {
         public int? LocationId { get; set; }
         public bool IsSupervisorActionCompleted { get; set; }
+        public bool IsWorkerWorkCompleted { get; set; }
         public string? VehicleNumber { get; set; }
 
         public string? PartyName { get; set; }
@@ -23,6 +24,7 @@ namespace RiceMillProject.Models
         [System.ComponentModel.DataAnnotations.MinLength(1, ErrorMessage = "Select the items actually unloaded.")]
         public int[] SelectedItemIds { get; set; } = [];
         public string RSTNumber { get; set; } = string.Empty;
+        public string InwardNo { get; set; } = string.Empty;
         public int OfficeId { get; set; }
         public int[]? SelectedLocationIds { get; set; }
         public int SupervisorId { get; set; }

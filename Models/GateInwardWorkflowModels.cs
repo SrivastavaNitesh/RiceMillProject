@@ -23,6 +23,7 @@ namespace RiceMillProject.Models
         public int InwardId { get; set; }
         public string? GateEntryNo { get; set; }
         public string? InwardNo { get; set; }
+        public string ItemCategoryName { get; set; } = string.Empty;
 
         [DataType(DataType.Date)]
         public DateTime InwardDate { get; set; } = DateTime.Now;
@@ -62,5 +63,9 @@ namespace RiceMillProject.Models
         public string? GateManName { get; set; } = "Gateman";
         public string StatusName { get; set; } = "Pending";
         public bool IsRSTGenerated { get; set; }
+        public string? RstStatus { get; set; }
+        public string? RstStatusName { get; set; }
+        public string? RSTNumber { get; set; }
+        public decimal? RSTGrossWeight { get; set; }
     }
 }

@@ -1,0 +1,91 @@
+@model RiceMillProject.Models.PurchasePage
+@using RiceMillProject.Models
+@using RiceMillProject.BAL
+@{
+    ViewData["Title"] = Model.Title;
+    var f = Model.Filter;
+    var locationMode = f.Mode is "Locations" or "LocationDetails";
+    var tabs = new[] { ("Monthly", "Month Wise"), ("Daily", "Date Wise"), ("DateRange", "Date Range"), ("Party", "Party Wise"), ("Locations", "Location Wise") };
+}
+<link rel="stylesheet" href="~/css/purchase-reports.css" asp-append-version="true" />
+<section class="purchase-report">
+    <h1>@Model.Title</h1>
+    <div class="purchase-report-picker">
+        <label for="PurchaseReportType">Purchase report</label>
+        <select id="PurchaseReportType" class="form-select" data-purchase-report-picker>
+        @foreach (var tab in tabs)
+        {
+            <option value="@Url.Action(tab.Item1, new { companyId = f.CompanyId })" selected="@(f.Mode == tab.Item1 || (f.Mode == "LocationDetails" && tab.Item1 == "Locations"))">@tab.Item2</option>
+        }
+        </select>
+    </div>
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <form method="get" asp-action="@f.Mode" class="purchase-filters">
+        @if (f.Mode == "Monthly")
+        {
+            <div><label for="Year">Year</label><input class="form-control" type="number" id="Year" name="Year" value="@f.Year" min="1900" max="9998" required /></div>
+            <div><label for="Month">Month</label><select class="form-select" id="Month" name="Month">@for (var m = 1; m <= 12; m++) { <option value="@m" selected="@(f.Month == m)">@System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m)</option> }</select></div>
+        }
+        else if (f.Mode == "Daily")
+        {
+            <div><label for="Date">Weighing date</label><input class="form-control" type="date" id="Date" name="Date" value="@f.Date?.ToString("yyyy-MM-dd")" required /></div>
+        }
+        else if (!locationMode)
+        {
+            <div><label for="From">From</label><input class="form-control" type="date" id="From" name="From" value="@f.From?.ToString("yyyy-MM-dd")" required /></div>
+            <div><label for="To">To</label><input class="form-control" type="date" id="To" name="To" value="@f.To?.ToString("yyyy-MM-dd")" required /></div>
+        }
+        <div><label for="CompanyId">Company</label><select class="form-select" id="CompanyId" name="CompanyId" required>@foreach (var c in Model.Companies) { <option value="@c.Id" selected="@(f.CompanyId == c.Id)">@c.Name</option> }</select></div>
+        @if (f.Mode == "Party")
+        {
+            <div><label for="PartyId">Party</label><select class="form-select" id="PartyId" name="PartyId"><option value="">All parties</option>@foreach (var p in Model.Parties) { <option value="@p.Id" selected="@(f.PartyId == p.Id)">@p.Name</option> }</select></div>
+        }
+        @if (f.Mode == "LocationDetails") { <input type="hidden" name="LocationId" value="@f.LocationId" /> }
+        <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Show report</button>
+        <button class="btn btn-outline-success" type="submit" name="excel" value="true"><i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Download Excel</button>
+    </form>
+    <p class="purchase-note">* वजन बोरी संख्या के अनुपात में निकाला गया है। दर्ज वास्तविक वजन को प्राथमिकता दी गई है। तारीख का आधार RST की तौल प्रविष्टि है। लैब कटौती दर और उसकी इकाई दिखाई गई है; अधूरी जाँच के लिए Pending है।</p>
+    @foreach (var notice in Model.Notices.Distinct()) { <p class="text-danger">@notice</p> }
+    @if (f.Mode == "Locations")
+    {
+        <p class="text-muted">सभी दर्ज खरीद उतराई का कुल वजन और बोरी संख्या; यह निकासी घटाने के बाद का शेष स्टॉक नहीं है।</p>
+        <div class="purchase-locations">
+        @foreach (var location in Model.Locations)
+        {
+            var lots = Model.Lots.Where(l => l.LocationId == location.LocationId).ToList();
+            decimal? weight = lots.Any(l => !l.WeightKg.HasValue) ? null : lots.Sum(l => l.WeightKg ?? 0);
+            var itemNames = lots.Select(l => l.ItemName).Distinct().Order().ToList();
+            var hasPurchases = lots.Count > 0;
+            <a class="purchase-location @(hasPurchases ? "has-purchases" : "no-purchases")" asp-action="LocationDetails" asp-route-locationId="@location.LocationId" asp-route-companyId="@f.CompanyId">
+                <div class="purchase-location-head">
+                    <span class="purchase-location-icon"><i class="bi bi-buildings" aria-hidden="true"></i></span>
+                    <div class="purchase-location-title"><span class="purchase-location-eyebrow">Purchase location</span><h2>@location.LocationName</h2></div>
+                    <span class="purchase-location-state"><span aria-hidden="true"></span>@(hasPurchases ? "Recorded" : "No purchases")</span>
+                </div>
+                <div class="purchase-location-quantity">
+                    <span class="purchase-metric-label">Total unloaded weight</span>
+                    <strong class="purchase-location-weight">@PurchasePage.Kg(weight, lots.Any(l => l.Estimated)) <small>@(weight.HasValue ? "kg" : "")</small></strong>
+                    <div class="purchase-location-counts">
+                        <span class="purchase-location-bags"><i class="bi bi-bag" aria-hidden="true"></i> <strong>@lots.Sum(l => l.BagCount).ToString("N0")</strong> bags</span>
+                        <span class="purchase-location-items"><i class="bi bi-box-seam" aria-hidden="true"></i> <strong>@lots.Select(l => l.ItemId).Distinct().Count()</strong> items</span>
+                    </div>
+                </div>
+                <div class="purchase-location-materials">@(hasPurchases ? string.Join(" / ", itemNames.Take(2)) + (itemNames.Count > 2 ? $" +{itemNames.Count - 2} more" : "") : "No purchase unloading recorded")</div>
+                <div class="purchase-location-meta">
+                    <div class="purchase-location-capacity"><i class="bi bi-bounding-box" aria-hidden="true"></i><div><span class="purchase-metric-label">Location capacity</span><strong>@location.Capacity.ToString("#,##0.###") <span>@location.CapacityUnit</span></strong></div></div>
+                    <span class="purchase-location-open">View details <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+                </div>
+            </a>
+        }
+        </div>
+        @if (Model.Lots.Any(l => !l.LocationId.HasValue)) { <p class="text-muted">स्थान दर्ज नहीं: @Model.Lots.Where(l => !l.LocationId.HasValue).Sum(l => l.BagCount) bags. ये किसी location के total में शामिल नहीं हैं।</p> }
+        @if (Model.Locations.Count == 0) { <p class="purchase-empty">No locations found.</p> }
+    }
+    else
+    {
+        @if (f.Mode == "LocationDetails") { <a class="btn btn-link px-0 mb-2" asp-action="Locations" asp-route-companyId="@f.CompanyId"><i class="bi bi-arrow-left" aria-hidden="true"></i> All locations</a> }
+        @if (Model.Headers.Count == 0) { <p class="purchase-empty">No purchase records found for these filters.</p> }
+        else { <partial name="_Table" model="(PurchaseTable)ViewBag.ReportTable" /> }
+    }
+</section>
+<script src="~/js/purchase-reports.js" asp-append-version="true"></script>

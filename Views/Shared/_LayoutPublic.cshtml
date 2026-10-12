@@ -1,0 +1,57 @@
+@{ var loginPage = ViewData["PublicPage"]?.ToString() == "login"; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Annapurna Agro Industries Pvt. Ltd.</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/annapurna-public.css" asp-append-version="true" />
+    <script src="~/js/annapurna-theme.js" asp-append-version="true"></script>
+</head>
+<body class="agro-ui public-site @(loginPage ? "public-login" : "public-home")">
+    <a class="public-skip" href="#main-content">Skip to content</a>
+    <header class="public-header">
+        <a class="public-brand-link" asp-controller="Home" asp-action="Index" aria-label="Annapurna home"><partial name="_Brand" /></a>
+        @if (!loginPage)
+        {
+        <nav aria-label="Main navigation">
+            <a class="@(!loginPage ? "selected" : "")" href="@Url.Action("Index", "Home")">Home</a>
+            <a href="@Url.Action("Index", "Home")#operations">Operations</a>
+            <a href="@Url.Action("Index", "Home")#quality">Quality</a>
+            <a href="@Url.Action("Index", "Home")#accounts">Accounts</a>
+            <a href="@Url.Action("Index", "Home")#about">About</a>
+        </nav>
+        <a class="public-button header-signin" asp-controller="Account" asp-action="Login"><i class="bi bi-person-fill" aria-hidden="true"></i> Employee Sign In <span aria-hidden="true">&rarr;</span></a>
+        }
+        else
+        {
+            <a class="signin-back-home" asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to home</a>
+        }
+    </header>
+    <main id="main-content">@RenderBody()</main>
+    @if (!loginPage)
+    {
+    <footer class="public-footer" id="support">
+        <div class="public-footer-grid">
+            <div class="footer-company"><partial name="_Brand" /><p>Good people. Good grain.<br />A brighter tomorrow.</p><p>Connecting our teams and daily operations, from farm to factory.</p><span class="footer-tagline">Cultivating Happiness</span></div>
+            <div><h2>Quick Links</h2><a asp-controller="Home" asp-action="Index">Home</a><a href="@Url.Action("Index", "Home")#operations">Operations</a><a href="@Url.Action("Index", "Home")#quality">Quality</a><a href="@Url.Action("Index", "Home")#about">About our workspace</a></div>
+            <div><h2>Employee Support</h2><a asp-controller="Account" asp-action="Login">Employee sign in</a><p><i class="bi bi-headset" aria-hidden="true"></i> Need help with access?<br />Contact your assigned administrator for account and password assistance.</p><p><i class="bi bi-shield-check" aria-hidden="true"></i> Access is based on your assigned role.</p></div>
+            <div><h2>Our Commitment</h2><p>Quality in every grain.<br />Care in every process.<br />People at the heart of it all.</p><div class="footer-grain" aria-hidden="true"><i class="bi bi-flower2"></i></div></div>
+        </div>
+        <div class="public-footer-bottom"><span>&copy; @DateTime.Now.Year Annapurna Agro Industries Pvt. Ltd. All rights reserved.</span><span>One team. One connected workspace.</span></div>
+    </footer>
+    }
+    else
+    {
+        <footer class="signin-simple-footer">&copy; @DateTime.Now.Year Annapurna Agro Industries Pvt. Ltd.<span>Employee workspace</span></footer>
+    }
+    <partial name="_Appearance" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/annapurna-public.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

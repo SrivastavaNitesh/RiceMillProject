@@ -57,6 +57,34 @@ namespace RiceMillProject.DAL
             return locationTypes;
         }
 
+        public List<LocationMaster> GetCompanyUnloadingLocations(int officeId)
+        {
+            var locations = new List<LocationMaster>();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT l.LocationId,l.LocationCode,l.LocationName,l.LocationType,l.IsActive
+                FROM dbo.m_LocationMaster l
+                INNER JOIN dbo.t_OfficeLocationMapping m ON m.LocationId=l.LocationId
+                WHERE m.OfficeId=@OfficeId AND l.IsActive=1 AND m.IsActive=1
+                  AND ISNULL(m.UnloadingAllowed,1)=1
+                ORDER BY l.LocationName;", con);
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
+            con.Open();
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                locations.Add(new LocationMaster
+                {
+                    LocationId = Convert.ToInt32(reader["LocationId"]),
+                    LocationCode = reader["LocationCode"]?.ToString() ?? "",
+                    LocationName = reader["LocationName"]?.ToString() ?? "",
+                    LocationType = reader["LocationType"]?.ToString() ?? "",
+                    IsActive = true
+                });
+            }
+            return locations;
+        }
+
         public List<LocationMaster> GetAllLocations()
         {
             var locations = new List<LocationMaster>();

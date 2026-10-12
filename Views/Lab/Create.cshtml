@@ -1,8 +1,8 @@
 @model RiceMillProject.Models.LabEntryViewModel
 @using System.Text.Json
-@{ ViewData["Title"] = "Lab results · " + Model.RSTNumber; }
+@{ ViewData["Title"] = "Lab results - " + Model.RSTNumber; }
 <partial name="_Navigation" />
-<h2>Lab results <span class="text-primary">@Model.RSTNumber</span></h2>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2"><h2>Record lab results <span class="lab-rst-label">@Model.RSTNumber</span></h2><a asp-action="Reports" asp-route-rstNumber="@Model.RSTNumber" class="btn btn-outline-secondary">View saved reports</a></div>
 <p class="text-muted">Choose unloaded categories and items, then enter each item's test results.</p>
 @if (Model.AvailableItems.Count == 0)
 {
@@ -11,11 +11,11 @@
 }
 else
 {
-    <form asp-action="Create" method="post" id="lab-entry-form">
+    <form asp-action="Create" method="post" id="lab-entry-form" class="lab-entry-form">
         <div asp-validation-summary="All" class="text-danger" role="alert"></div>
         <input asp-for="RSTNumber" type="hidden" /><input asp-for="SubmissionId" type="hidden" />
         <div class="card card-body mb-4">
-            <label class="form-label fw-bold" for="category-menu">1. Unloaded categories (multiple selection)</label>
+            <label class="form-label fw-bold" for="category-menu">01 / Select categories</label>
             <div class="dropdown">
                 <button class="btn btn-outline-primary dropdown-toggle" type="button" id="category-menu" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">Select categories</button>
                 <div class="dropdown-menu p-3" aria-labelledby="category-menu" style="min-width:280px;max-height:320px;overflow:auto">
@@ -28,17 +28,17 @@ else
                     }
                 </div>
             </div>
-            <h5 class="mt-4">2. Unloaded items (multiple selection)</h5>
+            <h5 class="mt-4">02 / Select unloaded items</h5>
             <div id="lab-items" class="row g-2"></div>
         </div>
-        <h5>3. Item test results</h5>
+        <h5>03 / Record test results</h5>
         <div id="lab-results"></div>
-        <label asp-for="Remarks" class="form-label">Remarks (optional)</label>
+        <div class="lab-entry-footer"><label asp-for="Remarks" class="form-label">Remarks (optional)</label>
         <textarea asp-for="Remarks" class="form-control mb-3" maxlength="1000"></textarea>
         <p id="lab-selection-message" class="text-muted" aria-live="polite"></p>
-        <button class="btn btn-primary" id="save-lab" type="submit" disabled>Save lab report</button>
+        <button class="btn btn-primary" id="save-lab" type="submit" disabled>Submit lab report</button>
         <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-        <noscript><p class="alert alert-warning mt-3">Enable JavaScript to select categories, items and enter test results.</p></noscript>
+        </div><noscript><p class="alert alert-warning mt-3">Enable JavaScript to select categories, items and enter test results.</p></noscript>
     </form>
     <script id="lab-entry-data" type="application/json">@Html.Raw(JsonSerializer.Serialize(new { items = Model.AvailableItems, selected = Model.SelectedItemIds, results = Model.Results }))</script>
 }

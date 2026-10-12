@@ -368,7 +368,13 @@ namespace RiceMillProject.Controllers
                     );
                 }
 
-
+                var validationErrors = string.Join(" ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
+                    .Where(e => !string.IsNullOrWhiteSpace(e)));
+                TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(validationErrors)
+                    ? "Please select Product Category and enter a valid Gross Weight."
+                    : validationErrors;
                 PopulateDropdowns(entry);
 
                 return View(entry);
@@ -380,6 +386,7 @@ namespace RiceMillProject.Controllers
                     "Entry could not be saved: "
                     + ex.Message
                 );
+                TempData["ErrorMessage"] = "Entry could not be saved: " + ex.Message;
 
 
                 PopulateDropdowns(entry);
@@ -396,6 +403,21 @@ namespace RiceMillProject.Controllers
         private void PopulateDropdowns(
             GateEntry entry)
         {
+            ViewBag.ItemCategories = Enumerable.Empty<SelectListItem>();
+            try
+            {
+                ViewBag.ItemCategories = new SelectList(
+                    _gateBal.GetItemCategories().AsEnumerable().Select(row => new
+                    {
+                        CategoryId = Convert.ToInt32(row["CategoryId"]),
+                        CategoryName = row["CategoryName"].ToString()
+                    }), "CategoryId", "CategoryName", entry.ItemCategoryId);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Item categories could not be loaded. Please reload and try again.");
+            }
+
             // -----------------------------------------------------
             // Defaults
             // -----------------------------------------------------
@@ -419,6 +441,9 @@ namespace RiceMillProject.Controllers
                 Enumerable.Empty<SelectListItem>();
 
             ViewBag.Items =
+                Enumerable.Empty<SelectListItem>();
+
+            ViewBag.Categories =
                 Enumerable.Empty<SelectListItem>();
 
 
@@ -578,6 +603,17 @@ namespace RiceMillProject.Controllers
 
             try
             {
+                ViewBag.Categories = _itemBal.GetActiveItemCategories().AsEnumerable().Select(r => new SelectListItem
+                {
+                    Value = r["CategoryId"].ToString(),
+                    Text = r["CategoryName"].ToString(),
+                    Selected = entry.CategoryId.HasValue && Convert.ToInt32(r["CategoryId"]) == entry.CategoryId.Value
+                }).ToList();
+            }
+            catch { ViewBag.Categories = Enumerable.Empty<SelectListItem>(); }
+
+            try
+            {
                 ViewBag.Items =
                     new SelectList(
                         _itemBal
@@ -602,6 +638,45 @@ namespace RiceMillProject.Controllers
         // =========================================================
         // OUTBOUND - GET
         // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult WeightmanAction(WeightmanRstAction action)
+        {
+            // The action modal is rendered inside a data table. Recover the raw
+            // posted values explicitly so browser form relocation cannot turn a
+            // valid 56000 entry into an empty model value.
+            var postedRst = Request.Form.FirstOrDefault(x => x.Key.Equals("RSTNumber", StringComparison.OrdinalIgnoreCase)).Value.FirstOrDefault();
+            var postedGross = Request.Form.FirstOrDefault(x => x.Key.Equals("CurrentGrossWeight", StringComparison.OrdinalIgnoreCase)).Value.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(action.RSTNumber) && !string.IsNullOrWhiteSpace(postedRst))
+                action.RSTNumber = postedRst.Trim();
+            if (action.CurrentGrossWeight <= 0 && decimal.TryParse(postedGross, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsedGross))
+                action.CurrentGrossWeight = parsedGross;
+            if (action.CurrentGrossWeight <= 0 && decimal.TryParse(postedGross, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.CurrentCulture, out parsedGross))
+                action.CurrentGrossWeight = parsedGross;
+            if (string.IsNullOrWhiteSpace(action.ActionType))
+                action.ActionType = Request.Form["ActionType"].FirstOrDefault() ?? "CONTINUE";
+            if (string.IsNullOrWhiteSpace(action.RSTNumber) || action.CurrentGrossWeight is null || action.CurrentGrossWeight <= 0)
+            {
+                TempData["ErrorMessage"] = $"RST number and a current gross weight greater than 0 are required. (RST: {postedRst ?? "blank"}, Gross: {postedGross ?? "blank"})";
+                return RedirectToAction(nameof(Index));
+            }
+            try
+            {
+                int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                var result = _gateBal.RecordWeightmanAction(new WeightmanRstAction
+                {
+                    RSTNumber = action.RSTNumber.Trim(),
+                    CurrentGrossWeight = action.CurrentGrossWeight.Value,
+                    ActionType = action.ActionType
+                }, userId);
+                TempData["SuccessMessage"] = string.IsNullOrWhiteSpace(result.NewRSTNumber)
+                    ? $"{action.ActionType} recorded for {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG."
+                    : $"New RST {result.NewRSTNumber} generated from {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG.";
+            }
+            catch (Exception ex) { TempData["ErrorMessage"] = ex.Message; }
+            return RedirectToAction(nameof(Index));
+        }
 
         [HttpGet]
         public IActionResult Outbound(
@@ -659,6 +734,9 @@ namespace RiceMillProject.Controllers
                         tareWeight
                     );
 
+
+                TempData["SuccessMessage"] =
+                    $"Tare Weight saved successfully for RST {rstNumber}. Net Weight calculated.";
 
                 return RedirectToAction(
                     "Index"
@@ -862,6 +940,58 @@ namespace RiceMillProject.Controllers
                         success = false,
                         message =
                             ex.Message
+                    }
+                );
+            }
+        }
+
+
+        // =========================================================
+        // DRIVERS BY VEHICLE
+        // Party -> Vehicle -> Driver
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult GetDriversByVehicle(
+            int partyId,
+            int vehicleId)
+        {
+            try
+            {
+                if (partyId <= 0 || vehicleId <= 0)
+                {
+                    return Json(
+                        new
+                        {
+                            success = false,
+                            drivers = Array.Empty<object>(),
+                            message = "Valid Party and Vehicle are required."
+                        }
+                    );
+                }
+
+                var drivers =
+                    _gateBal.GetDriversByVehicle(
+                        partyId,
+                        vehicleId
+                    );
+
+                return Json(
+                    new
+                    {
+                        success = true,
+                        drivers = drivers
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+                        drivers = Array.Empty<object>(),
+                        message = ex.Message
                     }
                 );
             }

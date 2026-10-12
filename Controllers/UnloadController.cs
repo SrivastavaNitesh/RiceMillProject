@@ -23,6 +23,7 @@ namespace RiceMillProject.Controllers
         private readonly BagTypeBAL _bagBal;
         private readonly OfficeBAL _officeBal;
         private readonly LabWorkflowBAL _labWorkflow;
+        private readonly LocationMasterBAL _locationBal;
 
         public UnloadController(IConfiguration configuration)
         {
@@ -33,6 +34,7 @@ namespace RiceMillProject.Controllers
             _bagBal = new BagTypeBAL(configuration);
             _officeBal = new OfficeBAL(configuration);
             _labWorkflow = new LabWorkflowBAL(configuration);
+            _locationBal = new LocationMasterBAL(configuration);
         }
 
         // ============================================================
@@ -186,12 +188,15 @@ namespace RiceMillProject.Controllers
                 );
             }
 
-            if (!unload.LocationId.HasValue ||
-                unload.LocationId.Value <= 0)
+            var selectedLocationIds = (unload.SelectedLocationIds ?? Array.Empty<int>())
+                .Where(x => x > 0).Distinct().ToArray();
+            if (selectedLocationIds.Length == 0 && unload.LocationId.GetValueOrDefault() > 0)
+                selectedLocationIds = new[] { unload.LocationId.GetValueOrDefault() };
+            if (selectedLocationIds.Length == 0)
             {
                 ModelState.AddModelError(
-                    nameof(unload.LocationId),
-                    "Please select unloading location."
+                    nameof(unload.SelectedLocationIds),
+                    "Please select at least one unloading location."
                 );
             }
 
@@ -203,8 +208,7 @@ namespace RiceMillProject.Controllers
                 officeId > 0 &&
                 !string.IsNullOrWhiteSpace(unload.RSTNumber) &&
                 unload.MethId > 0 &&
-                unload.LocationId.HasValue &&
-                unload.LocationId.Value > 0)
+                selectedLocationIds.Length > 0)
             {
                 try
                 {
@@ -213,7 +217,8 @@ namespace RiceMillProject.Controllers
                         supervisorId,
                         unload.MethId,
                         unload.ItemId,
-                        unload.LocationId.Value
+                        selectedLocationIds[0],
+                        selectedLocationIds, officeId
                     );
 
                     if (unloadId > 0)
@@ -472,7 +477,7 @@ namespace RiceMillProject.Controllers
             if (officeId > 0)
             {
                 ViewBag.Locations = new SelectList(
-                    _officeBal.GetOfficeLocations(officeId),
+                    _locationBal.GetCompanyUnloadingLocations(officeId),
                     "LocationId",
                     "LocationName",
                     locationId
@@ -481,7 +486,7 @@ namespace RiceMillProject.Controllers
             else
             {
                 ViewBag.Locations = new SelectList(
-                    new List<OfficeLocation>(),
+                    new List<LocationMaster>(),
                     "LocationId",
                     "LocationName"
                 );
@@ -584,12 +589,18 @@ namespace RiceMillProject.Controllers
 
             int personId = GetCurrentPersonId();
 
-            if (personId <= 0)
+            if (personId > 0)
             {
-                return 0;
+                var mappedOffice = _officeBal.GetOfficeIdByPersonId(personId);
+                if (mappedOffice > 0) return mappedOffice;
             }
 
-            return _officeBal.GetOfficeIdByPersonId(personId);
+            // Login creates CompanyId from sa05_user.OfficeId; use it as a safe
+            // fallback when the person-to-company mapping is not populated yet.
+            var companyClaim = User.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
+            if (int.TryParse(companyClaim, out var companyId) && companyId > 0) return companyId;
+            var username = User.Identity?.Name;
+            return string.IsNullOrWhiteSpace(username) ? 0 : _officeBal.GetOfficeIdByUsername(username);
         }
 
         [HttpGet]
@@ -613,21 +624,13 @@ namespace RiceMillProject.Controllers
                     return NotFound();
                 }
 
-                // Meth ka work complete hone ke baad hi
-                // Supervisor action lega
-                if (unload.Status != "Unloaded")
-                {
-                    TempData["ErrorMessage"] =
-                        "This RST is not ready for Supervisor action.";
-
-                    return RedirectToAction("Index");
-                }
-
                 var model = new SupervisorUnloadActionViewModel
                 {
                     UnloadId = unload.UnloadId,
 
                     RSTNumber = unload.RSTNumber ?? "",
+
+                    AssignedDateTime = unload.UnloadTime,
 
                     VehicleNumber = unload.VehicleNumber ?? "",
 
@@ -639,9 +642,13 @@ namespace RiceMillProject.Controllers
 
                     LocationName = unload.LocationName ?? "",
 
+                    AssignedLocationIds = _unloadBal.GetAssignedLocationIds(unload.UnloadId),
+
                     MethName = unload.MethName ?? "",
 
-                    MethTotalBags = unload.NumberOfBags ?? 0
+                    MethTotalBags = unload.NumberOfBags ?? 0,
+                    IsWorkerWorkCompleted = unload.IsWorkerWorkCompleted,
+                    IsFieldDetailsCompleted = unload.IsSupervisorActionCompleted
                 };
 
 
@@ -667,12 +674,18 @@ namespace RiceMillProject.Controllers
                 var bagTypeTable =
                     _bagBal.GetActiveBagTypes();
 
-                ViewBag.BagTypes =
-                    new SelectList(
-                        bagTypeTable.DefaultView,
-                        "BagTypeId",
-                        "BagTypeName"
-                    );
+                ViewBag.BagTypes = bagTypeTable.AsEnumerable()
+                    .Select(row => new SelectListItem
+                    {
+                        Value = row["BagTypeId"]?.ToString() ?? "",
+                        Text = row["BagTypeName"]?.ToString() ?? ""
+                    })
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                    .ToList();
+
+                var assignedLocationIds = model.AssignedLocationIds.ToHashSet();
+                ViewBag.CompanyLocations = _locationBal.GetCompanyUnloadingLocations(GetCurrentOfficeId())
+                    .Where(x => assignedLocationIds.Contains(x.LocationId)).ToList();
 
 
                 return View(model);
@@ -733,19 +746,6 @@ namespace RiceMillProject.Controllers
 
 
                 // =====================================================
-                // METH WORK MUST BE COMPLETE
-                // =====================================================
-
-                if (unload.Status != "Unloaded")
-                {
-                    TempData["ErrorMessage"] =
-                        "Meth work is not completed for this RST.";
-
-                    return RedirectToAction("Index");
-                }
-
-
-                // =====================================================
                 // CLEAN CATEGORY ROWS
                 // =====================================================
 
@@ -755,6 +755,8 @@ namespace RiceMillProject.Controllers
                             x.CategoryId > 0
                             &&
                             x.ItemId > 0
+                            &&
+                            x.LocationId > 0
                             &&
                             x.BagTypeId > 0
                             &&
@@ -790,6 +792,7 @@ namespace RiceMillProject.Controllers
                         {
                             x.CategoryId,
                             x.ItemId,
+                            x.LocationId,
                             x.BagTypeId
                         })
                         .Any(g => g.Count() > 1);
@@ -798,7 +801,7 @@ namespace RiceMillProject.Controllers
                 if (duplicateExists)
                 {
                     TempData["ErrorMessage"] =
-                        "Same Category, Item and Bag Type cannot be entered twice.";
+                        "Same Category, Item, Location and Bag Type cannot be entered twice.";
 
                     return RedirectToAction(
                         nameof(SupervisorAction),
@@ -814,43 +817,24 @@ namespace RiceMillProject.Controllers
                 // SUPERVISOR TOTAL
                 // =====================================================
 
-                int supervisorTotal =
-                    rows.Sum(x => x.BagCount);
-
-
-                // Hidden MethTotalBags par trust nahi kar rahe
-                // DB ki value use hogi
-                int methTotal =
-                    unload.NumberOfBags ?? 0;
-
-
-                if (methTotal <= 0)
+                var locationRows = (model.LocationRows ?? new List<SupervisorUnloadLocationRow>())
+                    .SelectMany(x => (x.BagRows ?? new List<SupervisorUnloadLocationBagRow>())
+                        .Select(b => new SupervisorUnloadLocationBagRow { LocationId = x.LocationId, BagTypeId = b.BagTypeId, BagCount = b.BagCount }))
+                    .Where(x => x.LocationId > 0 && x.BagTypeId > 0 && x.BagCount > 0)
+                    .ToList();
+                if (locationRows.Count == 0)
                 {
-                    TempData["ErrorMessage"] =
-                        "Meth bag total is not available.";
-
-                    return RedirectToAction(
-                        nameof(SupervisorAction),
-                        new
-                        {
-                            id = model.UnloadId
-                        }
-                    );
+                    TempData["ErrorMessage"] = "Please enter at least one positive location bag detail.";
+                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
                 }
 
-
-                if (supervisorTotal != methTotal)
+                int legacyStackTotal = model.StackPP + model.StackJute + model.HaudiPP + model.HaudiJute;
+                int locationTotal = locationRows.Sum(x => x.BagCount) + legacyStackTotal;
+                int materialTotal = rows.Sum(x => x.BagCount);
+                if (locationTotal != materialTotal)
                 {
-                    TempData["ErrorMessage"] =
-                        $"Supervisor total ({supervisorTotal}) must match Meth total ({methTotal}).";
-
-                    return RedirectToAction(
-                        nameof(SupervisorAction),
-                        new
-                        {
-                            id = model.UnloadId
-                        }
-                    );
+                    TempData["ErrorMessage"] = $"Location Total ({locationTotal}) must equal Material Total ({materialTotal}).";
+                    return RedirectToAction(nameof(SupervisorAction), new { id = model.UnloadId });
                 }
 
 
@@ -866,7 +850,8 @@ namespace RiceMillProject.Controllers
                         model.StackJute,
                         model.HaudiPP,
                         model.HaudiJute,
-                        rows
+                        rows,
+                        locationRows
                     );
 
 
@@ -882,8 +867,7 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
-                TempData["SuccessMessage"] =
-                    $"RST {unload.RSTNumber} Supervisor details saved successfully.";
+                TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
 
                 return RedirectToAction("Index");
             }
@@ -935,7 +919,7 @@ namespace RiceMillProject.Controllers
                             supervisorId
                         );
 
-                return View(records);
+                return View(records.OrderByDescending(r => r.UnloadTime ?? DateTime.MinValue).ThenByDescending(r => r.UnloadId).ToList());
             }
             catch (Exception ex)
             {
@@ -992,6 +976,616 @@ namespace RiceMillProject.Controllers
                     success = false,
                     message = ex.Message,
                     items = Array.Empty<object>()
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult SupervisorMethWork(int id)
+        {
+            try
+            {
+                int supervisorId = GetCurrentPersonId();
+
+                if (supervisorId <= 0)
+                {
+                    return Forbid();
+                }
+
+                // =====================================================
+                // UNLOAD / RST FIND
+                // =====================================================
+
+                var unload = _unloadBal
+                    .GetAllUnloading()
+                    .FirstOrDefault(x => x.UnloadId == id);
+
+                if (unload == null)
+                {
+                    TempData["ErrorMessage"] =
+                        "Unloading record was not found.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // ONLY ASSIGNED SUPERVISOR CAN ENTER WORK
+                // =====================================================
+
+                if (unload.SupervisorId != supervisorId)
+                {
+                    return Forbid();
+                }
+
+
+                // =====================================================
+                // METH MUST BE ASSIGNED
+                // =====================================================
+
+                if (unload.MethId <= 0)
+                {
+                    TempData["ErrorMessage"] =
+                        "Meth is not assigned for this RST.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // LOCATION MUST BE ASSIGNED
+                // =====================================================
+
+                if (unload.LocationId <= 0)
+                {
+                    TempData["ErrorMessage"] =
+                        "Unloading location is not assigned for this RST.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // WORK ALREADY ENTERED
+                // =====================================================
+
+                if (string.Equals(
+                        unload.Status,
+                        "Unloaded",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["ErrorMessage"] =
+                        "Worker-wise unloading work has already been entered.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // GET WORKERS UNDER ASSIGNED METH
+                // =====================================================
+
+                var workers =
+                    _unloadBal
+                        .GetWorkersByMeth(
+                            unload.MethId
+                        );
+
+
+                unload.WorkerRows =
+                    workers
+                        .Select(w =>
+                            new WorkerAllocation
+                            {
+                                UnloadId = unload.UnloadId,
+
+                                WorkerId = w.PersonId,
+
+                                WorkerName =
+                                    w.PersonName ?? ""
+                            }
+                        )
+                        .ToList();
+
+
+                // =====================================================
+                // BAG TYPES
+                // Existing project method use kar rahe hain
+                // =====================================================
+
+                ViewBag.BagTypes =
+                    new SelectList(
+                        _bagBal.GetAllBagTypes(),
+                        "BagTypeId",
+                        "BagTypeName"
+                    );
+
+
+                return View(unload);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] =
+                    "Unable to load labour work entry page: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    nameof(MethWorkRegister)
+                );
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SupervisorMethWork(
+    UnloadTransaction model)
+        {
+            try
+            {
+                int supervisorId =
+                    GetCurrentPersonId();
+
+                if (supervisorId <= 0)
+                {
+                    return Forbid();
+                }
+
+
+                // =====================================================
+                // UNLOAD VERIFY
+                // =====================================================
+
+                var unload =
+                    _unloadBal
+                        .GetAllUnloading()
+                        .FirstOrDefault(
+                            x =>
+                                x.UnloadId
+                                ==
+                                model.UnloadId
+                        );
+
+
+                if (unload == null)
+                {
+                    TempData["ErrorMessage"] =
+                        "Unloading record was not found.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // ASSIGNED SUPERVISOR VERIFY
+                // =====================================================
+
+                if (unload.SupervisorId != supervisorId)
+                {
+                    return Forbid();
+                }
+
+
+                // =====================================================
+                // ALREADY COMPLETED
+                // =====================================================
+
+                if (
+                    string.Equals(
+                        unload.Status,
+                        "Unloaded",
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                {
+                    TempData["ErrorMessage"] =
+                        "Labour work details have already been entered.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // METH VERIFY
+                // =====================================================
+
+                if (unload.MethId <= 0)
+                {
+                    TempData["ErrorMessage"] =
+                        "Meth is not assigned for this RST.";
+
+                    return RedirectToAction(
+                        nameof(MethWorkRegister)
+                    );
+                }
+
+
+                // =====================================================
+                // GET VALID WORKERS UNDER ASSIGNED METH
+                // =====================================================
+
+                var methWorkers =
+                    _unloadBal
+                        .GetWorkersByMeth(
+                            unload.MethId
+                        );
+
+
+                var validWorkerIds =
+                    methWorkers
+                        .Select(
+                            x => x.PersonId
+                        )
+                        .ToHashSet();
+
+
+                // =====================================================
+                // GET POSTED WORK ROWS
+                // Ignore completely blank rows
+                // =====================================================
+
+                var rows =
+                    model.WorkerRows?
+                        .Where(
+                            x =>
+                                x.WorkerId > 0
+                                &&
+                                (
+                                    !string.IsNullOrWhiteSpace(
+                                        x.WorkType
+                                    )
+                                    ||
+                                    x.BagTypeId.GetValueOrDefault() > 0
+                                    ||
+                                    x.BagCount > 0
+                                    ||
+                                    x.PerBagCharge > 0
+                                )
+                        )
+                        .ToList()
+                    ??
+                    new List<WorkerAllocation>();
+
+
+                if (rows.Count == 0)
+                {
+                    TempData["ErrorMessage"] =
+                        "Please enter work details for at least one worker.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorMethWork),
+                        new
+                        {
+                            id = model.UnloadId
+                        }
+                    );
+                }
+
+
+                // =====================================================
+                // SERVER SIDE VALIDATION
+                // =====================================================
+
+                foreach (var row in rows)
+                {
+                    if (
+                        !validWorkerIds.Contains(
+                            row.WorkerId
+                        )
+                    )
+                    {
+                        TempData["ErrorMessage"] =
+                            "Invalid worker selected.";
+
+                        return RedirectToAction(
+                            nameof(SupervisorMethWork),
+                            new
+                            {
+                                id = model.UnloadId
+                            }
+                        );
+                    }
+
+
+                    // Support old + new naming
+                    string workType =
+                        row.WorkType?
+                            .Trim()
+                        ?? "";
+
+
+                    if (
+                        workType.Equals(
+                            "Load",
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+                    {
+                        workType =
+                            "Loading";
+                    }
+                    else if (
+                        workType.Equals(
+                            "Unload",
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+                    {
+                        workType =
+                            "Unloading";
+                    }
+
+
+                    if (
+                        workType != "Loading"
+                        &&
+                        workType != "Unloading"
+                    )
+                    {
+                        TempData["ErrorMessage"] =
+                            $"Please select Loading or Unloading for {row.WorkerName}.";
+
+                        return RedirectToAction(
+                            nameof(SupervisorMethWork),
+                            new
+                            {
+                                id = model.UnloadId
+                            }
+                        );
+                    }
+
+
+                    row.WorkType =
+                        workType;
+
+
+                    if (
+                        row.BagTypeId.GetValueOrDefault()
+                        <= 0
+                    )
+                    {
+                        TempData["ErrorMessage"] =
+                            $"Please select Bag Type for {row.WorkerName}.";
+
+                        return RedirectToAction(
+                            nameof(SupervisorMethWork),
+                            new
+                            {
+                                id = model.UnloadId
+                            }
+                        );
+                    }
+
+
+                    if (row.BagCount <= 0)
+                    {
+                        TempData["ErrorMessage"] =
+                            $"Bag Count must be greater than zero for {row.WorkerName}.";
+
+                        return RedirectToAction(
+                            nameof(SupervisorMethWork),
+                            new
+                            {
+                                id = model.UnloadId
+                            }
+                        );
+                    }
+
+
+                    if (row.PerBagCharge < 0)
+                    {
+                        TempData["ErrorMessage"] =
+                            $"Invalid Per Bag Charge for {row.WorkerName}.";
+
+                        return RedirectToAction(
+                            nameof(SupervisorMethWork),
+                            new
+                            {
+                                id = model.UnloadId
+                            }
+                        );
+                    }
+                }
+
+
+                // =====================================================
+                // DUPLICATE ROW CHECK
+                // Same Worker + Work + Bag Type
+                // =====================================================
+
+                bool duplicateExists =
+                    rows
+                        .GroupBy(
+                            x => new
+                            {
+                                x.WorkerId,
+
+                                WorkType =
+                                    x.WorkType
+                                        .ToLower(),
+
+                                BagTypeId =
+                                    x.BagTypeId
+                                        .GetValueOrDefault()
+                            }
+                        )
+                        .Any(
+                            g => g.Count() > 1
+                        );
+
+
+                if (duplicateExists)
+                {
+                    TempData["ErrorMessage"] =
+                        "Same Worker, Work Type and Bag Type cannot be entered twice.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorMethWork),
+                        new
+                        {
+                            id = model.UnloadId
+                        }
+                    );
+                }
+
+
+                // =====================================================
+                // SAVE EACH WORKER ENTRY
+                // =====================================================
+
+                foreach (var row in rows)
+                {
+                    int allocationId =
+                        _unloadBal
+                            .SaveWorkerAllocation(
+                                model.UnloadId,
+                                row.WorkerId,
+                                row.WorkType,
+                                row.BagTypeId
+                                    .GetValueOrDefault(),
+                                row.BagCount,
+                                row.PerBagCharge
+                            );
+
+
+                    if (allocationId <= 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"Work details could not be saved for {row.WorkerName}."
+                        );
+                    }
+                }
+
+
+                // =====================================================
+                // FINALIZE WORK ENTRY
+                // Total bags calculate + Status = Unloaded
+                // =====================================================
+
+                _unloadBal
+                    .FinalizeSupervisorMethWork(
+                        model.UnloadId,
+                        supervisorId
+                    );
+
+
+                // =====================================================
+                // SUCCESS
+                // =====================================================
+
+                TempData["SuccessMessage"] =
+                    $"Labour work details saved successfully for RST {unload.RSTNumber}.";
+
+
+                return RedirectToAction(
+                    nameof(MethWorkRegister)
+                );
+            }
+            catch (SqlException ex)
+            {
+                TempData["ErrorMessage"] =
+                    ex.Message;
+
+                return RedirectToAction(
+                    nameof(SupervisorMethWork),
+                    new
+                    {
+                        id = model.UnloadId
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] =
+                    "Unable to save labour work details: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    nameof(SupervisorMethWork),
+                    new
+                    {
+                        id = model.UnloadId
+                    }
+                );
+            }
+        }
+        [HttpGet]
+        public IActionResult GetItemCategories()
+        {
+            try
+            {
+                var dt = _itemBal.GetActiveItemCategories();
+
+                var categories = dt
+                    .AsEnumerable()
+                    .Select(row => new
+                    {
+                        categoryId = Convert.ToInt32(
+                            row["CategoryId"]
+                        ),
+
+                        categoryName =
+                            row["CategoryName"]?.ToString()
+                            ?? ""
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    categories = categories
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    categories = Array.Empty<object>()
+                });
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult GetBagTypes()
+        {
+            try
+            {
+                var data =
+                    _bagBal.GetAllBagTypes();
+
+                var bagTypes =
+                    data.Select(x => new
+                    {
+                        bagTypeId = x.BagTypeId,
+                        bagTypeName = x.BagTypeName
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    bagTypes = bagTypes
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    bagTypes = Array.Empty<object>()
                 });
             }
         }

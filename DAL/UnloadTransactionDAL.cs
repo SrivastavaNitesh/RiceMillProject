@@ -52,12 +52,28 @@ namespace RiceMillProject.DAL
             string query = @"
 SELECT
     u.*,
+    ge.VehicleId,
+    v.VehicleNumber,
+    p.PersonName AS PartyName,
+    o.OfficeName,
     s.PersonName AS SupervisorName,
     m.PersonName AS MethName,
     b.BagTypeName,
     i.ItemName,
-    l.LocationName
+    COALESCE(assigned.LocationName, l.LocationName) AS LocationName
 FROM dbo.t_UnloadTransaction u
+
+LEFT JOIN dbo.t_GateEntry ge
+    ON ge.RSTNumber = u.RSTNumber
+
+LEFT JOIN dbo.m_Vehicle v
+    ON v.VehicleId = ge.VehicleId
+
+LEFT JOIN dbo.P02_Person p
+    ON p.PersonId = ge.PartyId
+
+LEFT JOIN dbo.o05_office o
+    ON o.OfficeId = ge.TargetOfficeId
 
 LEFT JOIN dbo.P02_Person s
     ON u.SupervisorId = s.PersonId
@@ -73,6 +89,15 @@ LEFT JOIN dbo.m_Item i
 
 LEFT JOIN dbo.m_LocationMaster l
     ON u.LocationId = l.LocationId
+
+OUTER APPLY (
+    SELECT STRING_AGG(CONVERT(nvarchar(max), lm.LocationName), ', ')
+           WITHIN GROUP (ORDER BY lm.LocationName) AS LocationName
+    FROM dbo.t_UnloadLocation ul
+    INNER JOIN dbo.m_LocationMaster lm ON lm.LocationId = ul.LocationId
+    WHERE ul.UnloadId = u.UnloadId
+      AND ul.IsActive = 1
+) assigned
 
 ORDER BY u.UnloadId DESC;";
 
@@ -97,6 +122,24 @@ ORDER BY u.UnloadId DESC;";
                         RSTNumber =
                             reader["RSTNumber"]
                                 ?.ToString() ?? "",
+
+                        VehicleNumber =
+                            HasColumn(reader, "VehicleNumber") &&
+                            reader["VehicleNumber"] != DBNull.Value
+                                ? reader["VehicleNumber"].ToString() ?? ""
+                                : "",
+
+                        PartyName =
+                            HasColumn(reader, "PartyName") &&
+                            reader["PartyName"] != DBNull.Value
+                                ? reader["PartyName"].ToString() ?? ""
+                                : "",
+
+                        OfficeName =
+                            HasColumn(reader, "OfficeName") &&
+                            reader["OfficeName"] != DBNull.Value
+                                ? reader["OfficeName"].ToString() ?? ""
+                                : "",
 
                         LocationId =
                             HasColumn(reader, "LocationId") &&
@@ -197,6 +240,18 @@ ORDER BY u.UnloadId DESC;";
             }
 
             return list;
+        }
+
+        public List<int> GetAssignedLocationIds(int unloadId)
+        {
+            var ids = new List<int>();
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("SELECT LocationId FROM dbo.t_UnloadLocation WHERE UnloadId=@UnloadId AND IsActive=1", con);
+            cmd.Parameters.AddWithValue("@UnloadId", unloadId);
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read()) ids.Add(Convert.ToInt32(reader["LocationId"]));
+            return ids;
         }
 
 
@@ -328,7 +383,7 @@ ORDER BY u.UnloadId DESC;";
         // Supervisor assigns Meth + Location
         // ============================================================
 
-        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId)
+        public int AssignUnloading(string rstNumber,int supervisorId,int methId,int? itemId,int locationId,int[]? locationIds = null, int officeId = 0)
         {
             int unloadId = 0;
 
@@ -364,6 +419,7 @@ ORDER BY u.UnloadId DESC;";
                 "@LocationId",
                 SqlDbType.Int
             ).Value = locationId;
+            cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
 
             con.Open();
 
@@ -375,6 +431,18 @@ ORDER BY u.UnloadId DESC;";
             {
                 unloadId =
                     Convert.ToInt32(result);
+            }
+
+            if (unloadId > 0 && locationIds != null && locationIds.Length > 0)
+            {
+                using SqlCommand locationCmd = new SqlCommand("sp_SaveUnloadLocations", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                locationCmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+                locationCmd.Parameters.Add("@LocationIds", SqlDbType.NVarChar, -1).Value =
+                    JsonSerializer.Serialize(locationIds.Where(x => x > 0).Distinct());
+                locationCmd.ExecuteNonQuery();
             }
 
             return unloadId;
@@ -476,47 +544,99 @@ ORDER BY u.UnloadId DESC;";
         // OLD WORKER ALLOCATION
         // ============================================================
 
-        public bool SaveWorkerAllocation(
-            int unloadId,
-            int workerId,
-            decimal palledariAmount)
+        public int SaveWorkerAllocation(
+      int unloadId,
+      int workerId,
+      string workType,
+      int bagTypeId,
+      int bagCount,
+      decimal perBagCharge)
         {
             using SqlConnection con =
-                new SqlConnection(
-                    _connectionString);
+                new SqlConnection(_connectionString);
 
             using SqlCommand cmd =
                 new SqlCommand(
                     "sp_SaveWorkerAllocation",
-                    con);
+                    con
+                );
 
             cmd.CommandType =
                 CommandType.StoredProcedure;
 
+
             cmd.Parameters.Add(
                 "@UnloadId",
                 SqlDbType.Int
-            ).Value = unloadId;
+            ).Value =
+                unloadId;
+
 
             cmd.Parameters.Add(
                 "@WorkerId",
                 SqlDbType.Int
-            ).Value = workerId;
+            ).Value =
+                workerId;
+
 
             cmd.Parameters.Add(
-                "@PalledariAmount",
+                "@WorkType",
+                SqlDbType.NVarChar,
+                20
+            ).Value =
+                workType;
+
+
+            cmd.Parameters.Add(
+                "@BagTypeId",
+                SqlDbType.Int
+            ).Value =
+                bagTypeId;
+
+
+            cmd.Parameters.Add(
+                "@BagCount",
+                SqlDbType.Int
+            ).Value =
+                bagCount;
+
+
+            cmd.Parameters.Add(
+                "@PerBagCharge",
                 SqlDbType.Decimal
-            ).Value = palledariAmount;
+            ).Value =
+                perBagCharge;
+
+            cmd.Parameters["@PerBagCharge"]
+                .Precision = 18;
+
+            cmd.Parameters["@PerBagCharge"]
+                .Scale = 2;
+
 
             con.Open();
 
-            int rowsAffected =
-                cmd.ExecuteNonQuery();
 
-            return rowsAffected > 0;
+            object? result =
+                cmd.ExecuteScalar();
+
+
+            if (
+                result == null
+                ||
+                result == DBNull.Value
+            )
+            {
+                throw new InvalidOperationException(
+                    "Worker allocation could not be saved."
+                );
+            }
+
+
+            return Convert.ToInt32(
+                result
+            );
         }
-
-
         // ============================================================
         // SAVE UNLOAD LOCATION
         // ============================================================
@@ -842,7 +962,8 @@ ORDER BY u.UnloadId DESC;";
     int stackJute,
     int haudiPP,
     int haudiJute,
-    List<SupervisorUnloadCategoryRow> categoryRows)
+    List<SupervisorUnloadCategoryRow> categoryRows,
+    List<SupervisorUnloadLocationBagRow> locationRows)
         {
             string detailJson =
                 JsonSerializer.Serialize(categoryRows);
@@ -905,6 +1026,9 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.NVarChar,
                 -1
             ).Value = detailJson;
+
+            cmd.Parameters.Add("@LocationDetailJson", SqlDbType.NVarChar, -1).Value =
+                JsonSerializer.Serialize(locationRows ?? new List<SupervisorUnloadLocationBagRow>());
 
 
             // =====================================================
@@ -1020,6 +1144,11 @@ ORDER BY u.UnloadId DESC;";
                                 ?.ToString()
                             ?? "",
 
+                        UnloadTime =
+                            reader["UnloadTime"] != DBNull.Value
+                                ? Convert.ToDateTime(reader["UnloadTime"])
+                                : null,
+
                         MethName =
                             reader["MethName"]
                                 ?.ToString()
@@ -1051,12 +1180,51 @@ ORDER BY u.UnloadId DESC;";
                                 &&
                                 Convert.ToBoolean(
                                     reader["IsSupervisorActionCompleted"]
-                                )
+                                ),
+                        IsWorkerWorkCompleted =
+                            HasColumn(reader, "IsWorkerWorkCompleted") &&
+                            reader["IsWorkerWorkCompleted"] != DBNull.Value &&
+                            Convert.ToBoolean(reader["IsWorkerWorkCompleted"])
                     }
                 );
             }
 
             return list;
+        }
+        public void FinalizeSupervisorMethWork(
+    int unloadId,
+    int supervisorId)
+        {
+            using SqlConnection con =
+                new SqlConnection(_connectionString);
+
+            using SqlCommand cmd =
+                new SqlCommand(
+                    "sp_FinalizeSupervisorMethWork",
+                    con
+                );
+
+            cmd.CommandType =
+                CommandType.StoredProcedure;
+
+
+            cmd.Parameters.Add(
+                "@UnloadId",
+                SqlDbType.Int
+            ).Value =
+                unloadId;
+
+
+            cmd.Parameters.Add(
+                "@SupervisorId",
+                SqlDbType.Int
+            ).Value =
+                supervisorId;
+
+
+            con.Open();
+
+            cmd.ExecuteNonQuery();
         }
     }
 }

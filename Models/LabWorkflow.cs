@@ -5,10 +5,30 @@ namespace RiceMillProject.Models;
 public class LabTestMaster
 {
     public int TestId { get; set; }
-    [Required, StringLength(120)] public string TestName { get; set; } = "";
-    [StringLength(30)] public string? Unit { get; set; }
-    [RegularExpression("Number|Text")] public string ResultType { get; set; } = "Number";
-    [StringLength(500)] public string? Description { get; set; }
+
+    [Required]
+    [StringLength(120)]
+    public string TestName { get; set; } = "";
+
+    [StringLength(30)]
+    public string? Unit { get; set; }
+
+    [RegularExpression("Number|Text")]
+    public string ResultType { get; set; } = "Number";
+
+    [StringLength(500)]
+    public string? Description { get; set; }
+
+    // Deduction amount - maximum 3 digits
+    [Range(0, 999, ErrorMessage = "Deduction must be between 0 and 999.")]
+    public int? Deducations { get; set; }
+
+    // tbl_Masterofunit.UnitId
+    public int? UnitId { get; set; }
+
+    // Display purpose - tbl_Masterofunit.UnitName
+    public string? UnitName { get; set; }
+
     public bool IsActive { get; set; } = true;
 }
 
@@ -34,6 +54,7 @@ public class LabItemOption
 
 public class LabRstSummary
 {
+    public int? LatestReportId { get; set; }
     public string RSTNumber { get; set; } = "";
     public string VehicleNumber { get; set; } = "";
     public string PartyName { get; set; } = "";
@@ -41,6 +62,7 @@ public class LabRstSummary
     public int RequiredTests { get; set; }
     public int CompletedTests { get; set; }
     public int UnmappedItems { get; set; }
+    public bool IsComplete => ItemCount > 0 && UnmappedItems == 0 && RequiredTests > 0 && CompletedTests >= RequiredTests;
 }
 
 public class LabResultInput
@@ -68,9 +90,18 @@ public class LabTestMasterPage
     public List<LabTestMaster> Tests { get; set; } = [];
 }
 
+public class LabItemTestSelection
+{
+    public int MappingId { get; set; }
+    [Range(1, int.MaxValue)] public int CategoryId { get; set; }
+    [Range(1, int.MaxValue)] public int ItemId { get; set; }
+    public List<int> SelectedTestIds { get; set; } = [];
+    public List<int> OriginalTestIds { get; set; } = [];
+}
+
 public class LabMappingPage
 {
-    public LabItemTestMapping Form { get; set; } = new();
+    public LabItemTestSelection Form { get; set; } = new();
     public List<LabItemTestMapping> Mappings { get; set; } = [];
     public List<LabItemOption> Items { get; set; } = [];
     public List<LabTestMaster> Tests { get; set; } = [];
@@ -105,4 +136,22 @@ public class LabReportsPage
     [DataType(DataType.Date)] public DateTime? From { get; set; }
     [DataType(DataType.Date)] public DateTime? To { get; set; }
     public List<LabReport> Reports { get; set; } = [];
+}
+
+public class LabReportEdit
+{
+    public int ReportId { get; set; }
+    public string RSTNumber { get; set; } = "";
+    [Required] public string Version { get; set; } = "";
+    [StringLength(1000)] public string? Remarks { get; set; }
+    public List<LabReportEditResult> Results { get; set; } = [];
+}
+
+public class LabReportEditResult
+{
+    public int ResultId { get; set; }
+    public string ItemName { get; set; } = "";
+    public string TestName { get; set; } = "";
+    public string Unit { get; set; } = "";
+    [Required, StringLength(500)] public string Value { get; set; } = "";
 }

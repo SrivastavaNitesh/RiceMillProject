@@ -1,10 +1,8 @@
-<div class="d-flex flex-wrap gap-2 mb-4 d-print-none">
-    <a asp-controller="Lab" asp-action="Index" class="btn btn-outline-primary">RST quality checks</a>
-    <a asp-controller="Lab" asp-action="Tests" class="btn btn-outline-primary">Test master</a>
-    <a asp-controller="Lab" asp-action="Mappings" class="btn btn-outline-primary">Item test mapping</a>
-    <a asp-controller="Lab" asp-action="Reports" class="btn btn-outline-primary">Lab reports</a>
-</div>
 @if (TempData["LabSuccess"] is string message)
 {
-    <div class="alert alert-success d-print-none" role="status">@message</div>
+    <div class="alert alert-success d-print-none" role="status"><strong>Saved successfully.</strong> @message</div>
+}
+@if (TempData["LabInfo"] is string info)
+{
+    <div class="alert alert-info d-print-none" role="status">@info</div>
 }
