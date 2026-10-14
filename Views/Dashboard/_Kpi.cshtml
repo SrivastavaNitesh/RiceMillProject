@@ -1,0 +1,10 @@
+@model RiceMillProject.Models.DashboardKpi
+<div class="col-xxl-3 col-xl-4 col-md-6">
+    <div class="kpi-card kpi-@Model.Tone @(Model.DrilldownStage != null ? "kpi-drill" : "")" data-stage="@Model.DrilldownStage" role="@(Model.DrilldownStage != null ? "button" : null)" tabindex="@(Model.DrilldownStage != null ? "0" : null)">
+        <div><div class="kpi-title">@Model.Title</div><div class="kpi-value">@Model.Value</div></div>
+        <div class="kpi-icon"><i class="bi @Model.Icon"></i></div>
+    </div>
+</div>
+<style>
+    .kpi-card{--tone:#2563eb;display:flex;justify-content:space-between;align-items:center;height:100%;min-height:104px;padding:18px;background:#fff;border:1px solid #edf0f4;border-left:5px solid var(--tone);border-radius:14px;box-shadow:0 3px 14px rgba(15,23,42,.06)}.kpi-drill{cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}.kpi-drill:hover,.kpi-drill:focus{transform:translateY(-2px);box-shadow:0 8px 22px rgba(15,23,42,.12);outline:2px solid color-mix(in srgb,var(--tone) 25%,transparent);outline-offset:2px}.kpi-title{font-size:.74rem;color:#667085;text-transform:uppercase;font-weight:700;letter-spacing:.045em}.kpi-value{margin-top:5px;font-size:1.65rem;font-weight:800;color:#172033}.kpi-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:color-mix(in srgb,var(--tone) 12%,white);color:var(--tone);font-size:1.35rem}.kpi-amber{--tone:#d97706}.kpi-indigo{--tone:#4f46e5}.kpi-green{--tone:#16a34a}.kpi-cyan{--tone:#0891b2}.kpi-orange{--tone:#ea580c}.kpi-purple{--tone:#9333ea}.kpi-slate{--tone:#334155}
+</style>

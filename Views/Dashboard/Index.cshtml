@@ -1,220 +1,285 @@
 @model RiceMillProject.Models.DashboardStats
+@using System.Text.Json
 @{
-    ViewData["Title"] = "Operations Dashboard";
-    var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
+    ViewData["Title"] = "Company Dashboard";
+    var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 }
 
-<div class="container-fluid py-2">
-    <!-- PAGE HEADER  var(--agro-accent) !important-->
-    <div class="erp-page-header d-flex justify-content-between align-items-center mb-4 p-3 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white;">
+<div class="container-fluid py-2 admin-dashboard">
+    <div class="dashboard-hero mb-3">
         <div>
-            <h3 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2"></i>Annapurna Agro Pvt Ltd Operations Dashboard</h3>
-            <p class="mb-0 opacity-75 small">Welcome back, <strong>@(User.Identity?.Name ?? "User")</strong> | Assigned Role: <span class="badge bg-light text-primary fw-bold">@userRole</span></p>
+            <div class="text-uppercase small opacity-75 fw-semibold">Company Management Dashboard</div>
+            <h3 class="mb-1 fw-bold">@Model.OfficeName</h3>
+            <div class="small opacity-75">Recorded inward, RST, unloading, lab aur billing data</div>
         </div>
-        <div class="text-end">
-            <div class="d-flex align-items-center bg-white px-3 py-2 rounded-pill shadow-sm text-dark fw-bold small">
-                <i class="bi bi-calendar-event me-2 text-primary fs-6"></i>
-                <span class="text-dark">@DateTime.Now.ToString("dd MMM yyyy")</span>
-                <span class="mx-2 text-muted">|</span>
-                <i class="bi bi-clock me-1 text-primary"></i>
-                <span class="text-dark">@DateTime.Now.ToString("hh:mm tt")</span>
-            </div>
-        </div>
+        <div class="text-end small"><i class="bi bi-clock-history me-1"></i>Updated @Model.AsOf.ToString("dd MMM yyyy, hh:mm tt")</div>
     </div>
 
-    <!-- MAIN KPI STAT CARDS FOR ALL USERS / ADMIN -->
-    <div class="row g-3 mb-4">
-        <!-- Card 1: Total Gate Entries -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden" style="border-left: 5px solid #2563eb !important; background: #ffffff;">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-uppercase text-muted fw-bold small">Total Gate Vehicles</span>
-                        <div class="rounded-circle p-2  bg-opacity-10 text-primary" style="background:#d9e6e5 !important;">
-                            <i class="bi bi-truck fs-4"></i>
-                        </div>
-                    </div>
-                    <h2 class="display-6 fw-extrabold mb-1 text-dark">@Model.TotalEntered</h2>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
-                        <span class="small text-muted">Inward trips (including RST)</span>
-                        <a asp-controller="Gateman" asp-action="Report" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">View Log <i class="bi bi-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
+    <form method="get" class="card border-0 shadow-sm rounded-4 mb-3">
+        <div class="card-body py-3 d-flex flex-wrap align-items-end gap-3">
+            <div><label class="form-label small fw-semibold mb-1">From date</label><input type="date" class="form-control" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" /></div>
+            <div><label class="form-label small fw-semibold mb-1">To date</label><input type="date" class="form-control" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" /></div>
+            <button class="btn btn-primary px-4"><i class="bi bi-funnel me-1"></i>Apply</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Last 30 days</a>
+            <div class="ms-auto text-muted small">Reporting period: <strong class="text-dark">@Model.FromDate.ToString("dd MMM") – @Model.ToDate.ToString("dd MMM yyyy")</strong></div>
         </div>
+    </form>
 
-        <!-- Card 2: Pending Unload -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden" style="border-left: 5px solid #16a34a !important; background: #ffffff;">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-uppercase text-muted fw-bold small">Pending Unloading</span>
-                        <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-box-seam fs-4"></i>
-                        </div>
-                    </div>
-                    <h2 class="display-6 fw-extrabold mb-1 text-dark">@Model.PendingUnload</h2>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
-                        <span class="small text-muted">Godown & Silos</span>
-                        <a asp-controller="Unload" asp-action="Index" class="btn btn-sm btn-outline-success rounded-pill py-0 px-2 small">Go to Unload <i class="bi bi-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 3: Pending Lab Check -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden" style="border-left: 5px solid #d97706 !important; background: #ffffff;">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-uppercase text-muted fw-bold small">Pending Lab Tests</span>
-                        <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-droplet-half fs-4"></i>
-                        </div>
-                    </div>
-                    <h2 class="display-6 fw-extrabold mb-1 text-dark">@Model.PendingLab</h2>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
-                        <span class="small text-muted">Moisture & Quality</span>
-                        <a asp-controller="Lab" asp-action="Index" class="btn btn-sm btn-outline-warning text-dark rounded-pill py-0 px-2 small">Open Lab <i class="bi bi-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 4: Pending Settlement -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden" style="border-left: 5px solid #0f172a !important; background: #ffffff;">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-uppercase text-muted fw-bold small">Pending Billing</span>
-                        <div class="rounded-circle p-2 bg-dark bg-opacity-10 text-dark">
-                            <i class="bi bi-receipt fs-4"></i>
-                        </div>
-                    </div>
-                    <h2 class="display-6 fw-extrabold mb-1 text-dark">@Model.PendingSettlement</h2>
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
-                        <span class="small text-muted">Farmer Payment Slips</span>
-                        <a asp-controller="Settlement" asp-action="Index" class="btn btn-sm btn-outline-dark rounded-pill py-0 px-2 small">View Billing <i class="bi bi-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="row g-3 mb-3">
+        <partial name="_Kpi" model='new DashboardKpi { Title="Inward Entries (Selected Period)", Value=Model.TodayInwardEntries.ToString("N0"), Icon="bi-truck", Tone="blue" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Inward Pending for RST", Value=Model.PendingWeighmentRst.ToString("N0"), Icon="bi-speedometer2", Tone="amber" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Open RST / Final RST", Value=$"{Model.ActiveRst:N0} / {Model.FinalRst:N0}", Icon="bi-file-earmark-check", Tone="indigo" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Declared Inward Bags", Value=Model.TodayTotalBags.ToString("N0"), Icon="bi-box-seam", Tone="green" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Declared Inward Weight", Value=$"{Model.TodayTotalWeight / 1000:N2} MT", Icon="bi-bar-chart", Tone="cyan" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Pending Unloading", Value=Model.PendingUnload.ToString("N0"), Icon="bi-truck-flatbed", Tone="orange", DrilldownStage="Unloading" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Pending Lab", Value=Model.PendingLab.ToString("N0"), Icon="bi-droplet-half", Tone="purple", DrilldownStage="Lab" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Pending Billing", Value=Model.PendingBilling.ToString("N0"), Icon="bi-receipt", Tone="slate", DrilldownStage="Billing" }' />
     </div>
 
-    <!-- QUICK OPERATIONS NAVIGATION GRID -->
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-grid-fill text-primary me-2"></i>Operational Action Center</h5>
-            <span class="badge bg-secondary">Annapurna Agro Pvt Ltd ERP v2.0</span>
+    <div class="chart-guide mb-3">
+        <div class="guide-title"><i class="bi bi-mouse2-fill me-2"></i>Charts kaise use karein?</div>
+        <div class="guide-step"><span>1</span> Bar, column ya pie slice par click karein</div>
+        <div class="guide-step"><span>2</span> Category se item aur bag type detail khulegi</div>
+        <div class="guide-step"><span>3</span> Back button se previous level par aayein</div>
+        <div class="guide-period"><i class="bi bi-calendar3 me-1"></i>@Model.FromDate.ToString("dd MMM") - @Model.ToDate.ToString("dd MMM yyyy")</div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-xl-4"><div class="chart-card"><div id="statusChart"></div></div></div>
+        <div class="col-xl-8"><div class="chart-card"><div id="overallHierarchyChart"></div></div></div>
+        <div class="col-12"><div class="chart-card"><div id="categoryChart"></div></div></div>
+        <div class="col-xl-6"><div class="chart-card"><div id="bagTypeChart"></div></div></div>
+        <div class="col-xl-6"><div class="chart-card"><div id="locationChart"></div></div></div>
+        <div class="col-12"><div class="chart-card"><div id="supplierChart"></div></div></div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+        <div class="card-header bg-white px-3 py-3 d-flex justify-content-between"><h5 class="mb-0 fw-bold"><i class="bi bi-diagram-3-fill text-primary me-2"></i>Live RST Journey</h5><span class="badge text-bg-light">Latest active RSTs</span></div>
+        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>RST / Vehicle</th><th>Supplier</th><th>Current Stage</th><th>Status</th><th>Last Activity</th><th class="text-end">Stage Age</th></tr></thead><tbody>@if(Model.RstJourneys.Count==0){<tr><td colspan="6" class="text-center text-muted py-4">No active RST journey found.</td></tr>}else foreach(var journey in Model.RstJourneys){<tr><td><strong>@journey.RSTNumber</strong><small class="d-block text-muted">@journey.VehicleNumber</small></td><td>@journey.PartyName</td><td><span class="journey-stage">@journey.CurrentStage</span></td><td>@journey.CurrentStatus</td><td>@journey.LastActivity.ToString("dd MMM, hh:mm tt")</td><td class="text-end"><span class="badge @(journey.AgeHours>=12 ? "text-bg-danger" : journey.AgeHours>=6 ? "text-bg-warning" : "text-bg-success")">@journey.AgeHours.ToString("N1") hrs</span></td></tr>}</tbody></table></div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white px-3 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Recorded Unloading Detail by Location</h5>
+            <span class="badge text-bg-light">@Model.LocationDetails.Count rows</span>
         </div>
-        <div class="card-body p-4">
-            <div class="row g-3">
-                <!-- Gateman Gate Inward -->
-                <div class="col-md-4 col-sm-6">
-                    <a asp-controller="Gateman" asp-action="Index" class="text-decoration-none">
-                        <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
-                            <div class="p-3 rounded-circle bg-primary text-white me-3">
-                                <i class="bi bi-door-open fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Gate Inward / Outward</h6>
-                                <p class="small text-muted mb-0">Record vehicle entry, gate tokens & RST slips</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Weighbridge RST -->
-                <div class="col-md-4 col-sm-6">
-                    <a asp-controller="GateEntry" asp-action="Index" class="text-decoration-none">
-                        <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
-                            <div class="p-3 rounded-circle bg-info text-white me-3">
-                                <i class="bi bi-speedometer fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Weighbridge RST Operations</h6>
-                                <p class="small text-muted mb-0">Gross weight, Tare weight & Net Paddy calculations</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Supervisor Unloading -->
-                <div class="col-md-4 col-sm-6">
-                    <a asp-controller="Unload" asp-action="Index" class="text-decoration-none">
-                        <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
-                            <div class="p-3 rounded-circle bg-success text-white me-3">
-                                <i class="bi bi-truck-flatbed fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Supervisor Unloading</h6>
-                                <p class="small text-muted mb-0">Godown allocation, bag count & Meth labor assignment</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Lab Quality Check -->
-                <div class="col-md-4 col-sm-6">
-                    <a asp-controller="Lab" asp-action="Index" class="text-decoration-none">
-                        <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
-                            <div class="p-3 rounded-circle bg-warning text-dark me-3">
-                                <i class="bi bi-eyedropper fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Lab Quality Check</h6>
-                                <p class="small text-muted mb-0">Moisture %, Dust %, Grain quality & deductions</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Visitor Register -->
-                <div class="col-md-4 col-sm-6">
-                    <a asp-controller="Visitor" asp-action="Index" class="text-decoration-none">
-                        <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
-                            <div class="p-3 rounded-circle bg-purple text-white style-purple me-3">
-                                <i class="bi bi-person-badge fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Visitor Register & Passes</h6>
-                                <p class="small text-muted mb-0">Guest passes, FCI inspections & vendor logs</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Accounts & Billing -->
-                <div class="col-md-4 col-sm-6">
-                    <a asp-controller="Settlement" asp-action="Index" class="text-decoration-none">
-                        <div class="p-3 border rounded-3 h-100 d-flex align-items-center bg-light-hover transition-all">
-                            <div class="p-3 rounded-circle bg-dark text-white me-3">
-                                <i class="bi bi-cash-stack fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Accounts & Billing</h6>
-                                <p class="small text-muted mb-0">Purchase vouchers, farmer settlements & reports</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Location</th><th>RST</th><th>Category</th><th>Variety</th><th>Bag Type</th><th class="text-end">Bags</th><th class="text-end">Weight</th><th>Unloaded</th></tr></thead>
+                <tbody>
+                @if (Model.LocationDetails.Count == 0)
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">No completed unloading detail is available for this company.</td></tr>
+                }
+                else foreach (var row in Model.LocationDetails)
+                {
+                    <tr><td class="fw-semibold">@row.LocationName</td><td>@row.RSTNumber</td><td>@row.CategoryName</td><td>@row.VarietyName</td><td>@row.BagTypeName</td><td class="text-end">@row.Bags.ToString("N0")</td><td class="text-end">@(row.WeightKg > 0 ? $"{row.WeightKg:N2} kg" : "Not recorded")</td><td>@row.UnloadTime?.ToString("dd MMM yyyy HH:mm")</td></tr>
+                }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="pendingModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold" id="pendingModalTitle">Pending Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Stage</th><th>RST</th><th>Vehicle</th><th>Party</th><th>Pending Since</th><th class="text-end">Age</th></tr></thead><tbody id="pendingRows"></tbody></table></div></div></div></div></div>
+
 <style>
-    .bg-light-hover {
-        background-color: #f8fafc;
-        transition: all 0.25s ease-in-out;
-    }
-    .bg-light-hover:hover {
-        background-color: #ffffff !important;
-        border-color: #2563eb !important;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
-        transform: translateY(-2px);
-    }
-    .style-purple {
-        background-color: #8b5cf6 !important;
-    }
+    .admin-dashboard{color:#172033}.dashboard-hero{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-radius:18px;color:#fff;background:linear-gradient(120deg,#173a68,#2563a9 58%,#238a8d);box-shadow:0 10px 28px rgba(23,58,104,.22)}
+    .chart-card{height:380px;padding:12px;background:#fff;border:1px solid #e7ebf1;border-radius:16px;box-shadow:0 3px 16px rgba(15,23,42,.07);overflow:hidden}.chart-card>div{height:100%;background:#fff}.hierarchy-card{height:560px}.admin-dashboard thead th{white-space:nowrap;background:#f5f7fb;color:#526071;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+    .chart-error{height:100%;display:grid;place-items:center;padding:24px;text-align:center;color:#991b1b;background:#fff7f7;border:1px dashed #fecaca;border-radius:12px;font-weight:600}
+    .chart-guide{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;color:#334155;font-size:.82rem}.guide-title{font-weight:800;color:#1d4ed8}.guide-step{display:flex;align-items:center;gap:7px}.guide-step span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;font-size:.72rem;font-weight:800}.guide-period{margin-left:auto;color:#475569;font-weight:600}
+    .journey-stage{display:inline-block;padding:5px 9px;border-radius:20px;background:#e0e7ff;color:#3730a3;font-size:.78rem;font-weight:700}
+    @@media(max-width:767.98px){.dashboard-hero{align-items:flex-start;gap:12px;flex-direction:column}.dashboard-hero .text-end{text-align:left!important}}
 </style>
+
+@section Scripts {
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/no-data-to-display.js"></script>
+<script src="https://code.highcharts.com/modules/drilldown.js"></script>
+<script src="https://code.highcharts.com/modules/treemap.js"></script>
+<script src="https://code.highcharts.com/modules/sunburst.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script>
+    (() => {
+        const statuses = @Html.Raw(JsonSerializer.Serialize(Model.RstStatuses, jsonOptions));
+        const categoryRows = @Html.Raw(JsonSerializer.Serialize(Model.CategoryBreakdown, jsonOptions));
+        const locationRows = @Html.Raw(JsonSerializer.Serialize(Model.LocationDetails, jsonOptions));
+        const pendingDetails = @Html.Raw(JsonSerializer.Serialize(Model.PendingDetails, jsonOptions));
+        const suppliers = @Html.Raw(JsonSerializer.Serialize(Model.SupplierPerformance, jsonOptions));
+        const chartIds = ['statusChart','categoryChart','bagTypeChart','locationChart','supplierChart','overallHierarchyChart'];
+        if (!window.Highcharts) {
+            chartIds.forEach(id => { const element=document.getElementById(id); if(element) element.innerHTML='<div class="chart-error">Charts library load nahi hui. Internet/CDN connection check karke page refresh karein.</div>'; });
+            return;
+        }
+        Highcharts.setOptions({lang:{noData:'Selected period mein recorded data available nahi hai.'},noData:{style:{fontWeight:'600',fontSize:'13px',color:'#64748b'}}});
+        const renderChart = (id, options) => {
+            try { Highcharts.chart(id, options); }
+            catch (error) {
+                console.error(`Dashboard chart failed: ${id}`, error);
+                const element=document.getElementById(id);
+                if(element) element.innerHTML=`<div class="chart-error">${id} load nahi hua. Console error check karein.</div>`;
+            }
+        };
+        const palette = ['#2563eb','#16a34a','#f59e0b','#7c3aed','#0891b2','#e11d48','#0f766e','#ea580c'];
+        const axisLabel = { color:'#475569', fontSize:'12px', fontWeight:'500' };
+        const common = {
+            chart:{backgroundColor:'#ffffff',plotBackgroundColor:'#ffffff',style:{fontFamily:'Inter, Segoe UI, sans-serif'},spacing:[18,18,16,18]},
+            colors:palette, credits:{enabled:false},
+            title:{align:'left',margin:18,style:{color:'#172033',fontWeight:'700',fontSize:'16px'}},
+            subtitle:{align:'left',style:{color:'#64748b',fontSize:'12px'}},
+            legend:{itemStyle:{color:'#334155',fontWeight:'600'},itemHoverStyle:{color:'#0f172a'},symbolRadius:4},
+            tooltip:{backgroundColor:'#ffffff',borderColor:'#dbe3ee',borderRadius:10,shadow:true,style:{color:'#172033'}},
+            xAxis:{lineColor:'#dbe3ee',tickColor:'#dbe3ee',labels:{style:axisLabel}},
+            yAxis:{gridLineColor:'#edf1f5',labels:{style:axisLabel},title:{style:{color:'#475569',fontWeight:'600'}}}
+        };
+        renderChart('statusChart', Highcharts.merge(common, {
+            chart:{type:'pie'},title:{text:'RST Work Status'},subtitle:{text:'Pending, open aur final RST ka current count'},
+            tooltip:{pointFormat:'<b>{point.y:,.0f} RST</b> &nbsp;({point.percentage:.1f}%)'},
+            plotOptions:{pie:{innerSize:'58%',borderWidth:3,borderColor:'#ffffff',colors:['#f59e0b','#2563eb','#16a34a'],dataLabels:{enabled:true,distance:14,format:'<span style="color:{point.color}">●</span> {point.name}<br><b>{point.y:,.0f}</b>',style:{color:'#334155',fontSize:'11px',fontWeight:'500',textOutline:'none'}}}},
+            series:[{name:'RST',data:statuses.map((x,index)=>({name:x.name,y:x.value,color:['#f59e0b','#2563eb','#16a34a'][index]}))}]
+        }));
+        const categoryGroups = [...new Set(categoryRows.map(x => x.categoryId))].map(categoryId => {
+            const rows = categoryRows.filter(x => x.categoryId === categoryId);
+            return { id:`category-${categoryId}`, name:rows[0]?.categoryName || 'Category', bags:rows.reduce((sum,row)=>sum+row.bags,0), rows };
+        });
+        const itemGroups = categoryGroups.flatMap(category => [...new Set(category.rows.map(x => x.itemId))].map(itemId => {
+            const rows = category.rows.filter(x => x.itemId === itemId);
+            return { id:`item-${category.id}-${itemId}`, parentId:category.id, name:rows[0]?.itemName || 'Item', bags:rows.reduce((sum,row)=>sum+row.bags,0), rows };
+        }));
+        renderChart('categoryChart', Highcharts.merge(common, {
+            chart:{type:'column'},title:{text:'Category-wise Bags'},subtitle:{text:'Category par click karein, phir item aur bag type dekhein'},legend:{enabled:false},
+            xAxis:{type:'category',title:{text:'Category / Item'}},yAxis:{min:0,allowDecimals:false,title:{text:'Recorded bags'}},tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b>'},
+            plotOptions:{column:{borderRadius:7,colorByPoint:true,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},bar:{borderRadius:7,colorByPoint:true,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},pie:{innerSize:'52%',borderWidth:3,borderColor:'#ffffff',dataLabels:{enabled:true,format:'{point.name}<br><b>{point.y:,.0f} bags</b>',style:{color:'#334155',fontWeight:'600',textOutline:'none'}}}},
+            series:[{name:'Category Bags',type:'column',colorByPoint:true,data:categoryGroups.map((group,index)=>({name:group.name,y:group.bags,drilldown:group.id,color:palette[index%palette.length]}))}],
+            drilldown:{breadcrumbs:{position:{align:'left'},buttonTheme:{fill:'#eff6ff',stroke:'#bfdbfe',style:{color:'#1d4ed8'}}},series:[
+                ...categoryGroups.map(group=>({id:group.id,name:`${group.name} - Items`,type:'bar',data:itemGroups.filter(item=>item.parentId===group.id).map((item,index)=>({name:item.name,y:item.bags,drilldown:item.id,color:palette[index%palette.length]}))})),
+                ...itemGroups.map(item=>({id:item.id,name:`${item.name} - Bag Types`,type:'pie',tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b> ({point.percentage:.1f}%)'},data:item.rows.map((row,index)=>({name:row.bagTypeName,y:row.bags,color:palette[index%palette.length]}))}))
+            ]}
+        }));
+        const bagTypeGroups = [...new Set(categoryRows.map(x=>x.bagTypeId))].map(bagTypeId => {
+            const rows=categoryRows.filter(x=>x.bagTypeId===bagTypeId);
+            return {id:`bag-${bagTypeId}`,name:rows[0]?.bagTypeName||'Bag Type',bags:rows.reduce((sum,row)=>sum+row.bags,0),rows};
+        });
+        const bagCategories = bagTypeGroups.flatMap(bag => [...new Set(bag.rows.map(x=>x.categoryId))].map(categoryId => {
+            const rows=bag.rows.filter(x=>x.categoryId===categoryId);
+            return {id:`${bag.id}-category-${categoryId}`,parentId:bag.id,name:rows[0]?.categoryName||'Category',bags:rows.reduce((sum,row)=>sum+row.bags,0),rows};
+        }));
+        renderChart('bagTypeChart', Highcharts.merge(common, {
+            chart:{type:'column'},title:{text:'Bag Type-wise Bags'},subtitle:{text:'Bag type par click karein, phir category aur item dekhein'},legend:{enabled:false},
+            xAxis:{type:'category',title:{text:'Bag Type / Category'}},yAxis:{min:0,allowDecimals:false,title:{text:'Recorded bags'}},tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b>'},
+            plotOptions:{column:{borderRadius:7,colorByPoint:true,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},bar:{borderRadius:7,colorByPoint:true,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},pie:{innerSize:'52%',borderWidth:3,borderColor:'#fff',dataLabels:{enabled:true,format:'{point.name}<br><b>{point.y:,.0f} bags</b>',style:{color:'#334155',fontWeight:'600',textOutline:'none'}}}},
+            series:[{name:'Bag Types',type:'column',colorByPoint:true,data:bagTypeGroups.map((group,index)=>({name:group.name,y:group.bags,drilldown:group.id,color:palette[index%palette.length]}))}],
+            drilldown:{breadcrumbs:{position:{align:'left'},buttonTheme:{fill:'#fff7ed',stroke:'#fed7aa',style:{color:'#c2410c'}}},series:[
+                ...bagTypeGroups.map(group=>({id:group.id,name:`${group.name} - Categories`,type:'bar',data:bagCategories.filter(x=>x.parentId===group.id).map((x,index)=>({name:x.name,y:x.bags,drilldown:x.id,color:palette[index%palette.length]}))})),
+                ...bagCategories.map(group=>({id:group.id,name:`${group.name} - Items`,type:'pie',tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b> ({point.percentage:.1f}%)'},data:group.rows.map((row,index)=>({name:row.itemName,y:row.bags,color:palette[index%palette.length]}))}))
+            ]}
+        }));
+        const locationGroups = [...new Set(locationRows.map(x=>x.locationId))].map(locationId => {
+            const rows=locationRows.filter(x=>x.locationId===locationId);
+            return {id:`location-${locationId}`,name:rows[0]?.locationName||'Location',bags:rows.reduce((sum,row)=>sum+row.bags,0),rows};
+        });
+        const locationCategories = locationGroups.flatMap(location => [...new Set(location.rows.map(x=>x.categoryId))].map(categoryId => {
+            const rows=location.rows.filter(x=>x.categoryId===categoryId);
+            return {id:`${location.id}-category-${categoryId}`,parentId:location.id,name:rows[0]?.categoryName||'Category',bags:rows.reduce((sum,row)=>sum+row.bags,0),rows};
+        }));
+        const locationItems = locationCategories.flatMap(category => [...new Set(category.rows.map(x=>x.itemId))].map(itemId => {
+            const rows=category.rows.filter(x=>x.itemId===itemId);
+            return {id:`${category.id}-item-${itemId}`,parentId:category.id,name:rows[0]?.varietyName||'Item',bags:rows.reduce((sum,row)=>sum+row.bags,0),rows};
+        }));
+        renderChart('locationChart', Highcharts.merge(common, {
+            chart:{type:'column'},title:{text:'Location-wise Bags'},subtitle:{text:'Location par click karein, phir category, item aur bag type dekhein'},legend:{enabled:false},
+            xAxis:{type:'category',title:{text:'Location / Material'}},yAxis:{min:0,allowDecimals:false,title:{text:'Recorded bags'}},tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b>'},
+            plotOptions:{column:{borderRadius:7,colorByPoint:true,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},bar:{borderRadius:7,colorByPoint:true,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},pie:{innerSize:'52%',borderWidth:3,borderColor:'#ffffff',dataLabels:{enabled:true,format:'{point.name}<br><b>{point.y:,.0f} bags</b>',style:{color:'#334155',fontWeight:'600',textOutline:'none'}}}},
+            series:[{name:'Location Bags',type:'column',colorByPoint:true,data:locationGroups.map((group,index)=>({name:group.name,y:group.bags,drilldown:group.id,color:palette[index%palette.length]}))}],
+            drilldown:{breadcrumbs:{position:{align:'left'},buttonTheme:{fill:'#f0fdfa',stroke:'#99f6e4',style:{color:'#0f766e'}}},series:[
+                ...locationGroups.map(group=>({id:group.id,name:`${group.name} - Categories`,type:'bar',data:locationCategories.filter(x=>x.parentId===group.id).map((x,index)=>({name:x.name,y:x.bags,drilldown:x.id,color:palette[index%palette.length]}))})),
+                ...locationCategories.map(group=>({id:group.id,name:`${group.name} - Items`,type:'bar',data:locationItems.filter(x=>x.parentId===group.id).map((x,index)=>({name:x.name,y:x.bags,drilldown:x.id,color:palette[index%palette.length]}))})),
+                ...locationItems.map(group=>({id:group.id,name:`${group.name} - Bag Types`,type:'pie',tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b> ({point.percentage:.1f}%)'},data:group.rows.map((row,index)=>({name:row.bagTypeName,y:row.bags,color:palette[index%palette.length]}))}))
+            ]}
+        }));
+        renderChart('supplierChart', Highcharts.merge(common, {
+            chart:{type:'column'},title:{text:'Party / Supplier Summary'},subtitle:{text:'Selected period mein vehicles aur net weight'},
+            xAxis:{categories:suppliers.map(x=>x.supplierName),title:{text:'Party / Supplier'}},
+            yAxis:[{min:0,allowDecimals:false,title:{text:'Vehicles'},gridLineColor:'#edf1f5',labels:{style:axisLabel}},{min:0,title:{text:'Weight (MT)',style:{color:'#7c3aed'}},labels:{style:{...axisLabel,color:'#7c3aed'}},opposite:true,gridLineWidth:0}],
+            tooltip:{shared:true},plotOptions:{column:{borderRadius:5,dataLabels:{enabled:true,style:{color:'#334155',textOutline:'none'}}},spline:{lineWidth:3,marker:{enabled:true,radius:4}}},
+            series:[{name:'Vehicles',color:'#2563eb',data:suppliers.map(x=>x.vehicles),tooltip:{valueSuffix:' vehicles'}},{name:'Weight',type:'spline',yAxis:1,color:'#7c3aed',data:suppliers.map(x=>Number((x.weightKg/1000).toFixed(3))),tooltip:{valueSuffix:' MT'}}]
+        }));
+        const hierarchyData = [{id:'overall',parent:'',name:'Overall Unloading'}];
+        locationGroups.forEach((location,locationIndex) => {
+            hierarchyData.push({id:location.id,parent:'overall',name:location.name,color:palette[locationIndex%palette.length]});
+            locationCategories.filter(category=>category.parentId===location.id).forEach(category => {
+                hierarchyData.push({id:category.id,parent:location.id,name:category.name});
+                locationItems.filter(item=>item.parentId===category.id).forEach(item => {
+                    hierarchyData.push({id:item.id,parent:category.id,name:item.name});
+                    [...new Set(item.rows.map(row=>row.bagTypeId))].forEach(bagTypeId => {
+                        const rows=item.rows.filter(row=>row.bagTypeId===bagTypeId);
+                        hierarchyData.push({id:`${item.id}-bag-${bagTypeId}`,parent:item.id,name:rows[0]?.bagTypeName||'Bag Type',value:rows.reduce((sum,row)=>sum+row.bags,0)});
+                    });
+                });
+            });
+        });
+        renderChart('overallHierarchyChart', Highcharts.merge(common, {
+            chart:{height:530},title:{text:'Overall Unloading Drill-down'},subtitle:{text:'Segment click karein: Location → Category → Item / Variety → Bag Type'},
+            tooltip:{headerFormat:'',pointFormat:'<b>{point.name}</b><br>Recorded bags: <b>{point.value:,.0f}</b>'},
+            series:[{type:'sunburst',name:'Recorded Bags',data:locationRows.length ? hierarchyData : [],rootId:'overall',allowTraversingTree:true,borderColor:'#ffffff',borderWidth:2,
+                dataLabels:{rotationMode:'circular',style:{fontSize:'11px',fontWeight:'600',textOutline:'none'}},
+                levels:[{level:1,levelIsConstant:false,dataLabels:{style:{fontSize:'13px',fontWeight:'700'}}},{level:2,colorVariation:{key:'brightness',to:.15}},{level:3,colorVariation:{key:'brightness',to:.3}},{level:4,colorVariation:{key:'brightness',to:.45}}]
+            }]
+        }));
+        const overallUnloadingChart = Highcharts.charts.find(chart=>chart?.renderTo?.id==='overallHierarchyChart');
+        overallUnloadingChart?.setTitle({text:'Overall Unloading'},{text:'Location > Category > Item / Variety > Bag Type'});
+        overallUnloadingChart?.setSize(null,350,false);
+        if (false) {
+        renderChart('overallHierarchyChart', Highcharts.merge(common, {
+            chart:{type:'pie'},title:{text:'Overall Bag Details'},subtitle:{text:'Pie slice par click karein: Location > Category > Item > Bag Type'},legend:{enabled:false},
+            tooltip:{pointFormat:'<b>{point.y:,.0f} bags</b> ({point.percentage:.1f}%)'},
+            plotOptions:{pie:{innerSize:'48%',borderWidth:3,borderColor:'#ffffff',dataLabels:{enabled:true,format:'{point.name}<br><b>{point.y:,.0f} bags</b>',style:{color:'#334155',fontWeight:'600',textOutline:'none'}}}},
+            series:[{name:'Locations',type:'pie',colorByPoint:true,data:locationGroups.map((group,index)=>({name:group.name,y:group.bags,drilldown:`overall-${group.id}`,color:palette[index%palette.length]}))}],
+            drilldown:{breadcrumbs:{position:{align:'left'},buttonTheme:{fill:'#f0fdfa',stroke:'#99f6e4',style:{color:'#0f766e'}}},series:[
+                ...locationGroups.map(group=>({id:`overall-${group.id}`,name:`${group.name} - Categories`,type:'pie',data:locationCategories.filter(x=>x.parentId===group.id).map((x,index)=>({name:x.name,y:x.bags,drilldown:`overall-${x.id}`,color:palette[index%palette.length]}))})),
+                ...locationCategories.map(group=>({id:`overall-${group.id}`,name:`${group.name} - Items`,type:'pie',data:locationItems.filter(x=>x.parentId===group.id).map((x,index)=>({name:x.name,y:x.bags,drilldown:`overall-${x.id}`,color:palette[index%palette.length]}))})),
+                ...locationItems.map(group=>({id:`overall-${group.id}`,name:`${group.name} - Bag Types`,type:'pie',data:[...new Set(group.rows.map(row=>row.bagTypeId))].map((bagTypeId,index)=>{const rows=group.rows.filter(row=>row.bagTypeId===bagTypeId);return{name:rows[0]?.bagTypeName||'Bag Type',y:rows.reduce((sum,row)=>sum+row.bags,0),color:palette[index%palette.length]};})}))
+            ]}
+        }));
+        }
+
+        if (false) {
+        const overallGroups = [...new Set(locationRows.map(row=>`${row.locationId}|${row.categoryId}|${row.itemId}|${row.bagTypeId}`))].map(key => {
+            const groupedRows=locationRows.filter(row=>`${row.locationId}|${row.categoryId}|${row.itemId}|${row.bagTypeId}`===key);
+            const first=groupedRows[0];
+            return {
+                label:`${first.locationName}<br>${first.categoryName}<br>${first.varietyName}<br>${first.bagTypeName}`,
+                bags:groupedRows.reduce((sum,row)=>sum+row.bags,0),
+                weightMt:groupedRows.reduce((sum,row)=>sum+Number(row.weightKg||0),0)/1000
+            };
+        });
+        renderChart('overallHierarchyChart', Highcharts.merge(common, {
+                chart:{height:530,scrollablePlotArea:{minWidth:Math.max(900,overallGroups.length*115),scrollPositionX:0}},
+                title:{text:'Overall Bags and Weight'},subtitle:{text:'Location, category, item aur bag type ka complete view — drill-down ki zarurat nahi'},
+                xAxis:{categories:overallGroups.map(group=>group.label),title:{text:'Location / Category / Item / Bag Type'},labels:{useHTML:true,style:{...axisLabel,textAlign:'center',lineHeight:'15px'}}},
+                yAxis:[{min:0,allowDecimals:false,title:{text:'Recorded Bags'},labels:{style:axisLabel}},{min:0,title:{text:'Actual Weight (MT)',style:{color:'#7c3aed'}},labels:{style:{...axisLabel,color:'#7c3aed'}},opposite:true,gridLineWidth:0}],
+                legend:{enabled:true},tooltip:{shared:true},
+                plotOptions:{column:{borderRadius:7,dataLabels:{enabled:true,format:'{point.y:,.0f}',style:{color:'#334155',fontWeight:'700',textOutline:'none'}}},spline:{lineWidth:3,marker:{enabled:true,radius:5}}},
+                series:[
+                    {name:'Recorded Bags',type:'column',color:'#2563eb',data:overallGroups.map(group=>group.bags),tooltip:{valueSuffix:' bags'}},
+                    {name:'Actual Weight',type:'spline',yAxis:1,color:'#7c3aed',data:overallGroups.map(group=>Number(group.weightMt.toFixed(3))),tooltip:{valueSuffix:' MT'}}
+                ]
+        }));
+        }
+
+        const modalElement = document.getElementById('pendingModal');
+        const pendingModal = modalElement ? new bootstrap.Modal(modalElement) : null;
+        const escapeHtml = value => String(value ?? '').replace(/[&<>"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[character]));
+        const showPending = stage => {
+            const rows = pendingDetails.filter(x => x.stage === stage);
+            document.getElementById('pendingModalTitle').textContent = `Pending ${stage} Details`;
+            document.getElementById('pendingRows').innerHTML = rows.length ? rows.map(x => `<tr><td><span class="badge text-bg-light">${escapeHtml(x.stage)}</span></td><td class="fw-semibold">${escapeHtml(x.rstNumber)}</td><td>${escapeHtml(x.vehicleNumber || '-')}</td><td>${escapeHtml(x.partyName || '-')}</td><td>${new Date(x.since).toLocaleString('en-IN')}</td><td class="text-end"><span class="badge ${x.ageHours >= 12 ? 'text-bg-danger' : x.ageHours >= 6 ? 'text-bg-warning' : 'text-bg-success'}">${x.ageHours.toFixed(1)} hrs</span></td></tr>`).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">No pending records.</td></tr>';
+            pendingModal?.show();
+        };
+        document.querySelectorAll('.kpi-drill').forEach(card => {
+            card.addEventListener('click', () => showPending(card.dataset.stage));
+            card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showPending(card.dataset.stage); } });
+        });
+    })();
+</script>
+}

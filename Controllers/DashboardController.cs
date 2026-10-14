@@ -1,24 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+using RiceMillProject.BAL;
 using RiceMillProject.Models;
-using System.Data;
 
 namespace RiceMillProject.Controllers
 {
     [Authorize]
-    public class DashboardController : Controller
+    public class DashboardController(IConfiguration configuration) : Controller
     {
-        private readonly string _connectionString;
+        private readonly DashboardBAL _dashboard = new(configuration);
 
-        public DashboardController(IConfiguration configuration)
-        {
-            _connectionString =
-                configuration.GetConnectionString("DefaultConnection") ?? "";
-        }
-
-        public IActionResult Index()
+        public IActionResult Index(DateTime? fromDate = null, DateTime? toDate = null)
         {
             // =====================================================
             // ROLE BASED REDIRECT
@@ -65,53 +57,10 @@ namespace RiceMillProject.Controllers
             }
 
 
-            // =====================================================
-            // ADMIN / OTHER DASHBOARD
-            // =====================================================
-
-            var stats = new DashboardStats();
-
-            using SqlConnection con =
-                new SqlConnection(_connectionString);
-
-            using SqlCommand cmd =
-                new SqlCommand(
-                    "sp_GetDashboardStats",
-                    con
-                );
-
-            cmd.CommandType =
-                CommandType.StoredProcedure;
-
-            con.Open();
-
-            using SqlDataReader reader =
-                cmd.ExecuteReader();
-
-            if (reader.Read())
-            {
-                stats.TotalEntered =
-                    Convert.ToInt32(
-                        reader["TotalEntered"]
-                    );
-
-                stats.PendingUnload =
-                    Convert.ToInt32(
-                        reader["PendingUnload"]
-                    );
-
-                stats.PendingLab =
-                    Convert.ToInt32(
-                        reader["PendingLab"]
-                    );
-
-                stats.PendingSettlement =
-                    Convert.ToInt32(
-                        reader["PendingSettlement"]
-                    );
-            }
-
-            return View(stats);
+            if (!User.IsAdminUser()) return Forbid();
+            var rangeEnd = (toDate ?? DateTime.Today).Date;
+            var rangeStart = (fromDate ?? rangeEnd.AddDays(-29)).Date;
+            return View(_dashboard.GetAdminDashboard(User.CompanyId(), rangeStart, rangeEnd));
         }
     }
 }
