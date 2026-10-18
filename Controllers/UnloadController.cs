@@ -46,25 +46,32 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                var gateEntries = _gateBal.GetAllGateEntries();
-                var unloads = _unloadBal.GetAllUnloading();
-                var assigned = unloads.Select(u => u.RSTNumber).Distinct().ToList();
+                int supervisorId = GetCurrentPersonId();
+                int officeId = GetCurrentOfficeId();
+                var gateEntries = _gateBal.GetAllGateEntries()
+                    .Where(e => officeId <= 0 || e.TargetOfficeId == officeId)
+                    .ToList();
+                var allUnloads = _unloadBal.GetAllUnloading();
+                var unloads = supervisorId > 0
+                    ? _unloadBal.GetSupervisorMethWorkRegister(supervisorId)
+                    : new List<UnloadTransaction>();
+                var assigned = allUnloads.Select(u => u.RSTNumber).Distinct().ToList();
                 ViewBag.PendingAssignments = gateEntries.Count(e => (e.Status == "WaitingForSupervisor" || e.Status == "Entered") && !assigned.Contains(e.RSTNumber));
                 ViewBag.PendingVerifications = unloads.Count(u => u.Status == "Unloaded" || u.Status == "Assigned");
-                ViewBag.CompletedUnloading = unloads.Count(u => u.Status == "Completed" || u.Status == "Unloaded");
-                ViewBag.WorkerPending = unloads.Count(u => !u.IsWorkerWorkCompleted && u.Status != "Completed");
-                ViewBag.FieldPending = unloads.Count(u => !u.IsSupervisorActionCompleted && u.Status != "Completed");
-                var bothPending = unloads.Count(u => !u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted && u.Status != "Completed");
-                var workerOnly = unloads.Count(u => !u.IsWorkerWorkCompleted && u.IsSupervisorActionCompleted && u.Status != "Completed");
-                var fieldOnly = unloads.Count(u => u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted && u.Status != "Completed");
-                ViewBag.WorkStatusChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, (int)ViewBag.CompletedUnloading });
-                ViewBag.DailyTrend = JsonSerializer.Serialize(Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).Select(d => new { date = d.ToString("dd-MMM"), count = unloads.Count(u => (u.UnloadTime ?? DateTime.MinValue).Date == d.Date) }));
-                ViewBag.AttentionItems = unloads.Where(u => !u.IsSupervisorActionCompleted)
+                ViewBag.CompletedUnloading = unloads.Count(u => u.IsSupervisorActionCompleted && (u.UnloadTime ?? DateTime.MinValue).Date == DateTime.Today);
+                ViewBag.WorkerPending = unloads.Count(u => !u.IsWorkerWorkCompleted);
+                ViewBag.FieldPending = unloads.Count(u => !u.IsSupervisorActionCompleted);
+                var bothPending = unloads.Count(u => !u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted);
+                var workerOnly = unloads.Count(u => !u.IsWorkerWorkCompleted && u.IsSupervisorActionCompleted);
+                var fieldOnly = unloads.Count(u => u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted);
+                var fullyCompleted = unloads.Count(u => u.IsWorkerWorkCompleted && u.IsSupervisorActionCompleted);
+                ViewBag.WorkStatusChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, fullyCompleted });
+                ViewBag.DailyTrend = JsonSerializer.Serialize(Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).Select(d => new { date = d.ToString("dd-MMM"), count = unloads.Count(u => u.IsSupervisorActionCompleted && (u.UnloadTime ?? DateTime.MinValue).Date == d.Date) }));
+                ViewBag.AttentionItems = unloads.Where(u => !u.IsWorkerWorkCompleted || !u.IsSupervisorActionCompleted)
                     .OrderBy(u => u.UnloadTime ?? DateTime.MaxValue).Take(10).ToList();
                 var todayEntries = gateEntries.Where(e => e.GateEntryTime.Date == DateTime.Today).ToList();
                 ViewBag.TodayBags = todayEntries.Sum(e => e.TotalBags ?? 0);
                 ViewBag.PendingWeighment = gateEntries.Count(e => e.GrossWeight <= 0);
-                var officeId = GetCurrentOfficeId();
                 var meths = _personBal.GetEmployeeList("Meth", officeId > 0 ? officeId : null);
                 var assignedMethIds = unloads.Where(u => u.MethId > 0 && u.Status != "Completed").Select(u => u.MethId).Distinct().ToHashSet();
                 ViewBag.TotalMeth = meths.Count;

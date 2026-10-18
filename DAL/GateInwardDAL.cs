@@ -119,7 +119,7 @@ namespace RiceMillProject.DAL
                     SELECT g.InwardNo, g.RSTNumber, g.GrossWeight, g.Status,
                            COALESCE(s.StatusName, g.Status) AS StatusName,
                            ROW_NUMBER() OVER (PARTITION BY g.InwardNo ORDER BY
-                               CASE WHEN g.Status IN ('UnloadingAssigned','WaitingForTare') THEN 0 ELSE 1 END,
+                               CASE WHEN g.Status IN ('UnloadingAssigned','Unloaded','WaitingForTare') THEN 0 ELSE 1 END,
                                g.GateEntryTime DESC) AS rn
                     FROM dbo.t_GateEntry g
                     LEFT JOIN dbo.m_StatusMaster s ON s.StatusId = g.StatusId

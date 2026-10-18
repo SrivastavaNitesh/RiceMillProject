@@ -15,7 +15,7 @@ namespace RiceMillProject.Controllers
             if (User.IsAdminUser()) return RedirectToAction("Index", "Dashboard");
             if (User.IsGatemanUser()) return RedirectToAction("Dashboard", "Gateman");
             if (User.IsWeightmanUser()) return RedirectToAction("Dashboard", "GateEntry");
-            if (User.IsSupervisorUser()) return RedirectToAction("Index", "Unload");
+            if (User.IsSupervisorUser()) return RedirectToAction("Dashboard", "Unload");
             if (User.IsLabUser()) return RedirectToAction("Index", "Lab");
             if (User.IsMethUser()) return RedirectToAction("Index", "Meth");
 
@@ -24,7 +24,7 @@ namespace RiceMillProject.Controllers
             {
                 "1" => RedirectToAction("Dashboard", "Gateman"),
                 "2" => RedirectToAction("Dashboard", "GateEntry"),
-                "3" => RedirectToAction("Index", "Unload"),
+                "3" => RedirectToAction("Dashboard", "Unload"),
                 "4" => RedirectToAction("Index", "Dashboard"),
                 "5" => RedirectToAction("Index", "Lab"),
                 "6" => RedirectToAction("Index", "Meth"),
