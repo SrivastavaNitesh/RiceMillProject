@@ -2,7 +2,21 @@
     Layout = "_Layout";
     if (User.Identity?.IsAuthenticated == true)
     {
-        if (User.IsAdminUser()) { Layout = "_LayoutAdmin"; }
+        if (User.IsAdminUser())
+        {
+            var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+            var workRole = Context.Session.GetString("AdminWorkRole") ?? string.Empty;
+            Layout = controller switch
+            {
+                "GateEntry" => "_LayoutWeighbridge",
+                "Unload" => "_LayoutSupervisor",
+                "Meth" => "_LayoutMeth",
+                "Lab" => "_LayoutLab",
+                "Gateman" when workRole == "Weightman" => "_LayoutWeighbridge",
+                "Gateman" => "_LayoutGateman",
+                _ => "_LayoutAdmin"
+            };
+        }
         else if (User.IsGatemanUser()) { Layout = "_LayoutGateman"; }
         else if (User.IsWeightmanUser()) { Layout = "_LayoutWeighbridge"; }
         else if (User.IsSupervisorUser()) { Layout = "_LayoutSupervisor"; }

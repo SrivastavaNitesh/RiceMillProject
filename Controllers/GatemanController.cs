@@ -31,7 +31,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 var allEntries = _inwardBal.GetAllInwardEntries();
                 // Older procedure versions do not return CreatedBy; keep legacy rows visible
                 // until the procedure is synchronized, while enforcing ownership when available.
@@ -82,7 +82,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 var allEntries = _inwardBal.GetAllInwardEntries(includeItemCategories: true);
                 
                 bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
@@ -112,7 +112,7 @@ namespace RiceMillProject.Controllers
             {
                 PopulateDropdowns();
                 var entries = _inwardBal.GetAllInwardEntries();
-                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 if (!User.IsInRole("Admin") && currentUserId > 0 && entries.Any(e => e.CreatedBy > 0))
                     entries = entries.Where(e => e.CreatedBy == currentUserId).ToList();
                 ViewBag.NewInward = new InwardHeader
@@ -138,7 +138,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
 
                 if (!isAdmin || model.CreatedBy <= 0)
@@ -230,7 +230,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int gateManId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int gateManId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 var result = _busLayer.CreateGatemanInward(vehicleNumber, driverName, gateManId, itemId, quantity, unit);
                 
                 if (result != null && result.Rows.Count > 0)
@@ -286,7 +286,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int gateManId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int gateManId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 // If the outward record carries an RST, only the final RST may leave the mill.
                 var outwardDetails = _busLayer.GetChallanDetailsForOutward(challanNo);
                 if (outwardDetails.Columns.Contains("RSTNumber") && outwardDetails.Rows.Count > 0)
@@ -321,7 +321,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
                 ViewBag.IsAdmin = isAdmin;
 

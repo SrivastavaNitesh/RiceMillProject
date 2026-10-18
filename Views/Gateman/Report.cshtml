@@ -1,7 +1,7 @@
 @model IEnumerable<RiceMillProject.Models.InwardHeader>
 @{
     ViewData["Title"] = "Gate Inward Register";
-    bool isWeightman = User.IsWeightmanUser();
+    bool isWeightman = User.IsWeightmanUser() || (User.IsAdminUser() && Context.Session.GetString(RiceMillProject.Models.AdminWorkContext.RoleKey) == "Weightman");
 }
 
 @if (isWeightman)

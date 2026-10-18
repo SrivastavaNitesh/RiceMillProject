@@ -8,9 +8,9 @@
 <div class="container-fluid py-2 admin-dashboard">
     <div class="dashboard-hero mb-3">
         <div>
-            <div class="text-uppercase small opacity-75 fw-semibold">Company Management Dashboard</div>
-            <h3 class="mb-1 fw-bold">@Model.OfficeName</h3>
-            <div class="small opacity-75">Recorded inward, RST, unloading, lab aur billing data</div>
+            <div class="text-uppercase small opacity-75 fw-semibold">Admin Operations Control Center</div>
+            <h3 class="mb-1 fw-bold">Business Operations Overview</h3>
+            <div class="small opacity-75"><i class="bi bi-building me-1"></i>@Model.OfficeName &nbsp;•&nbsp; Verified weighment, unloading and workflow status</div>
         </div>
         <div class="text-end small"><i class="bi bi-clock-history me-1"></i>Updated @Model.AsOf.ToString("dd MMM yyyy, hh:mm tt")</div>
     </div>
@@ -29,8 +29,8 @@
         <partial name="_Kpi" model='new DashboardKpi { Title="Inward Entries (Selected Period)", Value=Model.TodayInwardEntries.ToString("N0"), Icon="bi-truck", Tone="blue" }' />
         <partial name="_Kpi" model='new DashboardKpi { Title="Inward Pending for RST", Value=Model.PendingWeighmentRst.ToString("N0"), Icon="bi-speedometer2", Tone="amber" }' />
         <partial name="_Kpi" model='new DashboardKpi { Title="Open RST / Final RST", Value=$"{Model.ActiveRst:N0} / {Model.FinalRst:N0}", Icon="bi-file-earmark-check", Tone="indigo" }' />
-        <partial name="_Kpi" model='new DashboardKpi { Title="Declared Inward Bags", Value=Model.TodayTotalBags.ToString("N0"), Icon="bi-box-seam", Tone="green" }' />
-        <partial name="_Kpi" model='new DashboardKpi { Title="Declared Inward Weight", Value=$"{Model.TodayTotalWeight / 1000:N2} MT", Icon="bi-bar-chart", Tone="cyan" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Final Recorded Bags", Value=Model.TodayTotalBags.ToString("N0"), Icon="bi-box-seam", Tone="green" }' />
+        <partial name="_Kpi" model='new DashboardKpi { Title="Final Net Weight", Value=$"{Model.TodayTotalWeight / 1000:N2} MT", Icon="bi-bar-chart", Tone="cyan" }' />
         <partial name="_Kpi" model='new DashboardKpi { Title="Pending Unloading", Value=Model.PendingUnload.ToString("N0"), Icon="bi-truck-flatbed", Tone="orange", DrilldownStage="Unloading" }' />
         <partial name="_Kpi" model='new DashboardKpi { Title="Pending Lab", Value=Model.PendingLab.ToString("N0"), Icon="bi-droplet-half", Tone="purple", DrilldownStage="Lab" }' />
         <partial name="_Kpi" model='new DashboardKpi { Title="Pending Billing", Value=Model.PendingBilling.ToString("N0"), Icon="bi-receipt", Tone="slate", DrilldownStage="Billing" }' />

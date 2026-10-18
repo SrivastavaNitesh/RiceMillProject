@@ -32,8 +32,8 @@ BEGIN
 
  SELECT @OfficeId OfficeId,o.OfficeName,GETDATE() AsOf,@FromDate FromDate,@ToDate ToDate,
  (SELECT COUNT(*) FROM #ScopedInward WHERE GateInDateTime>=@FromDate AND GateInDateTime<@RangeEnd) TodayInwardEntries,@PendingRst PendingWeighmentRst,@ActiveRst ActiveRst,@FinalRst FinalRst,
- (SELECT ISNULL(SUM(ApproxNoOfBags),0) FROM #ScopedInward WHERE GateInDateTime>=@FromDate AND GateInDateTime<@RangeEnd) TodayTotalBags,
- (SELECT ISNULL(SUM(i.ApproxWeight),0) FROM #ScopedInward i WHERE i.GateInDateTime>=@FromDate AND i.GateInDateTime<@RangeEnd) TodayTotalWeight,
+ (SELECT ISNULL(SUM(d.BagCount),0) FROM #UnloadDetail d WHERE d.UnloadTime>=@FromDate AND d.UnloadTime<@RangeEnd) TodayTotalBags,
+ (SELECT ISNULL(SUM(r.NetWeight),0) FROM #ScopedRst r WHERE r.NetWeight>0 AND r.GateEntryTime>=@FromDate AND r.GateEntryTime<@RangeEnd) TodayTotalWeight,
  @PendingUnload PendingUnload,@PendingLab PendingLab,@PendingBilling PendingBilling
  FROM dbo.o05_office o WHERE o.OfficeId=@OfficeId;
  SELECT Name,Value FROM(VALUES(N'Pending RST',CONVERT(decimal(18,2),@PendingRst)),(N'Active RST',CONVERT(decimal(18,2),@ActiveRst)),(N'Final RST',CONVERT(decimal(18,2),@FinalRst)))s(Name,Value);

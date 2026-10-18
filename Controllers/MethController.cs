@@ -27,6 +27,7 @@ namespace RiceMillProject.Controllers
 
         private int CurrentPersonId()
         {
+            if (User.IsAdminUser()) return HttpContext.EffectivePersonId();
             return int.TryParse(
                 User.FindFirstValue("PersonId"),
                 out var personId)
@@ -121,19 +122,7 @@ namespace RiceMillProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ExecuteUnload(UnloadTransaction unload)
         {
-            int methPersonId = 0;
-
-            var personClaim = User.Claims
-                .FirstOrDefault(c => c.Type == "PersonId")
-                ?.Value;
-
-            if (!string.IsNullOrWhiteSpace(personClaim))
-            {
-                int.TryParse(
-                    personClaim,
-                    out methPersonId
-                );
-            }
+            int methPersonId = CurrentPersonId();
 
 
             if (methPersonId <= 0)

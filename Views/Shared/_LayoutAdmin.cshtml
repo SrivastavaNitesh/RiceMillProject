@@ -399,6 +399,15 @@
                                 Admin Dashboard
                             </a>
                         </li>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="AdminOperations" asp-action="Index">
+                                    <i class="bi bi-person-workspace me-2"></i>
+                                    Assign and Manage
+                                </a>
+                            </li>
+                        }
 
                         <!-- =================================================
                              GATE OPERATIONS
@@ -522,32 +531,6 @@
                     }
 
 
-                    @if (User.IsAdminUser())
-                    {
-                        <li><a asp-controller="Billing" asp-action="Index"><i class="bi bi-receipt-cutoff me-2"></i> Billing Section</a></li>
-                    }
-                    <!-- =================================================
-                         ACCOUNTS & BILLING
-                         ================================================= -->
-                    @if (User.IsInRole("Admin"))
-                    {
-
-                        <li>
-
-                            <a asp-controller="Settlement"
-                               asp-action="Index">
-
-                                <i class="bi bi-receipt me-2"></i>
-
-                                Accounts & Billing
-
-                            </a>
-
-                        </li>
-
-                    }
-
-
                     <!-- =====================================================
                          MASTER DATA DROPDOWN
                          ===================================================== -->
@@ -604,12 +587,6 @@
                                     <li>
                                         <a asp-controller="Location" asp-action="Index">
                                             <i class="bi bi-geo-alt me-2"></i> Location Master
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a asp-controller="OfficeLocationMapping" asp-action="Index">
-                                            <i class="bi bi-link-45deg me-2"></i> Company - Location Mapping
                                         </a>
                                     </li>
 
@@ -751,36 +728,6 @@
                                     <li><a asp-controller="PurchaseReports" asp-action="Locations"><i class="bi bi-buildings me-2"></i> Location Wise</a></li>
                                 </ul>
                             </div>
-                        </li>
-
-                        <li class="mt-4 px-3 mb-2 sidebar-section-title text-uppercase">
-
-                            Analysis
-
-                        </li>
-
-
-                        <!-- SYSTEM REPORT -->
-
-                        <li>
-
-                            <a asp-controller="Report"
-                               asp-action="Index">
-
-                                <i class="bi bi-graph-up-arrow me-2"></i>
-
-                                System Reports
-
-                            </a>
-
-                        </li>
-
-                        <li>
-                            <a asp-controller="DatabaseMap"
-                               asp-action="Index">
-                                <i class="bi bi-diagram-3 me-2"></i>
-                                Database Mapping
-                            </a>
                         </li>
 
                     }

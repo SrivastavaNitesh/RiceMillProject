@@ -274,13 +274,9 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                entry.CreatedBy =
-                    Convert.ToInt32(
-                        User.FindFirst(
-                            ClaimTypes.NameIdentifier
-                        )?.Value
-                        ?? "0"
-                    );
+                entry.CreatedBy = User.IsAdminUser()
+                    ? HttpContext.EffectiveUserId()
+                    : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
 
                 // -------------------------------------------------
@@ -670,7 +666,7 @@ namespace RiceMillProject.Controllers
             }
             try
             {
-                int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                int userId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
                 var result = _gateBal.RecordWeightmanAction(new WeightmanRstAction
                 {
                     RSTNumber = action.RSTNumber.Trim(),

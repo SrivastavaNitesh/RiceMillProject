@@ -608,6 +608,7 @@ namespace RiceMillProject.Controllers
 
         private int GetCurrentPersonId()
         {
+            if (User.IsAdminUser()) return HttpContext.EffectivePersonId();
             var personClaim = User.Claims
                 .FirstOrDefault(c =>
                     c.Type == "PersonId")
