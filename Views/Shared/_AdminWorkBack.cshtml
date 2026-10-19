@@ -1,0 +1,10 @@
+@if (User.IsAdminUser())
+{
+    <a asp-controller="AdminOperations" asp-action="Exit" class="admin-work-back" title="Exit selected role workflow and return to Admin Dashboard">
+        <i class="bi bi-arrow-left-circle-fill"></i>
+        <span>Back to Admin</span>
+    </a>
+    <style>
+        .admin-work-back{position:fixed;right:22px;bottom:22px;z-index:1090;display:flex;align-items:center;gap:8px;padding:10px 15px;border:1px solid #b8d9d5;border-radius:999px;background:#fff;color:#0f6f69!important;font-size:.82rem;font-weight:700;text-decoration:none!important;box-shadow:0 8px 24px rgba(15,70,68,.18);transition:.2s ease}.admin-work-back:hover{transform:translateY(-2px);background:#0f766e;color:#fff!important;border-color:#0f766e}.admin-work-back i{font-size:1rem}@@media(max-width:575.98px){.admin-work-back{right:14px;bottom:14px;padding:10px 12px}.admin-work-back span{display:none}}
+    </style>
+}

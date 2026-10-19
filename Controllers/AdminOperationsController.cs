@@ -56,11 +56,24 @@ public class AdminOperationsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult Clear()
     {
+        ClearWorkContext();
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public IActionResult Exit()
+    {
+        if (!User.IsAdminUser()) return Forbid();
+        ClearWorkContext();
+        return RedirectToAction("Index", "Dashboard");
+    }
+
+    private void ClearWorkContext()
+    {
         HttpContext.Session.Remove(AdminWorkContext.RoleKey);
         HttpContext.Session.Remove(AdminWorkContext.UserKey);
         HttpContext.Session.Remove(AdminWorkContext.PersonKey);
         HttpContext.Session.Remove(AdminWorkContext.NameKey);
-        return RedirectToAction(nameof(Index));
     }
 
     private AdminOperationViewModel BuildModel(string role)
