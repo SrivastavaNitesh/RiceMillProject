@@ -26,6 +26,8 @@ namespace RiceMillProject.BAL
         {
             if (entry == null)
                 throw new ArgumentNullException(nameof(entry));
+            if (string.IsNullOrWhiteSpace(entry.RSTNumber))
+                throw new ArgumentException("RST number is required.", nameof(entry));
             if (string.IsNullOrWhiteSpace(entry.InwardNo))
                 throw new ArgumentException("Inward entry is required.", nameof(entry));
             if (entry.GrossWeight <= 0)

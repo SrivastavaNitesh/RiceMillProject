@@ -274,6 +274,7 @@ namespace RiceMillProject.Controllers
         {
             try
             {
+                entry.RSTNumber = (entry.RSTNumber ?? string.Empty).Trim().ToUpperInvariant();
                 entry.CreatedBy = User.IsAdminUser()
                     ? HttpContext.EffectiveUserId()
                     : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -343,7 +344,7 @@ namespace RiceMillProject.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    string generatedRST =
+                    string savedRST =
                         _gateBal
                             .CreateGateEntry(
                                 entry
@@ -352,18 +353,18 @@ namespace RiceMillProject.Controllers
 
                     if (
                         string.IsNullOrWhiteSpace(
-                            generatedRST
+                                savedRST
                         )
                     )
                     {
                         throw new InvalidOperationException(
-                            "RST could not be generated. Please reload and try again."
+                            "RST could not be saved. Please reload and try again."
                         );
                     }
 
 
                     TempData["SuccessMessage"] =
-                        $"RST Generated Successfully! RST Number: {generatedRST}";
+                        $"RST saved successfully! RST Number: {savedRST}";
 
 
                     return RedirectToAction(
@@ -742,7 +743,8 @@ namespace RiceMillProject.Controllers
                     $"Tare Weight saved successfully for RST {rstNumber}. Net Weight calculated.";
 
                 return RedirectToAction(
-                    "Index"
+                    nameof(Print),
+                    new { id = rstNumber }
                 );
             }
             catch (Exception ex)

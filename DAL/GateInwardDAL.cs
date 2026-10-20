@@ -154,6 +154,54 @@ namespace RiceMillProject.DAL
             return false;
         }
 
+        public InwardHeader? GetInwardPrint(int inwardId)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(@"
+SELECT TOP (1)
+    h.InwardId,h.GateEntryNo,h.InwardNo,h.InwardDate,h.InwardTime,h.GateId,
+    ISNULL(g.GateName,'') GateName,h.InwardTypeId,ISNULL(it.InwardTypeName,'') InwardTypeName,
+    ISNULL(it.RSTRequired,0) RSTRequired,h.PartyId,
+    COALESCE(NULLIF(h.PartyName,''),p.PersonName,'') PartyName,ISNULL(p.MobileNumber,'') PartyMobile,
+    ISNULL(h.TransporterName,'') TransporterName,ISNULL(h.VehicleNo,'') VehicleNo,h.VehicleTypeId,
+    ISNULL(vt.VehicleTypeName,'') VehicleTypeName,ISNULL(h.DriverName,'') DriverName,
+    ISNULL(h.DriverMobile,'') DriverMobile,ISNULL(h.ChallanNo,'') ChallanNo,
+    ISNULL(h.ApproxNoOfBags,0) ApproxNoOfBags,ISNULL(h.ApproxWeight,0) ApproxWeight,
+    ISNULL(h.PurposeRemarks,'') PurposeRemarks,h.GateInDateTime,h.CreatedBy,
+    ISNULL(u.Username,'Gateman') GateManName,ISNULL(s.StatusName,'Pending') StatusName,
+    ISNULL(h.IsRSTGenerated,0) IsRSTGenerated
+FROM dbo.t_InwardHeader h
+LEFT JOIN dbo.m_GateMaster g ON g.GateId=h.GateId
+LEFT JOIN dbo.m_InwardTypeMaster it ON it.InwardTypeId=h.InwardTypeId
+LEFT JOIN dbo.P02_Person p ON p.PersonId=h.PartyId
+LEFT JOIN dbo.m_VehicleTypeMaster vt ON vt.VehicleTypeId=h.VehicleTypeId
+LEFT JOIN dbo.sa05_user u ON u.UserId=h.CreatedBy
+LEFT JOIN dbo.m_StatusMaster s ON s.StatusId=h.StatusId
+WHERE h.InwardId=@InwardId;", con);
+            cmd.Parameters.Add("@InwardId", SqlDbType.Int).Value = inwardId;
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+            return new InwardHeader
+            {
+                InwardId = Convert.ToInt32(reader["InwardId"]), GateEntryNo = reader["GateEntryNo"]?.ToString(),
+                InwardNo = reader["InwardNo"]?.ToString(), InwardDate = Convert.ToDateTime(reader["InwardDate"]),
+                InwardTime = reader["InwardTime"]?.ToString(), GateId = Convert.ToInt32(reader["GateId"]),
+                GateName = reader["GateName"]?.ToString(), InwardTypeId = Convert.ToInt32(reader["InwardTypeId"]),
+                InwardTypeName = reader["InwardTypeName"]?.ToString(), RSTRequired = Convert.ToBoolean(reader["RSTRequired"]),
+                PartyId = reader["PartyId"] == DBNull.Value ? null : Convert.ToInt32(reader["PartyId"]),
+                PartyName = reader["PartyName"]?.ToString(), PartyMobile = reader["PartyMobile"]?.ToString(),
+                TransporterName = reader["TransporterName"]?.ToString(), VehicleNo = reader["VehicleNo"]?.ToString() ?? "",
+                VehicleTypeId = Convert.ToInt32(reader["VehicleTypeId"]), VehicleTypeName = reader["VehicleTypeName"]?.ToString(),
+                DriverName = reader["DriverName"]?.ToString() ?? "", DriverMobile = reader["DriverMobile"]?.ToString(),
+                ChallanNo = reader["ChallanNo"]?.ToString(), ApproxNoOfBags = Convert.ToInt32(reader["ApproxNoOfBags"]),
+                ApproxWeight = Convert.ToDecimal(reader["ApproxWeight"]), PurposeRemarks = reader["PurposeRemarks"]?.ToString(),
+                GateInDateTime = Convert.ToDateTime(reader["GateInDateTime"]), CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
+                GateManName = reader["GateManName"]?.ToString(), StatusName = reader["StatusName"]?.ToString() ?? "Pending",
+                IsRSTGenerated = Convert.ToBoolean(reader["IsRSTGenerated"])
+            };
+        }
+
         public void PopulateItemCategoryNames(List<InwardHeader> entries)
         {
             using var con = new SqlConnection(_connectionString);

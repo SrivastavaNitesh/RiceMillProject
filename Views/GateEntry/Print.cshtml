@@ -51,6 +51,10 @@
                 <td>@Model.GateEntryTime.ToString("dd MMM yyyy, hh:mm tt")</td>
             </tr>
             <tr>
+                <th>Material</th>
+                <td>@(!string.IsNullOrWhiteSpace(Model.ItemName) ? Model.ItemName : !string.IsNullOrWhiteSpace(Model.CategoryName) ? Model.CategoryName : "-")</td>
+            </tr>
+            <tr>
                 <th>Vehicle Number</th>
                 <td>@Model.VehicleNumber</td>
             </tr>
@@ -59,12 +63,36 @@
                 <td>@Model.PartyName</td>
             </tr>
             <tr>
+                <th>Party Mobile Number</th>
+                <td>@(string.IsNullOrWhiteSpace(Model.PartyMobile) ? "-" : Model.PartyMobile)</td>
+            </tr>
+            <tr>
                 <th>Driver Name</th>
                 <td>@Model.DriverName</td>
             </tr>
             <tr>
+                <th>Driver Mobile Number</th>
+                <td>@(string.IsNullOrWhiteSpace(Model.DriverMobile) ? "-" : Model.DriverMobile)</td>
+            </tr>
+            <tr>
                 <th>Gross Weight (Loaded)</th>
-                <td style="font-weight: bold;">@Model.GrossWeight KG</td>
+                <td style="font-weight: bold;">@Model.GrossWeight.ToString("N2") KG <span class="text-muted ms-3">@Model.GateEntryTime.ToString("dd/MM/yyyy hh:mm tt")</span></td>
+            </tr>
+            <tr>
+                <th>Tare Weight</th>
+                <td style="font-weight: bold;">@(Model.TareWeight.HasValue ? $"{Model.TareWeight.Value:N2} KG" : "Pending") @if(Model.GateExitTime.HasValue){<span class="text-muted ms-3">@Model.GateExitTime.Value.ToString("dd/MM/yyyy hh:mm tt")</span>}</td>
+            </tr>
+            <tr>
+                <th>Net Weight</th>
+                <td style="font-weight: bold; font-size: 1.1rem;">@(Model.NetWeight.HasValue ? $"{Model.NetWeight.Value:N2} KG" : "Pending")</td>
+            </tr>
+            <tr>
+                <th>Weighment Charges</th>
+                <td>₹ @Model.WeighmentCharge.ToString("N2")</td>
+            </tr>
+            <tr>
+                <th>Current Status</th>
+                <td>@Model.Status</td>
             </tr>
             <tr>
                 <th>Target Company (If assigned)</th>
@@ -74,7 +102,7 @@
         
         <div class="signatures">
             <div class="signature-box">Driver Signature</div>
-            <div class="signature-box">Gate Man Signature</div>
+            <div class="signature-box">Operator Signature<br /><small>@Model.GateManName</small></div>
         </div>
     </div>
     <script src="~/js/annapurna-ui.js" asp-append-version="true"></script>

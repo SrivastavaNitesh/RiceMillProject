@@ -81,7 +81,7 @@
                     </span>
 
                     <span class="badge bg-white text-primary fw-bold">
-                        RST Auto Sequence
+                        Manual RST Entry
                     </span>
 
                 </div>
@@ -97,6 +97,13 @@
                           novalidate>
 
                         @Html.AntiForgeryToken()
+
+                        <div class="col-12">
+                            <label asp-for="RSTNumber" class="form-label fw-bold text-dark">RST Number <span class="text-danger">*</span></label>
+                            <input asp-for="RSTNumber" class="form-control border-primary-subtle text-uppercase" maxlength="100" autocomplete="off" placeholder="Enter unique RST number" required />
+                            <span asp-validation-for="RSTNumber" class="text-danger small"></span>
+                            <small class="text-muted">Enter the physical/manual RST number. Duplicate numbers are not allowed.</small>
+                        </div>
 
 
                         <!-- =================================================
@@ -611,7 +618,7 @@
 
                                 <i class="bi bi-check-circle-fill me-1"></i>
 
-                                GENERATE RST & SAVE
+                                SAVE RST & WEIGHT
 
                             </button>
 

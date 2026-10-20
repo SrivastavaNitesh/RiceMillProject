@@ -7,6 +7,8 @@ namespace RiceMillProject.Models
     public class GateEntry
     {
         public int InwardId { get; set; }
+        [Required(ErrorMessage = "RST number is required.")]
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "RST number cannot exceed 100 characters.")]
         public string RSTNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Gate inward entry is required.")]
@@ -84,6 +86,8 @@ namespace RiceMillProject.Models
 
 
         public string PartyName { get; set; } = string.Empty;
+
+        public string? PartyMobile { get; set; }
 
 
         public string DriverName { get; set; } = string.Empty;

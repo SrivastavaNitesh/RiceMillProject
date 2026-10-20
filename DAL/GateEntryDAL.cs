@@ -143,6 +143,16 @@ public class GateEntryDAL
                                             ?.ToString()
                                         ?? "",
 
+                                    PartyMobile =
+                                        HasColumn(reader, "PartyMobile") && reader["PartyMobile"] != DBNull.Value
+                                            ? reader["PartyMobile"]?.ToString()
+                                            : "",
+
+                                    CategoryName =
+                                        HasColumn(reader, "CategoryName") && reader["CategoryName"] != DBNull.Value
+                                            ? reader["CategoryName"]?.ToString() ?? ""
+                                            : "",
+
                                     DriverName =
                                         reader["DriverName"]
                                             ?.ToString()
@@ -272,6 +282,9 @@ public class GateEntryDAL
             cmd.CommandType =
                 CommandType.StoredProcedure;
 
+            cmd.Parameters.Add("@RSTNumber", SqlDbType.NVarChar, 100).Value =
+                entry.RSTNumber.Trim();
+
             cmd.Parameters.Add(
                 "@InwardNo",
                 SqlDbType.NVarChar,
@@ -327,7 +340,7 @@ public class GateEntryDAL
                 rstNumber))
             {
                 throw new InvalidOperationException(
-                    "RST was not generated."
+                    "RST was not saved."
                 );
             }
 

@@ -23,6 +23,7 @@ GO
 -- Current Weightman RST creation procedure. Keep this definition aligned with
 -- GateEntryDAL.CreateGateEntry and the live RiceMillDB procedure.
 CREATE OR ALTER PROCEDURE dbo.sp_CreateGateEntry
+    @RSTNumber NVARCHAR(100),
     @InwardNo NVARCHAR(100),
     @VehicleId INT,
     @PartyId INT,
@@ -38,6 +39,8 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
+    SET @RSTNumber = UPPER(LTRIM(RTRIM(ISNULL(@RSTNumber, N''))));
+    IF @RSTNumber = N'' THROW 50001, 'RST number is required.', 1;
     IF ISNULL(@InwardNo, '') = '' THROW 50001, 'Gate inward entry is required.', 1;
     IF @GrossWeight <= 0 THROW 50001, 'Gross Weight must be greater than zero.', 1;
     IF ISNULL(@CategoryId, 0) = 0 OR NOT EXISTS (SELECT 1 FROM dbo.m_ItemCategory WHERE CategoryId = @CategoryId AND IsActive = 1)
@@ -55,6 +58,8 @@ BEGIN
         THROW 50001, 'Invalid or inactive company.', 1;
 
     BEGIN TRANSACTION;
+    IF EXISTS (SELECT 1 FROM dbo.t_GateEntry WITH (UPDLOCK, HOLDLOCK) WHERE UPPER(LTRIM(RTRIM(RSTNumber))) = @RSTNumber)
+        THROW 50001, 'This RST number already exists. Enter a unique RST number.', 1;
     IF NOT EXISTS (SELECT 1 FROM dbo.t_InwardHeader WITH (UPDLOCK, HOLDLOCK)
                    WHERE InwardNo = @InwardNo AND ISNULL(RSTEntryCompleted, 0) = 0)
         THROW 50001, 'This inward is closed for new RST entries.', 1;
@@ -62,13 +67,6 @@ BEGIN
         THROW 50001, 'An open RST already exists for this variety and inward.', 1;
     IF EXISTS (SELECT 1 FROM dbo.t_GateEntry WHERE InwardNo = @InwardNo AND Status IN ('WaitingForSupervisor','Entered'))
         THROW 50001, 'Supervisor must complete the current RST before another RST can be generated.', 1;
-
-    DECLARE @Year CHAR(4) = CONVERT(CHAR(4), YEAR(GETDATE()));
-    DECLARE @NextNo INT;
-    SELECT @NextNo = ISNULL(MAX(TRY_CONVERT(INT, RIGHT(RSTNumber, CHARINDEX('-', REVERSE(RSTNumber)) - 1))), 0) + 1
-    FROM dbo.t_GateEntry WITH (UPDLOCK, HOLDLOCK)
-    WHERE RSTNumber LIKE 'RST-' + @Year + '-%';
-    DECLARE @RSTNumber NVARCHAR(100) = 'RST-' + @Year + '-' + RIGHT('000000' + CONVERT(VARCHAR(12), @NextNo), 6);
 
     INSERT dbo.t_GateEntry (RSTNumber, InwardNo, VehicleId, PartyId, DriverId, ItemId, CategoryId, GrossWeight,
         TargetOfficeId, GateEntryTime, StatusId, Status, CreatedBy, WeighmentCharge, InwardOutward)

@@ -106,6 +106,17 @@ namespace RiceMillProject.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult Print(int id)
+        {
+            var inward = _inwardBal.GetInwardPrint(id);
+            if (inward == null) return NotFound();
+            int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (!User.IsAdminUser() && currentUserId > 0 && inward.CreatedBy > 0 && inward.CreatedBy != currentUserId)
+                return Forbid();
+            return View(inward);
+        }
+
         public IActionResult Index()
         {
             try
@@ -150,7 +161,7 @@ namespace RiceMillProject.Controllers
                 {
                     _inwardBal.SaveInwardEntry(model);
                     TempData["SuccessMessage"] = "Gate Inward Entry created successfully!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Print), new { id = model.InwardId });
                 }
 
                 PopulateDropdowns();

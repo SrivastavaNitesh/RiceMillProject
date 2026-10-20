@@ -23,7 +23,7 @@
     <div class="col-lg-6 col-md-8">
         <div class="erp-card">
             <div class="erp-card-header">
-        <span><i class="bi bi-truck text-primary me-2"></i> Phase 2: Final Gross Weighment</span>
+        <span><i class="bi bi-truck text-primary me-2"></i> Phase 2: Final Tare Weighment</span>
             </div>
             <div class="erp-card-body">
                 <div class="p-3 bg-light rounded border border-light-subtle mb-4">
@@ -38,12 +38,22 @@
                     <input type="hidden" name="rstNumber" value="@Model.RSTNumber" />
                     
                     <div class="col-md-12">
-                        <label for="tareWeight" class="form-label text-danger">Current Gross Weight (KG) <span class="req-star">*</span></label>
+                        <label for="tareWeight" class="form-label text-danger">Tare Weight / Empty Vehicle Weight (KG) <span class="req-star">*</span></label>
                         <div class="input-group">
                             <input type="number" id="tareWeight" name="tareWeight" step="0.01" class="form-control form-control-lg border-danger font-monospace" placeholder="e.g. 40000" required />
                             <span class="input-group-text bg-danger text-white border-danger">KG</span>
                         </div>
                         <small class="text-muted">Received weight will be calculated as (Previous Gross - Current Gross).</small>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="rounded border border-success-subtle bg-success-subtle p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-success-emphasis fw-semibold">Calculated Net Weight</div>
+                                <small class="text-muted">Gross weight minus tare weight</small>
+                            </div>
+                            <strong id="netWeightPreview" class="fs-4 text-success font-monospace">-- KG</strong>
+                        </div>
                     </div>
 
                     <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
@@ -59,3 +69,28 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const grossWeight = @Model.GrossWeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const tareInput = document.getElementById('tareWeight');
+            const netPreview = document.getElementById('netWeightPreview');
+
+            const updateNetWeight = () => {
+                const tareWeight = Number.parseFloat(tareInput.value);
+                if (!Number.isFinite(tareWeight)) {
+                    netPreview.textContent = '-- KG';
+                    return;
+                }
+
+                const netWeight = grossWeight - tareWeight;
+                netPreview.textContent = `${netWeight.toFixed(2)} KG`;
+                netPreview.classList.toggle('text-danger', netWeight < 0);
+                netPreview.classList.toggle('text-success', netWeight >= 0);
+            };
+
+            tareInput.addEventListener('input', updateNetWeight);
+        })();
+    </script>
+}

@@ -159,6 +159,7 @@
                         <th>Gross Weight</th>
 
                         <th>Status</th>
+                        @if (!isWeightman) { <th class="text-center">Gate Print</th> }
                        @*  <th>Added By</th> *@
                         @if (isWeightman) { <th class="text-center">Action</th> }
                     </tr>
@@ -212,6 +213,10 @@
                                         <span class="erp-badge bg-info-subtle text-info-emphasis border border-info-subtle">Direct Entry</span>
                                     }
                                 </td>
+                                @if (!isWeightman)
+                                {
+                                    <td class="text-center"><a asp-controller="Gateman" asp-action="Print" asp-route-id="@item.InwardId" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print</a></td>
+                                }
                                 @* <td class="text-muted">@item.GateManName</td> *@
                                 @if (isWeightman)
                                 {

@@ -41,6 +41,7 @@ namespace RiceMillProject.Models
 
         [Required(ErrorMessage = "Party / Supplier name is required.")]
         public string? PartyName { get; set; }
+        public string? PartyMobile { get; set; }
 
         public string? TransporterName { get; set; }
 

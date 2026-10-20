@@ -23,6 +23,8 @@ namespace RiceMillProject.BAL
                 _dal.PopulateItemCategoryNames(entries);
             return entries;
         }
+
+        public InwardHeader? GetInwardPrint(int inwardId) => _dal.GetInwardPrint(inwardId);
         public bool SaveInwardEntry(InwardHeader model) => _dal.SaveInwardEntry(model);
         public List<dynamic> GetGatemenList() => _dal.GetGatemenList();
         public bool IsDriverMobileDuplicate(string mobileNumber) => _dal.IsDriverMobileDuplicate(mobileNumber);
