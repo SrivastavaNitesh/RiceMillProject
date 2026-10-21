@@ -97,6 +97,7 @@ namespace RiceMillProject.Controllers
                 ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
                 ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
+                _inwardBal.PopulateReportDetails(myEntries);
                 return View(myEntries);
             }
             catch (Exception ex)
