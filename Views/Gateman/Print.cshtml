@@ -5,7 +5,7 @@
 <style>
 @@page{size:A4;margin:14mm}*{box-sizing:border-box}body{margin:0;background:#fff;color:#172033;font-family:"Segoe UI",Arial,sans-serif}.sheet{max-width:800px;margin:0 auto;border:1px solid #b9c7d3;padding:28px}.head{text-align:center;border-bottom:2px solid #173a68;padding-bottom:16px;margin-bottom:20px}.head h1{margin:0;color:#173a68;font-size:25px}.head h3{margin:6px 0 0;font-size:16px;letter-spacing:.08em}.receipt{display:flex;justify-content:space-between;gap:15px;margin-bottom:18px;padding:12px 14px;background:#f2f7fa;border-left:4px solid #0f766e}.receipt strong{display:block;font-size:18px}.grid{width:100%;border-collapse:collapse}.grid th,.grid td{border:1px solid #ccd6df;padding:9px 11px;text-align:left;vertical-align:top}.grid th{width:28%;background:#f6f8fa;color:#415466}.section th{width:auto;background:#eaf3f2;color:#0f625d;text-transform:uppercase;font-size:12px;letter-spacing:.05em}.signatures{display:flex;justify-content:space-between;gap:50px;margin-top:70px}.signature{width:220px;padding-top:8px;border-top:1px solid #172033;text-align:center}.actions{text-align:right;margin-bottom:12px}.actions button{padding:8px 15px;border:0;border-radius:5px;background:#173a68;color:#fff;cursor:pointer}@@media print{.actions{display:none}.sheet{border:0;padding:0}}
 </style></head><body onload="window.print()"><div class="sheet"><div class="actions"><button onclick="window.print()">Print</button></div>
-<div class="head"><h1>Annapurna Agro Industries Pvt. Ltd.</h1><h3>GATE INWARD RECEIPT</h3></div>
+<div class="head"><h1>ANNAPURNA AGRO INDIA PVT. LTD.</h1><h3>GATE INWARD RECEIPT</h3></div>
 <div class="receipt"><div><small>INWARD NUMBER</small><strong>@Model.InwardNo</strong></div><div><small>GATE ENTRY NUMBER</small><strong>@(string.IsNullOrWhiteSpace(Model.GateEntryNo) ? "-" : Model.GateEntryNo)</strong></div><div><small>ENTRY DATE & TIME</small><strong>@Model.GateInDateTime.ToString("dd MMM yyyy, hh:mm tt")</strong></div></div>
 <table class="grid">
 <tr class="section"><th colspan="4">Gate & Inward Details</th></tr>
@@ -20,5 +20,5 @@
 <tr><th>Approx. Bags</th><td>@Model.ApproxNoOfBags.ToString("N0")</td><th>Approx. Weight</th><td>@Model.ApproxWeight.ToString("N2") KG</td></tr>
 <tr><th>Purpose / Remarks</th><td colspan="3">@(string.IsNullOrWhiteSpace(Model.PurposeRemarks) ? "-" : Model.PurposeRemarks)</td></tr>
 </table>
-<div class="signatures"><div class="signature">Driver Signature</div><div class="signature">Gate Operator Signature<br/><small>@Model.GateManName</small></div></div>
+<div class="signatures"><div class="signature">Driver Signature</div><div class="signature">Gate Operator Signature<br/><strong style="display:block;margin-top:6px;font-size:13px;">@Model.GateManName</strong></div></div>
 </div></body></html>

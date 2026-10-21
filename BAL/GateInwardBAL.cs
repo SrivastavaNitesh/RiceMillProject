@@ -24,6 +24,8 @@ namespace RiceMillProject.BAL
             return entries;
         }
 
+        public void PopulateReportDetails(List<InwardHeader> entries) => _dal.PopulateReportDetails(entries);
+
         public InwardHeader? GetInwardPrint(int inwardId) => _dal.GetInwardPrint(inwardId);
         public bool SaveInwardEntry(InwardHeader model) => _dal.SaveInwardEntry(model);
         public List<dynamic> GetGatemenList() => _dal.GetGatemenList();

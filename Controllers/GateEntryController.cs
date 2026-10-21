@@ -728,14 +728,21 @@ namespace RiceMillProject.Controllers
         [HttpPost]
         public IActionResult Outbound(
             string rstNumber,
-            decimal tareWeight)
+            decimal? tareWeight)
         {
             try
             {
+                var entry = _gateBal.GetAllGateEntries().Find(e => e.RSTNumber == rstNumber);
+                if (entry == null) return NotFound();
+                if (!tareWeight.HasValue || tareWeight.Value <= 0)
+                    ModelState.AddModelError("tareWeight", "Enter a tare weight greater than zero.");
+                else if (tareWeight.Value > entry.GrossWeight)
+                    ModelState.AddModelError("tareWeight", "Tare weight cannot exceed the gross weight.");
+                if (!ModelState.IsValid) return View(entry);
                 _gateBal
                     .CompleteGateExit(
                         rstNumber,
-                        tareWeight
+                        tareWeight!.Value
                     );
 
 

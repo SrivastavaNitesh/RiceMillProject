@@ -3,6 +3,16 @@
     ViewData["Title"] = "Gate Exit Process";
 }
 
+<style>
+.outbound-card { border:1px solid #dce8e7; border-radius:16px; overflow:hidden; box-shadow:0 8px 28px #123f4610; }
+.outbound-summary { background:#f1f8f7; border-radius:12px; padding:20px; }
+.outbound-summary strong { font-size:.8rem; color:#607773; }
+.outbound-summary .badge { white-space:normal; }
+.outbound-form .form-control:focus { border-color:#087f78; box-shadow:0 0 0 .2rem #087f7820; }
+.outbound-form .input-group-text { background:#edf6f5; color:#087f78; font-weight:700; }
+.outbound-form .field-validation-error { display:block; margin-top:8px; color:#b42318; }
+@@media(max-width:576px) { .outbound-actions { flex-direction:column-reverse; gap:12px; } .outbound-actions>* { width:100%; text-align:center; } }
+</style>
 <!-- Page Header -->
 <div class="erp-page-header">
     <div class="erp-page-title-group">
@@ -20,13 +30,13 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-6 col-md-8">
-        <div class="erp-card">
+    <div class="col-xl-7 col-lg-9">
+        <div class="erp-card outbound-card">
             <div class="erp-card-header">
         <span><i class="bi bi-truck text-primary me-2"></i> Phase 2: Final Tare Weighment</span>
             </div>
             <div class="erp-card-body">
-                <div class="p-3 bg-light rounded border border-light-subtle mb-4">
+                <div class="outbound-summary mb-4">
                     <div class="row g-2">
                         <div class="col-6"><strong>RST Number:</strong> <span class="badge bg-primary font-monospace ms-1">@Model.RSTNumber</span></div>
                         <div class="col-6"><strong>Vehicle:</strong> <span class="fw-bold font-monospace ms-1">@Model.VehicleNumber</span></div>
@@ -34,16 +44,19 @@
                     </div>
                 </div>
                 
-                <form asp-action="Outbound" method="post" class="row g-3">
+                <form asp-action="Outbound" method="post" class="row g-3 outbound-form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <input type="hidden" name="rstNumber" value="@Model.RSTNumber" />
                     
                     <div class="col-md-12">
-                        <label for="tareWeight" class="form-label text-danger">Tare Weight / Empty Vehicle Weight (KG) <span class="req-star">*</span></label>
+                        <label for="tareWeight" class="form-label fw-semibold">Tare Weight / Empty Vehicle Weight (KG) <span class="req-star">*</span></label>
                         <div class="input-group">
-                            <input type="number" id="tareWeight" name="tareWeight" step="0.01" class="form-control form-control-lg border-danger font-monospace" placeholder="e.g. 40000" required />
-                            <span class="input-group-text bg-danger text-white border-danger">KG</span>
+                            <input type="number" id="tareWeight" name="tareWeight" value="@(ViewData.ModelState["tareWeight"]?.AttemptedValue)" step="0.01" min="0.01" max="@Model.GrossWeight.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-lg font-monospace" placeholder="Enter empty vehicle weight" aria-describedby="tareHelp tareError" required />
+                            <span class="input-group-text">KG</span>
                         </div>
-                        <small class="text-muted">Received weight will be calculated as (Previous Gross - Current Gross).</small>
+                        <small id="tareHelp" class="text-muted">Enter a weight above 0 and up to @Model.GrossWeight.ToString("0.##") KG.</small>
+                        <div id="tareError" class="text-danger small mt-1" role="alert"></div>
+                        @Html.ValidationMessage("tareWeight")
                     </div>
 
                     <div class="col-12">
@@ -56,12 +69,12 @@
                         </div>
                     </div>
 
-                    <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
+                    <div class="col-12 d-flex justify-content-between outbound-actions border-top pt-3 mt-4">
                         <a asp-action="Index" class="btn-erp-secondary">
                             <i class="bi bi-x-circle me-1"></i> Cancel
                         </a>
                         <button type="submit" class="btn-erp-primary">
-                            <i class="bi bi-check-circle me-1"></i> Finalize Exit & Calculate Net Weight
+                            <i class="bi bi-check-circle me-1"></i> Finalize Gate Exit
                         </button>
                     </div>
                 </form>
@@ -76,9 +89,20 @@
             const grossWeight = @Model.GrossWeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
             const tareInput = document.getElementById('tareWeight');
             const netPreview = document.getElementById('netWeightPreview');
+            const error = document.getElementById('tareError');
+            const form = tareInput.closest('form');
+            const submit = form.querySelector('button[type="submit"]');
 
             const updateNetWeight = () => {
-                const tareWeight = Number.parseFloat(tareInput.value);
+                const tareWeight = Number(tareInput.value);
+                const invalid = tareInput.value !== '' && (!Number.isFinite(tareWeight) || tareWeight <= 0 || tareWeight > grossWeight);
+                const message = invalid ? 'Tare weight must be above 0 and cannot exceed gross weight.' : '';
+                tareInput.setCustomValidity(message);
+                tareInput.classList.toggle('is-invalid', invalid);
+                tareInput.setAttribute('aria-invalid', String(invalid));
+                error.textContent = message;
+                submit.disabled = invalid || tareInput.value === '';
+                if (invalid || tareInput.value === '') { netPreview.textContent = '-- KG'; return; }
                 if (!Number.isFinite(tareWeight)) {
                     netPreview.textContent = '-- KG';
                     return;
@@ -90,7 +114,24 @@
                 netPreview.classList.toggle('text-success', netWeight >= 0);
             };
 
-            tareInput.addEventListener('input', updateNetWeight);
+            let lastAllowedTare = tareInput.value;
+            tareInput.addEventListener('input', () => {
+                const value = Number(tareInput.value);
+                if (tareInput.value !== '' && Number.isFinite(value) && value > grossWeight) {
+                    window.alert('Tare weight gross weight se zyada nahi ho sakta. Maximum: ' + grossWeight + ' KG.');
+                    tareInput.value = lastAllowedTare;
+                    updateNetWeight();
+                    tareInput.focus();
+                    return;
+                }
+                lastAllowedTare = tareInput.value;
+                updateNetWeight();
+            });
+            form.addEventListener('submit', event => {
+                updateNetWeight();
+                if (!form.checkValidity()) { event.preventDefault(); form.reportValidity(); }
+            });
+            updateNetWeight();
         })();
     </script>
 }

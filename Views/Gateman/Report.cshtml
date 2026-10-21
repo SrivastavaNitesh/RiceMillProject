@@ -1,5 +1,7 @@
 @model IEnumerable<RiceMillProject.Models.InwardHeader>
 @{
+    var reportEntries = Model ?? Enumerable.Empty<RiceMillProject.Models.InwardHeader>();
+    var bagTypes = reportEntries.SelectMany(e => e.SupervisorBags.Keys).Distinct().OrderBy(n => n).ToList();
     ViewData["Title"] = "Gate Inward Register";
     bool isWeightman = User.IsWeightmanUser() || (User.IsAdminUser() && Context.Session.GetString(RiceMillProject.Models.AdminWorkContext.RoleKey) == "Weightman");
 }
@@ -15,6 +17,13 @@
 }
 
 <style>
+@@media print {
+ @@page { size: A3 landscape; margin: 8mm; }
+ .report-action, .erp-toolbar, .erp-report-card:has(form), .dataTables_length, .dataTables_filter, .dataTables_info, .dataTables_paginate { display:none!important; }
+ .table-responsive { overflow:visible!important; }
+ .erp-table { font-size:8pt; }
+ thead { display:table-header-group; }
+}
     /* Professional ERP Report Styling */
     .erp-report-card {
         border: 1px solid #d1d5db;
@@ -149,19 +158,20 @@
                     <tr>
                         <th class="text-center" style="width: 50px;">S.N.</th>
                         <th>Inward No</th>
-                        <th>Gate Entry No</th>
+
                         <th>Date & Time</th>
-                        <th>Party / Supplier</th>
+                        <th>Party / Supplier</th><th>Party Mobile Number</th>
                         <th>Vehicle No</th>
                         <th>Driver Info</th>
-                        <th>Inward Type</th>
+                        <th>Item Category Name</th>
                         <th>RST Number</th>
-                        <th>Gross Weight</th>
+                        <th>Gross Weight</th><th>Tare Weight</th><th>Net Weight</th>
+ @foreach(var bagType in bagTypes) { <th>@bagType Bags</th> }<th>Total Bags</th>
 
                         <th>Status</th>
-                        @if (!isWeightman) { <th class="text-center">Gate Print</th> }
+                        @if (!isWeightman) { <th class="text-center report-action">Action</th> }
                        @*  <th>Added By</th> *@
-                        @if (isWeightman) { <th class="text-center">Action</th> }
+                        @if (isWeightman) { <th class="text-center report-action">Action</th> }
                     </tr>
                 </thead>
                 <tbody>
@@ -173,29 +183,25 @@
                             <tr>
                                 <td class="text-center text-muted fw-medium">@(sn++)</td>
                                 <td class="fw-bold text-primary">@item.InwardNo</td>
-                                <td class="text-muted font-monospace">@(string.IsNullOrWhiteSpace(item.GateEntryNo) ? "-" : item.GateEntryNo)</td>
+
                                 <td>
                                     <span class="d-block fw-semibold text-dark">@item.InwardDate.ToString("dd-MMM-yyyy")</span>
                                     <span class="text-muted" style="font-size:0.75rem;">@item.InwardTime</span>
                                 </td>
                                 <td class="fw-medium text-dark">@(string.IsNullOrWhiteSpace(item.PartyName) ? "-" : item.PartyName)</td>
-                                <td><span class="badge bg-light text-dark border border-secondary text-uppercase" style="font-size:0.75rem;">@item.VehicleNo</span></td>
+                                <td>@(string.IsNullOrWhiteSpace(item.PartyMobile) ? "-" : item.PartyMobile)</td>
+ <td><span class="badge bg-light text-dark border border-secondary text-uppercase" style="font-size:0.75rem;">@item.VehicleNo</span></td>
                                 <td>
                                     <span class="d-block fw-medium">@item.DriverName</span>
                                     <span class="text-muted" style="font-size:0.75rem;">@(string.IsNullOrWhiteSpace(item.DriverMobile) ? "-" : item.DriverMobile)</span>
                                 </td>
-                                <td>
-                                    @if (item.RSTRequired)
-                                    {
-                                        <span class="erp-badge bg-primary-subtle text-primary border border-primary-subtle">With RST</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="erp-badge bg-secondary-subtle text-secondary border border-secondary-subtle">Without RST</span>
-                                    }
-                                </td>
+<td>@(string.IsNullOrWhiteSpace(item.ItemCategoryName) ? "-" : item.ItemCategoryName)</td>
                                 <td class="fw-bold text-primary font-monospace">@(string.IsNullOrWhiteSpace(item.RSTNumber) ? "-" : item.RSTNumber)</td>
                                 <td class="fw-semibold">@(item.RSTGrossWeight.HasValue ? item.RSTGrossWeight.Value.ToString("0.###") + " KG" : "-")</td>
+<td>@(item.RSTTareWeight.HasValue ? item.RSTTareWeight.Value.ToString("0.###") + " KG" : "-")</td>
+<td>@(item.RSTNetWeight.HasValue ? item.RSTNetWeight.Value.ToString("0.###") + " KG" : "-")</td>
+@foreach(var bagType in bagTypes) { <td>@item.SupervisorBags.GetValueOrDefault(bagType)</td> }
+<td>@item.SupervisorBags.Values.Sum()</td>
                                 <td>
                                     @if (item.RSTRequired)
                                     {
@@ -215,12 +221,12 @@
                                 </td>
                                 @if (!isWeightman)
                                 {
-                                    <td class="text-center"><a asp-controller="Gateman" asp-action="Print" asp-route-id="@item.InwardId" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print</a></td>
+                                    <td class="text-center report-action"><a asp-controller="Gateman" asp-action="Print" asp-route-id="@item.InwardId" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print</a></td>
                                 }
                                 @* <td class="text-muted">@item.GateManName</td> *@
                                 @if (isWeightman)
                                 {
-                                    <td class="text-nowrap rst-action-cell">
+                                    <td class="text-nowrap rst-action-cell report-action">
                                         @if (item.RSTRequired && !item.IsRSTGenerated)
                                         {
                                             <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">
@@ -253,6 +259,13 @@
     </div>
 </div>
 
+<div class="card mt-3"><div class="card-body">
+<h5>Supervisor Bag Totals</h5>
+@foreach(var bagType in bagTypes) {
+ <span class="d-inline-block me-4"><strong>@bagType:</strong> @reportEntries.Sum(e => e.SupervisorBags.GetValueOrDefault(bagType))</span>
+}
+<strong>Total Bags: @reportEntries.Sum(e => e.SupervisorBags.Values.Sum())</strong>
+</div></div>
 @section Scripts {
     <script>
         function submitGatemanWeightAction(rstNumber, actionType, inputId) {
@@ -268,7 +281,7 @@
         $(document).ready(function () {
             if ($('#erpReportTable').length && $.fn.DataTable) {
                 $('#erpReportTable').DataTable({
-                    responsive: true,
+                    responsive: false,
                     pageLength: 25,
                     lengthMenu: [[15, 25, 50, 100, -1], [15, 25, 50, 100, "All"]],
                     order: [[0, 'desc']],
@@ -283,18 +296,29 @@
             }
         });
 
+        let reportPrintLength;
+        window.addEventListener('beforeprint', function () {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable('#erpReportTable')) {
+                const table = $('#erpReportTable').DataTable();
+                reportPrintLength = table.page.len();
+                table.page.len(-1).draw(false);
+            }
+        });
+        window.addEventListener('afterprint', function () {
+            if (reportPrintLength !== undefined) $('#erpReportTable').DataTable().page.len(reportPrintLength).draw(false);
+        });
         // Simple CSV Export Function
         function exportTableToCSV(filename) {
             var csv = [];
             var rows = document.querySelectorAll("#erpReportTable tr");
-            
+
             for (var i = 0; i < rows.length; i++) {
-                var row = [], cols = rows[i].querySelectorAll("td, th");
-                
-                for (var j = 0; j < cols.length; j++) 
+                var row = [], cols = rows[i].querySelectorAll("td:not(.report-action), th:not(.report-action)");
+
+                for (var j = 0; j < cols.length; j++)
                     row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
-                
-                csv.push(row.join(","));        
+
+                csv.push(row.join(","));
             }
 
             var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
