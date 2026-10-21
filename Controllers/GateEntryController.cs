@@ -19,7 +19,6 @@ namespace RiceMillProject.Controllers
         private readonly GateEntryBAL _gateBal;
         private readonly VehicleBAL _vehicleBal;
         private readonly PersonBAL _personBal;
-        private readonly OfficeBAL _officeBal;
         private readonly ItemBAL _itemBal;
         private readonly BusinessLayer _busLayer;
 
@@ -35,9 +34,6 @@ namespace RiceMillProject.Controllers
 
             _personBal =
                 new PersonBAL(configuration);
-
-            _officeBal =
-                new OfficeBAL(configuration);
 
             _itemBal =
                 new ItemBAL(configuration);
@@ -275,6 +271,8 @@ namespace RiceMillProject.Controllers
             try
             {
                 entry.RSTNumber = (entry.RSTNumber ?? string.Empty).Trim().ToUpperInvariant();
+                entry.TargetOfficeId = null;
+                entry.TargetLocationIds = null;
                 entry.CreatedBy = User.IsAdminUser()
                     ? HttpContext.EffectiveUserId()
                     : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -441,9 +439,6 @@ namespace RiceMillProject.Controllers
             ViewBag.Drivers =
                 Enumerable.Empty<SelectListItem>();
 
-            ViewBag.Offices =
-                Enumerable.Empty<SelectListItem>();
-
             ViewBag.Items =
                 Enumerable.Empty<SelectListItem>();
 
@@ -567,37 +562,6 @@ namespace RiceMillProject.Controllers
             {
                 ViewBag.Drivers =
                     Enumerable.Empty<SelectListItem>();
-            }
-
-
-            // -----------------------------------------------------
-            // OFFICES / COMPANIES
-            // -----------------------------------------------------
-
-            try
-            {
-                ViewBag.Offices =
-                    new SelectList(
-                        _officeBal
-                            .GetAllOffices()
-                            .Where(
-                                x =>
-                                    x.IsActive
-                            ),
-                        "OfficeId",
-                        "OfficeName",
-                        entry.TargetOfficeId
-                    );
-            }
-            catch (Exception)
-            {
-                ViewBag.Offices =
-                    Enumerable.Empty<SelectListItem>();
-
-                ModelState.AddModelError(
-                    "",
-                    "Company names could not be loaded."
-                );
             }
 
 

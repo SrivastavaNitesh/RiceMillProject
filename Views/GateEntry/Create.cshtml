@@ -550,64 +550,6 @@
 
 
                         <!-- =================================================
-                             OTHER DEVELOPER COMPANY / LOCATION LOGIC
-                             PRESERVED
-                             ================================================= -->
-                        @if (!isWeightman)
-                        {
-                            <div class="col-md-6">
-
-                                <label asp-for="TargetOfficeId"
-                                       class="form-label fw-semibold text-dark">
-
-                                    Target Company Location
-
-                                </label>
-
-
-                                <select asp-for="TargetOfficeId"
-                                        class="form-select"
-                                        asp-items="ViewBag.Offices"
-                                        id="gateOfficeDropdown">
-
-                                    <option value="">
-                                        -- Select Target Company --
-                                    </option>
-
-                                </select>
-
-                            </div>
-
-
-                            <div class="col-md-6">
-
-                                <label asp-for="TargetLocationIds"
-                                       class="form-label fw-semibold text-dark">
-
-                                    Target Unloading Locations
-
-                                </label>
-
-
-                                <select asp-for="TargetLocationIds"
-                                        class="form-select"
-                                        asp-items="ViewBag.Locations"
-                                        multiple="multiple"
-                                        style="height:100px;">
-                                </select>
-
-
-                                <small class="text-muted d-block mt-1">
-
-                                    Hold Ctrl / Cmd key to select multiple locations
-
-                                </small>
-
-                            </div>
-                        }
-
-
-                        <!-- =================================================
                              ACTIONS
                              ================================================= -->
 

@@ -18,8 +18,8 @@ BEGIN
     UPDATE dbo.t_GateEntry
     SET TareWeight = @TareWeight,
         NetWeight = @PreviousGross - @TareWeight,
-        GateExitTime = GETDATE(),
-        Status = 'Exited',
+        GateExitTime = NULL,
+        Status = 'WaitingForGateOut',
         IsFinalRST = 1,
         RSTChainStatus = 'Finalized'
     WHERE RSTNumber = @RSTNumber;

@@ -161,7 +161,7 @@
                         <th>Status</th>
                         @if (!isWeightman) { <th class="text-center">Gate Print</th> }
                        @*  <th>Added By</th> *@
-                        @if (isWeightman) { <th class="text-center">Action</th> }
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -242,6 +242,23 @@
                                             <span class="erp-badge bg-info-subtle text-info-emphasis border border-info-subtle">@((item.RstStatusName ?? item.StatusName ?? "Pending").Replace("Gadi In", "Vehicle Inward"))</span>
                                         }
                                         else { <span class="erp-badge bg-secondary-subtle text-secondary">@((item.StatusName ?? "Pending").Replace("Gadi In", "Vehicle Inward"))</span> }
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="text-center">
+                                        @if (string.Equals(item.RstStatus, "WaitingForGateOut", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(item.RSTNumber))
+                                        {
+                                            <form asp-controller="Gateman" asp-action="CompleteRstOutward" method="post" onsubmit="return confirm('Confirm vehicle has exited the gate?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="rstNumber" value="@item.RSTNumber" />
+                                                <button type="submit" class="btn btn-sm btn-danger fw-semibold"><i class="bi bi-box-arrow-right me-1"></i>Outward</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
                                     </td>
                                 }
                             </tr>

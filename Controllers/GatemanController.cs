@@ -17,6 +17,7 @@ namespace RiceMillProject.Controllers
         private readonly GateInwardBAL _inwardBal;
         private readonly PersonBAL _personBal;
         private readonly GateEntryBAL _gateBal;
+        private readonly VehicleBAL _vehicleBal;
 
         public GatemanController(IConfiguration configuration)
         {
@@ -24,6 +25,7 @@ namespace RiceMillProject.Controllers
             _inwardBal = new GateInwardBAL(configuration);
             _personBal = new PersonBAL(configuration);
             _gateBal = new GateEntryBAL(configuration);
+            _vehicleBal = new VehicleBAL(configuration);
         }
 
         [HttpGet]
@@ -223,10 +225,20 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetDriversByVehicle(int partyId, int vehicleId)
+        public IActionResult GetDriversByVehicle(int partyId, int vehicleId, string? vehicleNumber)
         {
             try
             {
+                if (vehicleId <= 0 && !string.IsNullOrWhiteSpace(vehicleNumber))
+                {
+                    vehicleId = _vehicleBal.GetAllVehicles()
+                        .FirstOrDefault(v => string.Equals(
+                            v.VehicleNumber?.Trim(),
+                            vehicleNumber.Trim(),
+                            StringComparison.OrdinalIgnoreCase))?.VehicleId ?? 0;
+                }
+                if (vehicleId <= 0)
+                    return Json(new { success = false, drivers = Array.Empty<object>(), message = "Vehicle was not found." });
                 var drivers = _gateBal.GetDriversByVehicle(partyId, vehicleId);
                 return Json(new { success = true, drivers });
             }
@@ -328,6 +340,25 @@ namespace RiceMillProject.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CompleteRstOutward(string rstNumber)
+        {
+            try
+            {
+                int gateManUserId = User.IsAdminUser()
+                    ? HttpContext.EffectiveUserId()
+                    : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                _gateBal.CompleteGatemanOutward(rstNumber, gateManUserId);
+                TempData["SuccessMessage"] = $"Vehicle outward completed for RST {rstNumber}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            return RedirectToAction(nameof(Report));
+        }
+
         private void PopulateDropdowns()
         {
             try
@@ -361,7 +392,16 @@ namespace RiceMillProject.Controllers
                 ViewBag.VehicleTypes = new SelectList(vehicleTypes, "VehicleTypeId", "VehicleTypeName");
                 
                 var parties = _personBal.GetActivePersonsByPost(8);
-                ViewBag.Parties = new SelectList(parties, "PersonId", "PersonName");
+                ViewBag.Parties = new SelectList(
+                    parties.Select(p => new
+                    {
+                        p.PersonId,
+                        DisplayName = string.IsNullOrWhiteSpace(p.MobileNumber)
+                            ? p.PersonName
+                            : $"{p.PersonName} / {p.MobileNumber}"
+                    }),
+                    "PersonId",
+                    "DisplayName");
 
                 // Fetch Drivers using INNER JOIN: p02 -> P11(IsActive=1) -> o12(IsActive=1) -> o10_post(PostId=9=Driver)
                 // UNION fallback: PersonType = 'Driver' AND p02.IsActive=1

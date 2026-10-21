@@ -740,6 +740,19 @@ public class GateEntryDAL
             return rowsAffected > 0;
         }
 
+        public bool CompleteGatemanOutward(string rstNumber, int gateManUserId)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_CompleteGatemanOutward", con)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            cmd.Parameters.Add("@RSTNumber", SqlDbType.NVarChar, 100).Value = rstNumber;
+            cmd.Parameters.Add("@GateManUserId", SqlDbType.Int).Value = gateManUserId;
+            con.Open();
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         // ============================================================
         // VEHICLES BY PARTY
         // Only vehicles actively linked with the selected Party
@@ -848,7 +861,7 @@ public class GateEntryDAL
                         ON D.PersonId = VM.DriverId
 
                     WHERE
-                        VM.PartyId = @PartyId
+                        (@PartyId = 0 OR VM.PartyId = @PartyId)
                         AND VM.VehicleId = @VehicleId
                         AND VM.IsActive = 1
                         AND D.IsActive = 1

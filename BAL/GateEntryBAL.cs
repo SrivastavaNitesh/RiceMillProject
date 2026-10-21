@@ -61,6 +61,15 @@ namespace RiceMillProject.BAL
             return _gateDal.CompleteGateExit(rstNumber, tareWeight);
         }
 
+        public bool CompleteGatemanOutward(string rstNumber, int gateManUserId)
+        {
+            if (string.IsNullOrWhiteSpace(rstNumber))
+                throw new ArgumentException("RST number is required.", nameof(rstNumber));
+            if (gateManUserId <= 0)
+                throw new ArgumentException("Gateman user is required.", nameof(gateManUserId));
+            return _gateDal.CompleteGatemanOutward(rstNumber.Trim(), gateManUserId);
+        }
+
         public WeightmanRstActionResult RecordWeightmanAction(WeightmanRstAction action, int userId)
         {
             if (!string.Equals(action.ActionType, "CONTINUE", StringComparison.OrdinalIgnoreCase) && !string.Equals(action.ActionType, "END", StringComparison.OrdinalIgnoreCase))

@@ -106,7 +106,7 @@
                         </div>
                     </div>
 
-                    <!-- Driver Name & Mobile -->
+                    <!-- Driver Name -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold text-dark">
                             Driver Name <span class="text-danger">*</span>
@@ -125,17 +125,7 @@
                         <a class="btn btn-outline-primary" href="/Person/Create?post=Driver&source=Gateman" title="Add Driver"><i class="bi bi-plus-lg"></i></a>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-dark">
-                            Driver Mobile Number <span class="text-danger">*</span>
-                        </label>
-                        <select name="DriverMobile" id="txtDriverMobile" class="form-select" required>
-                            <option value="">Select Driver Mobile</option>
-                        </select>
-                        <div id="mobileDuplicateWarning" class="text-warning fw-bold small mt-1" style="display:none;">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Note: This Driver Mobile Number is already recorded in system.
-                        </div>
-                    </div>
+                    <input type="hidden" name="DriverMobile" id="txtDriverMobile" />
 
                     <!-- Added By (Gateman Selector for Admin / Readonly for Gateman) -->
                     <div class="col-md-6">
@@ -189,6 +179,14 @@ catch (Exception ex)
 <!-- SweetAlert2 Script -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<style>
+    .input-group > .select2-container { flex: 1 1 auto; width: 1% !important; }
+    .select2-container .select2-selection--single { height: 39px; border: 1px solid #dee2e6; }
+    .select2-container .select2-selection--single .select2-selection__rendered { line-height: 37px; padding-left: 12px; }
+    .select2-container .select2-selection--single .select2-selection__arrow { height: 37px; }
+    .select2-container--open { z-index: 1060; }
+</style>
+
 <script>
     function updateLiveClocks() {
         const now = new Date();
@@ -234,13 +232,32 @@ catch (Exception ex)
             </text>
         }
 
-        // Driver Mobile Input Validation & AJAX Duplicate Check
-        const txtMobile = document.getElementById('txtDriverMobile');
         const txtDriverName = document.getElementById('txtDriverName');
         const txtParty = document.getElementById('txtPartyName');
         const txtVehicle = document.getElementById('txtVehicleNo');
         const txtDriverMobile = document.getElementById('txtDriverMobile');
-        const warningDiv = document.getElementById('mobileDuplicateWarning');
+
+        function refreshSearchableSelect(select) {
+            if (select && window.jQuery && $.fn.select2) $(select).trigger('change.select2');
+        }
+
+        function makeSearchableSelect(select, placeholder) {
+            if (!select || !window.jQuery || !$.fn.select2) return;
+            $(select).select2({
+                width: '100%',
+                placeholder: placeholder,
+                allowClear: true,
+                minimumResultsForSearch: 0,
+                dropdownParent: $(select).closest('.erp-card')
+            });
+            $(select).on('select2:select select2:clear', () => {
+                select.dispatchEvent(new Event('change'));
+            });
+        }
+
+        makeSearchableSelect(txtParty, 'Search party name / mobile');
+        makeSearchableSelect(txtVehicle, 'Search vehicle number');
+        makeSearchableSelect(txtDriverName, 'Search driver name / mobile');
 
         function setOptions(select, rows, valueKey, textKey, placeholder) {
             if (!select) return;
@@ -258,30 +275,33 @@ catch (Exception ex)
                 option.dataset.id = row.VehicleId ?? row.vehicleId ?? row.DriverId ?? row.driverId ?? '';
                 select.appendChild(option);
             });
+            refreshSearchableSelect(select);
         }
 
         function setDriverOptions(rows) {
-            setOptions(txtDriverName, rows, 'DriverName', 'DriverNameMobile', 'Select Driver');
-            setOptions(txtDriverMobile, [], 'MobileNumber', 'MobileNumber', 'Select Driver Mobile');
+            txtDriverName.innerHTML = '<option value="">Select Driver</option>';
+            txtDriverMobile.value = '';
             (rows || []).forEach(row => {
                 const name = row.DriverName || row.driverName || '';
                 const mobile = row.MobileNumber || row.mobileNumber || row.driverNameMobile?.split('/').slice(1).join('/').trim() || (row.DriverNameMobile || '').split('/').slice(1).join('/').trim();
                 const option = document.createElement('option');
-                option.value = mobile;
-                option.textContent = mobile || 'Mobile not available';
-                option.dataset.driver = name;
-                txtDriverMobile?.appendChild(option);
+                option.value = name;
+                option.textContent = row.DriverNameMobile || row.driverNameMobile || name;
+                option.dataset.mobile = mobile;
+                txtDriverName.appendChild(option);
             });
+            refreshSearchableSelect(txtDriverName);
         }
 
         async function loadDriversForVehicle() {
             const partyId = parseInt(txtParty?.value || '0');
             const vehicleId = parseInt(txtVehicle?.selectedOptions[0]?.dataset.id || '0');
-            if (!partyId || !vehicleId) {
+            const vehicleNumber = txtVehicle?.value?.trim() || '';
+            if (!vehicleId && !vehicleNumber) {
                 setDriverOptions([]);
                 return;
             }
-            const response = await fetch('/Gateman/GetDriversByVehicle?partyId=' + partyId + '&vehicleId=' + vehicleId);
+            const response = await fetch('/Gateman/GetDriversByVehicle?partyId=' + partyId + '&vehicleId=' + vehicleId + '&vehicleNumber=' + encodeURIComponent(vehicleNumber));
             const data = await response.json();
             setDriverOptions(data.drivers);
             if (data.drivers?.length === 1) {
@@ -300,60 +320,14 @@ catch (Exception ex)
                 const data = await response.json();
                 if (data.success) {
                     setOptions(txtVehicle, data.vehicles, 'VehicleNumber', 'VehicleNumber', 'Select Vehicle');
-                    const defaultVehicle = (data.vehicles || []).find(v => (v.VehicleId ?? v.vehicleId) == (data.defaultVehicleId ?? data.defaultvehicleId));
-                    if (defaultVehicle) {
-                        txtVehicle.value = defaultVehicle.VehicleNumber ?? defaultVehicle.vehicleNumber;
-                        txtVehicle.dispatchEvent(new Event('change'));
-                    }
                 }
             });
         }
         if (txtVehicle) txtVehicle.addEventListener('change', loadDriversForVehicle);
 
         if (txtDriverName) txtDriverName.addEventListener('change', function () {
-            const selected = txtDriverMobile ? Array.from(txtDriverMobile.options).find(o => o.dataset.driver === this.value) : null;
-            if (selected) txtDriverMobile.value = selected.value;
+            txtDriverMobile.value = this.selectedOptions[0]?.dataset.mobile || '';
         });
-
-        if (txtDriverName) {
-            txtDriverName.addEventListener('change', function() {
-                const driver = this.value;
-                if(driver) {
-                    fetch('/Gateman/GetDriverMobileData?driverName=' + encodeURIComponent(driver))
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.success && data.mobile && txtMobile) {
-                                txtMobile.value = data.mobile;
-                                const event = new Event('change');
-                                txtMobile.dispatchEvent(event);
-                            }
-                        })
-                        .catch(e => console.error(e));
-                }
-            });
-        }
-
-        if (txtMobile) {
-            txtMobile.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-
-            txtMobile.addEventListener('change', function() {
-                const mobile = this.value.trim();
-                if (warningDiv) warningDiv.style.display = 'none';
-
-                if (mobile.length === 10) {
-                    fetch('/Gateman/CheckDriverMobile?mobileNumber=' + encodeURIComponent(mobile))
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.success && data.isDuplicate) {
-                                if (warningDiv) warningDiv.style.display = 'block';
-                            }
-                        })
-                        .catch(e => console.error(e));
-                }
-            });
-        }
 
         // Form Validation & SweetAlert Popup on Submit
         const form = document.getElementById('gatemanForm');
@@ -362,11 +336,11 @@ catch (Exception ex)
                 const isTypeSelected = document.querySelector('input[name="InwardTypeId"]:checked');
                 const partySelect = document.getElementById('txtPartyName');
                 const partyId = partySelect?.value.trim();
-                const partyName = partyId ? partySelect.options[partySelect.selectedIndex].text.trim() : '';
+                const partyLabel = partyId ? partySelect.options[partySelect.selectedIndex].text.trim() : '';
+                const partyName = partyLabel.replace(/\s*\/\s*\d+\s*$/, '').trim();
                 document.getElementById('selectedPartyName').value = partyName;
                 const vehicleNo = document.getElementById('txtVehicleNo')?.value.trim();
                 const driverName = document.getElementById('txtDriverName')?.value.trim();
-                const driverMobile = document.getElementById('txtDriverMobile')?.value.trim();
                 const gatemanDdl = document.getElementById('ddlGateman');
 
                 let missingFields = [];
@@ -375,11 +349,6 @@ catch (Exception ex)
                 if (!partyId) missingFields.push('Party / Supplier Name');
                 if (!vehicleNo) missingFields.push('Vehicle Number');
                 if (!driverName) missingFields.push('Driver Name');
-                if (!driverMobile) {
-                    missingFields.push('Driver Mobile Number');
-                } else if (!/^\d{10}$/.test(driverMobile)) {
-                    missingFields.push('Driver Mobile Number (Must be a valid 10-digit number)');
-                }
                 if (gatemanDdl && !gatemanDdl.value) missingFields.push('Gateman (Added By)');
 
                 if (missingFields.length > 0) {
