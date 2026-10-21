@@ -168,7 +168,7 @@ SELECT TOP (1)
     ISNULL(h.DriverMobile,'') DriverMobile,ISNULL(h.ChallanNo,'') ChallanNo,
     ISNULL(h.ApproxNoOfBags,0) ApproxNoOfBags,ISNULL(h.ApproxWeight,0) ApproxWeight,
     ISNULL(h.PurposeRemarks,'') PurposeRemarks,h.GateInDateTime,h.CreatedBy,
-    ISNULL(u.Username,'Gateman') GateManName,ISNULL(s.StatusName,'Pending') StatusName,
+    COALESCE(NULLIF(operatorPerson.PersonName,''),NULLIF(u.Username,''),'Gateman') GateManName,ISNULL(s.StatusName,'Pending') StatusName,
     ISNULL(h.IsRSTGenerated,0) IsRSTGenerated
 FROM dbo.t_InwardHeader h
 LEFT JOIN dbo.m_GateMaster g ON g.GateId=h.GateId
@@ -176,6 +176,7 @@ LEFT JOIN dbo.m_InwardTypeMaster it ON it.InwardTypeId=h.InwardTypeId
 LEFT JOIN dbo.P02_Person p ON p.PersonId=h.PartyId
 LEFT JOIN dbo.m_VehicleTypeMaster vt ON vt.VehicleTypeId=h.VehicleTypeId
 LEFT JOIN dbo.sa05_user u ON u.UserId=h.CreatedBy
+LEFT JOIN dbo.P02_Person operatorPerson ON operatorPerson.PersonId=u.PersonId
 LEFT JOIN dbo.m_StatusMaster s ON s.StatusId=h.StatusId
 WHERE h.InwardId=@InwardId;", con);
             cmd.Parameters.Add("@InwardId", SqlDbType.Int).Value = inwardId;
@@ -208,7 +209,8 @@ WHERE h.InwardId=@InwardId;", con);
             using var cmd = new SqlCommand(@"
                 SELECT DISTINCT ge.InwardNo, c.CategoryName
                 FROM dbo.t_GateEntry ge
-                INNER JOIN dbo.m_ItemCategory c ON c.CategoryId = ge.ItemId
+                LEFT JOIN dbo.m_Item i ON i.ItemId = ge.ItemId
+                INNER JOIN dbo.m_ItemCategory c ON c.CategoryId = COALESCE(NULLIF(ge.CategoryId, 0), i.CategoryId)
                 WHERE ge.InwardNo IS NOT NULL
                 ORDER BY ge.InwardNo, c.CategoryName", con);
             con.Open();
@@ -224,6 +226,37 @@ WHERE h.InwardId=@InwardId;", con);
             foreach (var entry in entries)
                 entry.ItemCategoryName = categories.TryGetValue(entry.InwardNo ?? "", out var names)
                     ? string.Join(", ", names) : string.Empty;
+        }
+
+        public void PopulateReportDetails(List<InwardHeader> entries)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(@"
+SELECT h.InwardId,p.MobileNumber,g.RSTNumber,g.TareWeight,g.NetWeight
+FROM dbo.t_InwardHeader h LEFT JOIN dbo.P02_Person p ON p.PersonId=h.PartyId
+LEFT JOIN dbo.t_GateEntry g ON g.InwardNo=h.InwardNo;
+SELECT g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId)) BagTypeName,SUM(CONVERT(bigint,d.BagCount)) BagCount
+FROM dbo.t_GateEntry g JOIN dbo.t_UnloadTransaction u ON u.RSTNumber=g.RSTNumber
+JOIN dbo.t_SupervisorUnloadAction a ON a.UnloadId=u.UnloadId AND a.Status='Completed'
+JOIN dbo.t_SupervisorUnloadDetail d ON d.SupervisorActionId=a.SupervisorActionId
+LEFT JOIN dbo.m_BagType b ON b.BagTypeId=d.BagTypeId
+GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",con);
+            con.Open();
+            using var reader=cmd.ExecuteReader();
+            var byId=entries.ToDictionary(e=>e.InwardId);
+            while(reader.Read())
+            {
+                if(!byId.TryGetValue(Convert.ToInt32(reader["InwardId"]),out var entry)) continue;
+                entry.PartyMobile=reader["MobileNumber"]?.ToString();
+                if(entry.RSTNumber != reader["RSTNumber"]?.ToString()) continue;
+                entry.RSTTareWeight=reader["TareWeight"]==DBNull.Value ? null : Convert.ToDecimal(reader["TareWeight"]);
+                entry.RSTNetWeight=reader["NetWeight"]==DBNull.Value ? null : Convert.ToDecimal(reader["NetWeight"]);
+            }
+            reader.NextResult();
+            var byInward=entries.Where(e=>!string.IsNullOrEmpty(e.InwardNo)).ToLookup(e=>e.InwardNo!);
+            while(reader.Read())
+                foreach(var entry in byInward[reader["InwardNo"]?.ToString() ?? ""])
+                    entry.SupervisorBags[reader["BagTypeName"].ToString()!]=Convert.ToInt64(reader["BagCount"]);
         }
 
         public bool SaveInwardEntry(InwardHeader model)

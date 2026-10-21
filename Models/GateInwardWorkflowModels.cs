@@ -68,5 +68,8 @@ namespace RiceMillProject.Models
         public string? RstStatusName { get; set; }
         public string? RSTNumber { get; set; }
         public decimal? RSTGrossWeight { get; set; }
+        public decimal? RSTTareWeight { get; set; }
+        public decimal? RSTNetWeight { get; set; }
+        public Dictionary<string, long> SupervisorBags { get; set; } = new();
     }
 }
