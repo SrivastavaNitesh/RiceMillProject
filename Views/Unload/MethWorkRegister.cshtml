@@ -1,7 +1,9 @@
-﻿@model IEnumerable<RiceMillProject.Models.UnloadTransaction>
+@model IEnumerable<RiceMillProject.Models.UnloadTransaction>
 
 @{
-    ViewData["Title"] = "Labour Mates (Meth)";
+    ViewData["Title"] = "Workforce Management";
+    var categoryNames=ViewBag.ItemCategoriesByUnload as Dictionary<int,string> ?? new();
+    var savedActions=ViewData["RecordActions"] as List<RiceMillProject.Models.RecordEditRow> ?? new();
 }
 
 <style>
@@ -35,7 +37,7 @@
 
                         <i class="bi bi-person-badge me-2"></i>
 
-                        Labour Mates (Meth)
+                        Workforce Management
 
                     </h4>
 
@@ -151,7 +153,7 @@
                             </th>
 
                             <th>
-                                Material
+                                Item Category
                             </th>
 
                             <th>
@@ -263,10 +265,10 @@
                                     <td>
 
                                         @(string.IsNullOrWhiteSpace(
-                                            item.ItemName
+                                            categoryNames.GetValueOrDefault(item.UnloadId)
                                         )
                                             ? "-"
-                                            : item.ItemName)
+                                            : categoryNames.GetValueOrDefault(item.UnloadId))
 
                                     </td>
 
@@ -394,7 +396,7 @@
                                          ACTION
                                          ===================================== -->
 
-                                    <td class="text-center pe-4 action-cell">
+                                    <td class="text-center pe-4 action-cell"><div class="d-flex gap-2 justify-content-center align-items-start flex-wrap">
 
                                         @if (supervisorCompleted)
                                         {
@@ -442,6 +444,25 @@
                                             </div>
                                         }
 
+
+                                        @{
+                                            var workerEdit=savedActions.FirstOrDefault(a=>a.ModuleKey=="Labour"&&a.RecordId==item.UnloadId.ToString());
+                                            var fieldEdit=savedActions.FirstOrDefault(a=>a.ModuleKey=="Supervisor"&&a.RecordId==item.UnloadId.ToString());
+                                            var canEdit=workerEdit?.CanEdit==true||fieldEdit?.CanEdit==true;
+                                            var expires=new[]{workerEdit?.ExpiresAt,fieldEdit?.ExpiresAt}.Where(d=>d.HasValue).Select(d=>d!.Value).DefaultIfEmpty().Max();
+                                        }
+                                        @if(workerEdit!=null||fieldEdit!=null){
+                                        <span data-edit-mode="disable" data-edit-expiry="@(expires==default?null:expires.ToString("yyyy-MM-ddTHH:mm:ss+05:30"))"><button type="button" class="btn btn-sm btn-outline-primary edit-window-action" disabled="@(!canEdit)" data-bs-toggle="modal" data-bs-target="#editModal-@item.UnloadId">Edit</button></span>
+                                        <div class="modal fade" id="editModal-@item.UnloadId" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit — RST @item.RSTNumber</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body d-grid gap-3">
+                                        @if(workerEdit!=null){<partial name="_WorkforceEditOption" model="workerEdit"/>}else{<button class="btn btn-outline-secondary p-3" disabled>Worker Details — not entered</button>}
+                                        @if(fieldEdit!=null){<partial name="_WorkforceEditOption" model="fieldEdit"/>}else{<button class="btn btn-outline-secondary p-3" disabled>Field Details — not entered</button>}
+                                        </div></div></div></div>}
+
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewModal-@item.UnloadId">View</button>
+                                        <div class="modal fade" id="viewModal-@item.UnloadId" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">View — RST @item.RSTNumber</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body d-grid gap-3">
+                                        @if(workerEdit!=null){<a class="btn btn-outline-warning text-start p-3" asp-action="SupervisorMethWork" asp-route-id="@item.UnloadId" asp-route-viewOnly="true">Worker Details</a>}else{<button class="btn btn-outline-secondary p-3" disabled>Worker Details — not entered</button>}
+                                        @if(fieldEdit!=null){<a class="btn btn-outline-primary text-start p-3" asp-action="SupervisorAction" asp-route-id="@item.UnloadId" asp-route-viewOnly="true">Field Details</a>}else{<button class="btn btn-outline-secondary p-3" disabled>Field Details — not entered</button>}
+                                        </div></div></div></div></div>
                                     </td>
 
                                 </tr>
@@ -491,3 +512,4 @@
     </div>
 
 </div>
+@{var correctionRows=ViewData["RecordActions"] as List<RiceMillProject.Models.RecordEditRow> ?? new();}<partial name="_RecordEditRegister" model="correctionRows"/>

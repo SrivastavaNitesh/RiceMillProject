@@ -336,6 +336,8 @@
 
                
                 <ul class="nav flex-column mb-auto">
+                <partial name="_RecordEditNavigation" />
+
                      <li>
                         <a asp-controller="GateEntry" asp-action="Dashboard">
                             <i class="bi bi-speedometer2 me-2"></i>
@@ -345,7 +347,7 @@
                     <li>
                         <a asp-controller="Gateman" asp-action="Report">
                             <i class="bi bi-journal-text me-2"></i>
-                            Inbound Details
+                            RST Transaction Report
                         </a>
                     </li>
                 </ul>
@@ -500,6 +502,7 @@
             <main class="page-content p-4">
 
                 @RenderBody()
+                <script src="~/js/record-edit.js" asp-append-version="true"></script>
 
             </main>
 

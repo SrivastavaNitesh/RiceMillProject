@@ -13,11 +13,12 @@
     {
         <tr><td class="fw-bold">@rst.RSTNumber</td><td>@rst.VehicleNumber<small class="d-block text-muted">@rst.PartyName</small></td><td>@rst.ItemCount</td>
             <td>@rst.CompletedTests / @rst.RequiredTests results recorded
-                @if (rst.UnmappedItems > 0) { <small class="d-block text-warning">@rst.UnmappedItems item(s) need test mapping</small> }
+                @if (rst.ItemCount == 0) { <small class="d-block text-warning">Supervisor item confirmation pending</small> }
+                else if (rst.UnmappedItems > 0) { <small class="d-block text-warning">@rst.UnmappedItems item(s) need test mapping</small> }
                 else if (rst.IsComplete) { <span class="badge bg-success">Complete</span> }
             </td>
             <td>@if (rst.LatestReportId.HasValue) { <a asp-action="Edit" asp-route-id="@rst.LatestReportId" class="btn btn-sm btn-primary">Edit</a> }
-                @if (!rst.IsComplete) { <a asp-action="Create" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-outline-primary">@(rst.LatestReportId.HasValue ? "Remaining tests" : "Enter details")</a> }
+                @if (!rst.IsComplete && rst.ItemCount > 0) { <a asp-action="Create" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-outline-primary">@(rst.LatestReportId.HasValue ? "Remaining tests" : "Enter details")</a> }
                 <a asp-action="Reports" asp-route-rstNumber="@rst.RSTNumber" class="btn btn-sm btn-outline-secondary">Reports</a></td></tr>
     }
     </tbody></table></div>

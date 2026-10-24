@@ -23,6 +23,7 @@
 }
 
 <style>
+form[data-readonly="true"] button{display:none}
     .sup-form-page {
         max-width: 1250px;
         margin: 0 auto;
@@ -299,7 +300,15 @@
     <form asp-controller="Unload"
           asp-action="SupervisorAction"
           method="post"
-          id="supervisorActionForm">
+          id="supervisorActionForm" data-readonly="@(ViewBag.ReadOnly==true?"true":"false")" data-edit-mode="disable" data-edit-expiry="@vm.EditExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")">
+        <fieldset disabled="@(ViewBag.ReadOnly==true)" class="border-0 p-0 m-0 w-100">
+        @if(!string.IsNullOrEmpty(vm.EditVersion)){
+            <input type="hidden" asp-for="EditVersion"/>
+            <div class="alert alert-primary">@(ViewBag.ReadOnly==true?"View":"Edit") saved details — RST @vm.RSTNumber</div>
+            @if(ViewBag.ReadOnly!=true){<div class="mb-3"><label asp-for="CorrectionReason" class="form-label">Reason for edit</label><textarea asp-for="CorrectionReason" class="form-control" maxlength="500" required></textarea></div>}
+        }
+        <div asp-validation-summary="All" class="text-danger"></div>
+
 
         @Html.AntiForgeryToken()
 
@@ -524,7 +533,7 @@
                                 @for (var bi = 0; bi < bagTypes.Count(); bi++)
                                 {
                                     var bag = bagTypes.ElementAt(bi);
-                                    <td><input type="number" min="0" class="form-control location-count" name="LocationRows[@li].BagRows[@bi].BagCount" data-location-id="@location.LocationId" data-bag-type-id="@bag.Value" value="0" />
+                                    <td><input type="number" min="0" class="form-control location-count" name="LocationRows[@li].BagRows[@bi].BagCount" data-location-id="@location.LocationId" data-bag-type-id="@bag.Value" value="@(vm.LocationRows.FirstOrDefault(r=>r.LocationId==location.LocationId)?.BagRows.FirstOrDefault(r=>r.BagTypeId==int.Parse(bag.Value))?.BagCount ?? 0)" />
                                         <input type="hidden" name="LocationRows[@li].LocationId" value="@location.LocationId" />
                                         <input type="hidden" name="LocationRows[@li].BagRows[@bi].LocationId" value="@location.LocationId" />
                                         <input type="hidden" name="LocationRows[@li].BagRows[@bi].BagTypeId" value="@bag.Value" /></td>
@@ -1015,7 +1024,7 @@
 
                     <button type="submit"
                             id="saveRecordButton"
-                            class="btn btn-primary px-4"
+                            class="btn btn-primary edit-window-action px-4"
                             disabled>
 
                         <i class="bi bi-check-circle me-1"></i>
@@ -1030,7 +1039,7 @@
 
         </div>
 
-    </form>
+    </fieldset></form>
 
 </div>
 
@@ -1171,6 +1180,19 @@
 
 
                     refreshMasterDropdowns();
+                    const saved = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.SavedFieldDetails ?? new List<RiceMillProject.Models.SupervisorUnloadCategoryRow>()));
+                    if(saved.length){
+                        const template=rowsContainer.querySelector('.material-row').cloneNode(true);rowsContainer.innerHTML='';
+                        for(const d of saved){
+                            const row=template.cloneNode(true);rowsContainer.appendChild(row);
+                            fillCategoryDropdown(row.querySelector('.category-select'));fillBagTypeDropdown(row.querySelector('.bag-type-select'));
+                            row.querySelector('.category-select').value=String(d.CategoryId);
+                            await loadItems(row,d.CategoryId);row.querySelector('.item-select').value=String(d.ItemId);
+                            row.querySelector('.location-select').value=String(d.LocationId);row.querySelector('.bag-type-select').value=String(d.BagTypeId);
+                            row.querySelector('.bag-count-input').value=d.BagCount;
+                        }
+                        reIndexRows();updateRemoveButtons();validateForm();
+                    }
 
 
                     if (

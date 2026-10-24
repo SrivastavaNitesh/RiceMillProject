@@ -62,10 +62,7 @@
                 <th>Party / Kisan</th>
                 <td>@Model.PartyName</td>
             </tr>
-            <tr>
-                <th>Party Mobile Number</th>
-                <td>@(string.IsNullOrWhiteSpace(Model.PartyMobile) ? "-" : Model.PartyMobile)</td>
-            </tr>
+            @if(!RiceMillProject.Models.RecordWorkflowFilter.HidePartyMobile(User)){<tr><th>Party Mobile Number</th><td>@Model.PartyMobile</td></tr>}
             <tr>
                 <th>Driver Name</th>
                 <td>@Model.DriverName</td>

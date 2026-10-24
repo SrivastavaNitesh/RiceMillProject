@@ -69,7 +69,7 @@ namespace RiceMillProject.Models
             bool flag = false;
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
-                if (con.State == ConnectionState.Closed) con.Open();
+                if (con.State == ConnectionState.Closed) RiceMillProject.DAL.RecordEditContext.Open(con);
                 using SqlTransaction trans = con.BeginTransaction();
                 try
                 {                   
@@ -287,7 +287,7 @@ namespace RiceMillProject.Models
             using var con = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand("SELECT TOP (1) 1 FROM dbo.t_GateEntry WHERE RSTNumber=@RSTNumber AND ISNULL(IsFinalRST,1)=1", con);
             cmd.Parameters.Add(new SqlParameter("@RSTNumber", SqlDbType.NVarChar, 50) { Value = rstNumber.Trim() });
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
             return cmd.ExecuteScalar() != null;
         }
 

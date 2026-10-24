@@ -515,6 +515,8 @@
             <ul class="flex-grow-1">
 
 
+
+
                 <!-- ==================================
                      GATE OPERATIONS
                      ================================== -->
@@ -560,6 +562,8 @@
                 </li>
 
 
+                <li><a asp-controller="RecordEdit" asp-action="GateInwardReport"><i class="bi bi-journal-text me-2"></i>Gate Inward Report</a></li>
+                <li class="d-none"><a asp-controller="RecordEdit" asp-action="Index">Entry Corrections</a></li>
                 <li>
 
                     <a asp-controller="Gateman"
@@ -772,6 +776,7 @@
             <main class="content-area">
 
                 @RenderBody()
+                <script src="~/js/record-edit.js" asp-append-version="true"></script>
 
             </main>
 

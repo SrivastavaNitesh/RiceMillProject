@@ -18,6 +18,7 @@ namespace RiceMillProject.Controllers
         private readonly PersonBAL _personBal;
         private readonly GateEntryBAL _gateBal;
         private readonly VehicleBAL _vehicleBal;
+        private readonly RiceMillProject.DAL.RecordEditDAL _edits;
 
         public GatemanController(IConfiguration configuration)
         {
@@ -26,9 +27,11 @@ namespace RiceMillProject.Controllers
             _personBal = new PersonBAL(configuration);
             _gateBal = new GateEntryBAL(configuration);
             _vehicleBal = new VehicleBAL(configuration);
+            _edits = new RiceMillProject.DAL.RecordEditDAL(configuration);
         }
 
         [HttpGet]
+        [Authorize(Policy = "GatemanAccess")]
         public IActionResult Dashboard()
         {
             try
@@ -87,11 +90,11 @@ namespace RiceMillProject.Controllers
                 int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 var allEntries = _inwardBal.GetAllInwardEntries(includeItemCategories: true);
                 
-                bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
-                var myEntries = isAdmin || currentUserId <= 0 || !allEntries.Any(e => e.CreatedBy > 0)
-                    ? allEntries
-                    : allEntries.Where(e => e.CreatedBy == currentUserId).ToList();
-
+                bool weightReport = User.IsWeightmanUser() || (User.IsAdminUser() && HttpContext.Session.GetString(AdminWorkContext.RoleKey) == "Weightman");
+                int actorId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var visible = _edits.VisibleInwardIds(actorId, weightReport || User.IsAdminUser(), User.IsSupervisorUser());
+                var myEntries = allEntries.Where(e => visible.Contains(e.InwardId)).ToList();
+                ViewBag.EditRows = _edits.List(actorId, weightReport ? "Weight" : User.IsSupervisorUser() ? "Supervisor" : "GateInward");
                 if (fromDate.HasValue)
                     myEntries = myEntries.Where(e => e.InwardDate.Date >= fromDate.Value.Date).ToList();
                 if (toDate.HasValue)
@@ -120,6 +123,7 @@ namespace RiceMillProject.Controllers
             return View(inward);
         }
 
+        [Authorize(Policy = "GatemanAccess")]
         public IActionResult Index()
         {
             try
@@ -148,19 +152,23 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "GatemanAccess")]
         public IActionResult CreateGateEntry(InwardHeader model)
         {
             try
             {
                 int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
+                bool isAdmin = User.IsAdminUser();
 
                 if (!isAdmin || model.CreatedBy <= 0)
                 {
                     model.CreatedBy = currentUserId > 0 ? currentUserId : 2;
                 }
 
-                if (ModelState.IsValid || !string.IsNullOrWhiteSpace(model.VehicleNo))
+                if (model.ApproxNoOfBags < 0 || model.ApproxWeight < 0) ModelState.AddModelError("", "Approximate bags and weight cannot be negative.");
+                if (string.IsNullOrWhiteSpace(model.VehicleNo) || !System.Text.RegularExpressions.Regex.IsMatch(model.VehicleNo, @"^[A-Za-z0-9][A-Za-z0-9 -]{2,49}$")) ModelState.AddModelError("VehicleNo", "Enter a valid vehicle number.");
+                if (model.GateId <= 0 || model.InwardTypeId <= 0 || model.VehicleTypeId <= 0) ModelState.AddModelError("", "Select valid gate, inward and vehicle types.");
+                if (ModelState.IsValid)
                 {
                     _inwardBal.SaveInwardEntry(model);
                     TempData["SuccessMessage"] = "Gate Inward Entry created successfully!";
@@ -250,6 +258,7 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "GatemanAccess")]
         public IActionResult CreateInward(string vehicleNumber, string driverName, int? itemId, decimal? quantity, string? unit)
         {
             try
@@ -306,6 +315,7 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "GatemanAccess")]
         public IActionResult ApproveOutward(string challanNo)
         {
             try
@@ -343,6 +353,7 @@ namespace RiceMillProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "GatemanAccess")]
         public IActionResult CompleteRstOutward(string rstNumber)
         {
             try
@@ -365,7 +376,7 @@ namespace RiceMillProject.Controllers
             try
             {
                 int currentUserId = User.IsAdminUser() ? HttpContext.EffectiveUserId() : Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                bool isAdmin = User.IsInRole("Admin") || (User.Identity?.Name ?? "").ToLower().Contains("admin") || currentUserId == 1;
+                bool isAdmin = User.IsAdminUser();
                 ViewBag.IsAdmin = isAdmin;
 
                 var gatemen = _inwardBal.GetGatemenList();
@@ -454,7 +465,7 @@ namespace RiceMillProject.Controllers
             }
             catch (Exception)
             {
-                ViewBag.IsAdmin = true;
+                ViewBag.IsAdmin = User.IsAdminUser();
                 ViewBag.Gatemen = Enumerable.Empty<SelectListItem>();
                 ViewBag.Gates = Enumerable.Empty<SelectListItem>();
                 ViewBag.InwardTypes = Enumerable.Empty<SelectListItem>();

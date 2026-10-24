@@ -1,0 +1,24 @@
+@model RiceMillProject.Models.RecordEditForm
+@{ViewData["Title"]=Model.Access.ReferenceNo;}
+<div class="erp-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4"><div class="erp-page-title-group"><div class="erp-page-icon"><i class="bi bi-speedometer2"></i></div><div><h3 class="erp-page-title">@Model.Access.ReferenceNo</h3></div></div><a asp-controller="Gateman" asp-action="Report" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Register</a></div>
+<div class="row justify-content-center"><div class="col-lg-10"><div class="erp-card shadow-sm border-0 mb-4"><div class="erp-card-header bg-primary text-white"><i class="bi bi-truck-front-fill me-2"></i>Weighbridge Form</div><div class="erp-card-body p-4">
+<form asp-controller="RecordEdit" asp-action="Edit" method="post" id="record-edit-form" class="row g-3" data-edit-expiry="@Model.Access.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")">
+<input asp-for="ModuleKey" type="hidden"/><input asp-for="RecordId" type="hidden"/><input asp-for="Version" type="hidden"/>
+<div asp-validation-summary="All" class="text-danger"></div>
+@if(!Model.Access.CanEdit){<div class="alert alert-warning">@Model.Access.LockedReason</div>}
+<div class="col-12 bg-light p-3 rounded border"><label class="form-label fw-bold">Gate Inward Entry</label><input class="form-control bg-light" value="@Model.InwardNo" readonly/></div>
+<div class="col-12"><label class="form-label fw-bold">RST Number</label><input class="form-control text-uppercase bg-light" value="@Model.Access.ReferenceNo" readonly/></div>
+@foreach(var f in Model.Fields){Model.Values.TryGetValue(f.Name,out var value);bool linked=f.Name is "PartyId" or "DriverId" or "VehicleId";
+<div class="col-md-6"><label for="field-@f.Name" class="form-label fw-bold">@f.Label</label>
+@if(f.Type=="select"){
+@if(linked){<input type="hidden" name="Values[@f.Name]" value="@value"/><input id="field-@f.Name" class="form-control bg-light" value="@(f.Options.FirstOrDefault(o=>o.Value==value)?.Text ?? value)" readonly/>}
+else{<select id="field-@f.Name" name="Values[@f.Name]" class="form-select border-primary-subtle" required="@f.Required"><option value="">Select</option>@foreach(var o in f.Options){<option value="@o.Value" selected="@(o.Value==value)">@o.Text</option>}</select>}}
+else{<div class="input-group"><input id="field-@f.Name" name="Values[@f.Name]" class="form-control form-control-lg font-monospace" type="number" value="@value" min="@(f.Name is "GrossWeight" or "TareWeight"?"0.01":"0")" step="0.01" required="@f.Required"/><span class="input-group-text">@(f.Name=="WeighmentCharge"?"₹":"KG")</span></div>}
+</div>}
+@if(Model.HasRecordedTare){<div class="col-12"><div class="rounded border border-success-subtle bg-success-subtle p-3"><label class="fw-bold">Net Weight (KG)</label><output id="edit-net-weight" class="d-block fs-4 fw-bold">@Model.NetWeight?.ToString("0.00")</output></div></div>}
+<div class="col-12"><label asp-for="Reason" class="form-label fw-bold">Reason for edit</label><textarea asp-for="Reason" class="form-control" maxlength="500" required></textarea></div>
+<div class="col-12 d-flex gap-2"><button class="btn btn-primary edit-window-action" type="submit" disabled="@(!Model.Access.CanEdit)">Save</button><a asp-controller="Gateman" asp-action="Report" class="btn btn-outline-secondary">Cancel</a><span class="edit-window-expired text-danger" hidden>Edit time expired.</span></div>
+</form></div></div></div></div>
+@section Scripts{<script>
+(()=>{const gross=document.getElementById('field-GrossWeight'),tare=document.getElementById('field-TareWeight'),net=document.getElementById('edit-net-weight');const update=()=>{if(!tare||!net)return;const g=Number(gross.value),t=Number(tare.value);tare.setCustomValidity(t>0&&t<g?'':'Tare weight must be positive and below gross weight.');net.value=Number.isFinite(g-t)?(g-t).toFixed(2):'';};gross?.addEventListener('input',update);tare?.addEventListener('input',update);update();})();
+</script>}

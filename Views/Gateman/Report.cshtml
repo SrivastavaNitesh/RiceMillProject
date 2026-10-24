@@ -3,6 +3,9 @@
     var reportEntries = Model ?? Enumerable.Empty<RiceMillProject.Models.InwardHeader>();
     var bagTypes = reportEntries.SelectMany(e => e.SupervisorBags.Keys).Distinct().OrderBy(n => n).ToList();
     ViewData["Title"] = "Gate Inward Register";
+    var editRows = ViewBag.EditRows as List<RiceMillProject.Models.RecordEditRow> ?? new();
+    bool showPartyMobile = !RiceMillProject.Models.RecordWorkflowFilter.HidePartyMobile(User);
+    bool isSupervisor = User.IsSupervisorUser();
     bool isWeightman = User.IsWeightmanUser() || (User.IsAdminUser() && Context.Session.GetString(RiceMillProject.Models.AdminWorkContext.RoleKey) == "Weightman");
 }
 
@@ -160,7 +163,7 @@
                         <th>Inward No</th>
 
                         <th>Date & Time</th>
-                        <th>Party / Supplier</th><th>Party Mobile Number</th>
+                        <th>Party / Supplier</th>@if(showPartyMobile){<th>Party Mobile Number</th>}
                         <th>Vehicle No</th>
                         <th>Driver Info</th>
                         <th>Item Category Name</th>
@@ -168,7 +171,7 @@
                         <th>Gross Weight</th><th>Tare Weight</th><th>Net Weight</th>
  @foreach(var bagType in bagTypes) { <th>@bagType Bags</th> }<th>Total Bags</th>
 
-                        <th>Status</th>
+                        <th>Status</th><th class="report-action @(isWeightman ? "d-none" : "")">@(isSupervisor ? "Edit" : "Edit / Finalize")</th>
                         @if (!isWeightman)
                         {
                             <th class="text-center report-action">Gate Print</th>
@@ -195,7 +198,7 @@
                                     <span class="text-muted" style="font-size:0.75rem;">@item.InwardTime</span>
                                 </td>
                                 <td class="fw-medium text-dark">@(string.IsNullOrWhiteSpace(item.PartyName) ? "-" : item.PartyName)</td>
-                                <td>@(string.IsNullOrWhiteSpace(item.PartyMobile) ? "-" : item.PartyMobile)</td>
+                                @if(showPartyMobile){<td>@(string.IsNullOrWhiteSpace(item.PartyMobile) ? "-" : item.PartyMobile)</td>}
  <td><span class="badge bg-light text-dark border border-secondary text-uppercase" style="font-size:0.75rem;">@item.VehicleNo</span></td>
                                 <td>
                                     <span class="d-block fw-medium">@item.DriverName</span>
@@ -225,14 +228,18 @@
                                         <span class="erp-badge bg-info-subtle text-info-emphasis border border-info-subtle">Direct Entry</span>
                                     }
                                 </td>
+<td class="report-action @(isWeightman ? "d-none" : "")">@{var editRow=editRows.FirstOrDefault(r=>(isSupervisor ? r.ReferenceNo==item.RSTNumber : r.RecordId==(isWeightman?item.RSTNumber:item.InwardId.ToString())));}@if(editRow!=null){<partial name="@(isSupervisor ? "_RecordEditOnly" : "_RecordEditActions")" model="editRow"/>}else{<span class="text-muted">No editable entry for your login</span>}</td>
+
                                 @if (!isWeightman)
                                 {
                                     <td class="text-center report-action"><a asp-controller="Gateman" asp-action="Print" asp-route-id="@item.InwardId" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Print</a></td>
                                 }
-                                @* <td class="text-muted">@item.GateManName</td> *@
+
                                 @if (isWeightman)
                                 {
                                     <td class="text-nowrap rst-action-cell report-action">
+                                        @{var weightEdit=editRows.FirstOrDefault(r=>r.RecordId==item.RSTNumber);}
+                                        @if(weightEdit!=null){<partial name="_RecordEditOnly" model="weightEdit"/>}
                                         @if (item.RSTRequired && !item.IsRSTGenerated)
                                         {
                                             <a asp-controller="GateEntry" asp-action="Create" asp-route-inwardId="@item.InwardId" class="btn btn-sm btn-primary fw-semibold">

@@ -1,0 +1,17 @@
+@model RiceMillProject.Models.RecordEditRow
+<div class="d-flex gap-2 flex-wrap align-items-center" data-edit-expiry="@Model.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")">
+@if(Model.CanEdit)
+{
+    <a class="btn btn-sm btn-outline-primary edit-window-action" asp-controller="RecordEdit" asp-action="Edit" asp-route-module="@Model.ModuleKey" asp-route-id="@Model.RecordId">Edit</a>
+    @if(!Model.IsFinalized)
+    {
+        <form class="edit-window-action" asp-controller="RecordEdit" asp-action="FinalizeRecord" method="post" onsubmit="return confirm('Finalize this record? Further corrections will require admin access within the admin time limit.');">
+            <input type="hidden" name="module" value="@Model.ModuleKey"/><input type="hidden" name="id" value="@Model.RecordId"/><input type="hidden" name="version" value="@Model.Version"/>
+            <button class="btn btn-sm btn-outline-success" type="submit">Finalize</button>
+        </form>
+    }
+}
+else { <span class="badge bg-secondary">@Model.LockedReason</span> }
+@if(Model.IsFinalized) { <span class="badge bg-success">Finalized</span> }
+<small class="text-muted edit-window-expired" hidden>Edit time expired</small>
+</div>

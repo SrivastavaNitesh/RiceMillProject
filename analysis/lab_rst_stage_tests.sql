@@ -5,11 +5,14 @@ INSERT dbo.m_RSTStageMaster(StageId,StageCode,StageName,SequenceNo,IsActive) VAL
 SET IDENTITY_INSERT dbo.m_RSTStageMaster OFF;
 CREATE TABLE dbo.t_RSTProgressWork(ProgressId bigint IDENTITY PRIMARY KEY,RSTNumber nvarchar(50),StageId int,Status nvarchar(50),IsActive bit,StartedAt datetime2,CompletedAt datetime2,CreatedBy int,Remarks nvarchar(500));
 CREATE TABLE dbo.t_RSTMaster(RSTMasterId int IDENTITY PRIMARY KEY,RSTNumber nvarchar(50) UNIQUE,CurrentStageId int,CurrentStatus nvarchar(50),UpdatedAt datetime2);
-CREATE TABLE dbo.t_GateEntry(RSTNumber nvarchar(50) PRIMARY KEY,IsFinalRST bit,VehicleId int,PartyId int,GateEntryTime datetime2);
+CREATE TABLE dbo.t_GateEntry(RSTNumber nvarchar(50) PRIMARY KEY,IsFinalRST bit,VehicleId int,PartyId int,GateEntryTime datetime2,Status nvarchar(50) NOT NULL DEFAULT 'Exited',GateExitTime datetime2 NULL DEFAULT SYSDATETIME());
 CREATE TABLE dbo.m_Vehicle(VehicleId int PRIMARY KEY,VehicleNumber nvarchar(100));
 CREATE TABLE dbo.P02_Person(PersonId int PRIMARY KEY,PersonName nvarchar(200),PersonType nvarchar(50),IsActive bit);
+CREATE TABLE dbo.O10_Post(PostId int PRIMARY KEY,IsActive bit);
+CREATE TABLE dbo.O12_Designatation(DesignationId int PRIMARY KEY,O10_PostId int,IsActive bit);
+CREATE TABLE dbo.P11_PersonDesignatation(P02_PersonId int,O12_DesignationId int,IsActive bit);
 CREATE TABLE dbo.sa05_user(UserId int PRIMARY KEY,PersonId int,sa10_usertypeid int,IsActive bit);
-CREATE TABLE dbo.t_UnloadTransaction(UnloadId int PRIMARY KEY,RSTNumber nvarchar(50));
+CREATE TABLE dbo.t_UnloadTransaction(UnloadId int PRIMARY KEY,RSTNumber nvarchar(50),Status nvarchar(50) NOT NULL DEFAULT 'Unloaded');
 CREATE TABLE dbo.t_SupervisorUnloadAction(SupervisorActionId int PRIMARY KEY,UnloadId int,Status nvarchar(50));
 CREATE TABLE dbo.t_SupervisorUnloadDetail(SupervisorActionId int,CategoryId int,ItemId int);
 CREATE TABLE dbo.m_Item(ItemId int PRIMARY KEY,CategoryId int,ItemName nvarchar(100),IsActive bit);
@@ -20,14 +23,25 @@ CREATE TABLE dbo.t_LabReport(ReportId int IDENTITY PRIMARY KEY,SubmissionId uniq
 CREATE TABLE dbo.t_LabReportResult(ResultId int IDENTITY PRIMARY KEY,ReportId int,CategoryId int,ItemId int,TestId int,CategoryName nvarchar(100),ItemName nvarchar(100),TestName nvarchar(120),Unit nvarchar(30),ResultType varchar(10),ResultValue nvarchar(500));
 GO
 -- TEST_BODY
+INSERT dbo.O10_Post VALUES(4,1),(5,1),(3,1);
+INSERT dbo.O12_Designatation VALUES(1,5,1);
+INSERT dbo.P11_PersonDesignatation VALUES(1,1,1);
 INSERT dbo.P02_Person VALUES(1,'Test Technician','LabTechnician',1);
-INSERT dbo.sa05_user VALUES(1,1,5,1);
+INSERT dbo.sa05_user VALUES(1,1,3,1);
+IF dbo.fn_LabUserCanAccess(1,1)<>1 THROW 51000,'Lab post rejected because user type differs.',1;
+IF dbo.fn_LabUserCanAccess(1,45)<>0 THROW 51000,'Mismatched person accepted.',1;
+UPDATE dbo.P11_PersonDesignatation SET IsActive=0;
+IF dbo.fn_LabUserCanAccess(1,1)<>0 THROW 51000,'Inactive designation accepted.',1;
+UPDATE dbo.P11_PersonDesignatation SET IsActive=1;
+UPDATE dbo.O12_Designatation SET O10_PostId=3;
+IF dbo.fn_LabUserCanAccess(1,1)<>0 THROW 51000,'Non-lab post accepted based on PersonType.',1;
+UPDATE dbo.O12_Designatation SET O10_PostId=5;
 INSERT dbo.m_ItemCategory VALUES(1,'Test category',1);
 INSERT dbo.m_Item VALUES(1,1,'Item A',1),(2,1,'Item B',1),(3,1,'Unmapped C',1);
 INSERT dbo.m_LabTestMaster VALUES(1,'Moisture','%','Number','Test',1);
 INSERT dbo.m_ItemLabTest VALUES(1,1,1,1),(1,2,1,1);
-INSERT dbo.t_GateEntry VALUES('TEST-RST',1,NULL,1,SYSDATETIME());
-INSERT dbo.t_UnloadTransaction VALUES(1,'TEST-RST');
+INSERT dbo.t_GateEntry(RSTNumber,IsFinalRST,VehicleId,PartyId,GateEntryTime) VALUES('TEST-RST',1,NULL,1,SYSDATETIME());
+INSERT dbo.t_UnloadTransaction(UnloadId,RSTNumber) VALUES(1,'TEST-RST');
 INSERT dbo.t_SupervisorUnloadAction VALUES(1,1,'Completed');
 INSERT dbo.t_SupervisorUnloadDetail VALUES(1,1,1),(1,1,2),(1,1,3);
 EXEC dbo.sp_MoveRSTProgress 'TEST-RST',12,'Completed',1;
@@ -73,8 +87,8 @@ EXEC dbo.sp_MoveRSTProgress 'TEST-RST',12,'Completed',1;
 DELETE FROM @List;
 INSERT @List EXEC dbo.sp_LabRstList @ForEntry=1;
 IF NOT EXISTS(SELECT 1 FROM @List WHERE RSTNumber='TEST-RST') THROW 51000,'Eligible history disappeared from lab list.',1;
-INSERT dbo.t_GateEntry VALUES('DIRECT-FULL',0,NULL,1,SYSDATETIME());
-INSERT dbo.t_UnloadTransaction VALUES(2,'DIRECT-FULL');
+INSERT dbo.t_GateEntry(RSTNumber,IsFinalRST,VehicleId,PartyId,GateEntryTime) VALUES('DIRECT-FULL',0,NULL,1,SYSDATETIME());
+INSERT dbo.t_UnloadTransaction(UnloadId,RSTNumber) VALUES(2,'DIRECT-FULL');
 INSERT dbo.t_SupervisorUnloadAction VALUES(2,2,'Completed');
 INSERT dbo.t_SupervisorUnloadDetail VALUES(2,1,1);
 EXEC dbo.sp_MoveRSTProgress 'DIRECT-FULL',7,'Completed',1;
@@ -101,8 +115,8 @@ DECLARE @EntryStage int=9,@Rst nvarchar(50),@Unload int=3;
 WHILE @EntryStage<=13
 BEGIN
     SET @Rst=CONCAT('DIRECT-STAGE-',@EntryStage);
-    INSERT dbo.t_GateEntry VALUES(@Rst,1,NULL,1,SYSDATETIME());
-    INSERT dbo.t_UnloadTransaction VALUES(@Unload,@Rst);
+    INSERT dbo.t_GateEntry(RSTNumber,IsFinalRST,VehicleId,PartyId,GateEntryTime) VALUES(@Rst,1,NULL,1,SYSDATETIME());
+    INSERT dbo.t_UnloadTransaction(UnloadId,RSTNumber) VALUES(@Unload,@Rst);
     INSERT dbo.t_SupervisorUnloadAction VALUES(@Unload,@Unload,'Completed');
     INSERT dbo.t_SupervisorUnloadDetail VALUES(@Unload,1,1);
     EXEC dbo.sp_MoveRSTProgress @Rst,@EntryStage,'Completed',1;
@@ -118,6 +132,37 @@ BEGIN
     SET @EntryStage=@EntryStage+4;
     SET @Unload=@Unload+1;
 END;
+-- An unloaded RST without supervisor item details remains visible but cannot be saved.
+INSERT dbo.t_GateEntry(RSTNumber,IsFinalRST,VehicleId,PartyId,GateEntryTime) VALUES('PENDING-ITEMS',1,NULL,1,SYSDATETIME());
+INSERT dbo.t_UnloadTransaction(UnloadId,RSTNumber) VALUES(99,'PENDING-ITEMS');
+EXEC dbo.sp_MoveRSTProgress 'PENDING-ITEMS',9,'Completed',1;
+DELETE FROM @List;
+INSERT @List EXEC dbo.sp_LabRstList @ForEntry=1;
+IF NOT EXISTS(SELECT 1 FROM @List WHERE RSTNumber='PENDING-ITEMS' AND ItemCount=0 AND RequiredTests=0 AND CompletedTests=0)
+    THROW 51000,'Unloaded RST with pending supervisor items disappeared.',1;
+SET @Blocked=0;
+BEGIN TRY
+    SET @Submission=NEWID();
+    EXEC dbo.sp_LabReportSave 'PENDING-ITEMS',@Submission,'[1]','[{"CategoryId":1,"ItemId":1,"TestId":1,"Value":"10"}]',NULL,1;
+END TRY BEGIN CATCH IF ERROR_NUMBER()=50001 SET @Blocked=1; ELSE THROW; END CATCH;
+IF @Blocked=0 OR EXISTS(SELECT 1 FROM dbo.t_LabReport WHERE RSTNumber='PENDING-ITEMS')
+    THROW 51000,'RST without confirmed items accepted a report.',1;
+-- Entry lists require actual final outward; default coverage remains available to billing.
+UPDATE dbo.t_GateEntry SET Status='WaitingForGateOut',GateExitTime=NULL WHERE RSTNumber='PENDING-ITEMS';
+DELETE FROM @List;
+INSERT @List EXEC dbo.sp_LabRstList @ForEntry=1;
+IF EXISTS(SELECT 1 FROM @List WHERE RSTNumber='PENDING-ITEMS') THROW 51000,'Vehicle before outward appeared in lab entry.',1;
+DELETE FROM @List;
+INSERT @List EXEC dbo.sp_LabRstList;
+IF NOT EXISTS(SELECT 1 FROM @List WHERE RSTNumber='PENDING-ITEMS') THROW 51000,'Default coverage disappeared before outward.',1;
+UPDATE dbo.t_GateEntry SET Status='Exited',GateExitTime=NULL WHERE RSTNumber='PENDING-ITEMS';
+DELETE FROM @List;
+INSERT @List EXEC dbo.sp_LabRstList @ForEntry=1;
+IF EXISTS(SELECT 1 FROM @List WHERE RSTNumber='PENDING-ITEMS') THROW 51000,'Missing exit timestamp accepted as outward.',1;
+UPDATE dbo.t_GateEntry SET GateExitTime=SYSDATETIME() WHERE RSTNumber='PENDING-ITEMS';
+DELETE FROM @List;
+INSERT @List EXEC dbo.sp_LabRstList @ForEntry=1;
+IF NOT EXISTS(SELECT 1 FROM @List WHERE RSTNumber='PENDING-ITEMS') THROW 51000,'Completed outward did not appear.',1;
 IF @@TRANCOUNT<>0 THROW 51000,'Transaction leaked.',1;
 PRINT 'PASS: eligibility, partial/full, unmapped items, repeat partial history, replay, completion lock, current/latest ID, downstream billing, transaction cleanup';
 GO

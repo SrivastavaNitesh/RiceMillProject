@@ -1,0 +1,14 @@
+@using System.Data
+@model RiceMillProject.Models.SupervisorLocationReport
+@{ViewData["Title"]="Location Report";}
+<link rel="stylesheet" href="~/css/supervisor-report.css" asp-append-version="true"/>
+<div class="erp-page-header mb-4"><div><span class="sr-eyebrow">SUPERVISOR REPORT</span><h3 class="erp-page-title mt-1">Locations at a glance</h3><p class="text-muted mb-0">Select a location to explore its item categories and stock details.</p></div></div>
+<partial name="_LocationFilters" model="Model"/>
+<div class="row g-4 mb-4">
+@foreach(var location in Model.Locations.AsEnumerable()){
+var id=location.Field<int>("LocationId");var material=Model.Materials.AsEnumerable().Where(r=>r.Field<int?>("LocationId")==id).ToList();
+<div class="col-sm-6 col-xl-4"><a class="sr-card" asp-action="LocationCategories" asp-route-locationId="@id" asp-route-fromDate="@Model.FromDate.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate.ToString("yyyy-MM-dd")" asp-route-status="@Model.Status" asp-route-search="@Model.Search"><div class="sr-card-top"><span class="sr-icon"><i class="bi bi-buildings"></i></span><span class="sr-count">@material.Select(r=>r.Field<int>("CategoryId")).Distinct().Count() categories</span></div><h4>@location["LocationName"]</h4><div class="sr-metrics"><div><span>Total bags</span><strong>@Model.BagsAt(id).ToString("N0")</strong></div><div><span>Total weight (KG)</span><strong>@Model.WeightText(material)</strong></div></div><div class="sr-card-footer">Explore categories <i class="bi bi-arrow-up-right"></i></div></a></div>
+}
+@if(Model.Locations.Rows.Count==0){<div class="col-12"><div class="alert alert-info">No unloading locations are mapped to your company.</div></div>}
+</div>
+<partial name="_LocationWeightNote" model="Model"/>

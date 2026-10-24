@@ -9,14 +9,18 @@ using System.Security.Claims;
 namespace RiceMillProject.Controllers
 {
     [Authorize(Policy = "MethAccess")]
-    public class MethController : Controller
+    public partial class MethController : Controller
     {
         private readonly UnloadTransactionBAL _unloadBal;
         private readonly BagTypeBAL _bagBal;
+        private readonly RiceMillProject.DAL.RecordEditDAL _edits;
+        private readonly RiceMillProject.DAL.SupervisorReportDAL _reports;
 
         public MethController(
             IConfiguration configuration)
         {
+            _edits=new RiceMillProject.DAL.RecordEditDAL(configuration);
+            _reports=new RiceMillProject.DAL.SupervisorReportDAL(configuration);
             _unloadBal =
                 new UnloadTransactionBAL(configuration);
 
@@ -39,33 +43,15 @@ namespace RiceMillProject.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            int methPersonId =
-                CurrentPersonId();
-
-            var assignments =
-                _unloadBal.GetMethAssignments(
-                    methPersonId
-                );
-
-            ViewBag.PendingUnloads =
-                assignments
-                    .Where(x =>
-                        x.Status == "Assigned")
-                    .ToList();
-
-            ViewBag.CompletedUnloads =
-                assignments
-                    .Where(x =>
-                        x.Status == "Unloaded" ||
-                        x.Status == "Verified")
-                    .ToList();
-
-            return View();
+            var assignments=PrepareMethReport();
+            ViewBag.PendingUnloads=assignments.Where(a=>!SavedIds.Contains(a.UnloadId.ToString())).ToList();
+            ViewBag.CompletedUnloads=assignments.Where(a=>SavedIds.Contains(a.UnloadId.ToString())).ToList();
+            return View(assignments);
         }
 
 
         [HttpGet]
-        public IActionResult ExecuteUnload(int id)
+        public IActionResult ExecuteUnload(int id, bool edit=false, bool viewOnly=false)
         {
             int methPersonId =
                 CurrentPersonId();
@@ -82,7 +68,7 @@ namespace RiceMillProject.Controllers
             if (unload == null)
                 return NotFound();
 
-            if (unload.Status != "Assigned")
+            if (!edit && !viewOnly && _edits.Exists("Labour",id.ToString()))
             {
                 TempData["ErrorMessage"] =
                     "This unloading has already been submitted.";
@@ -114,6 +100,14 @@ namespace RiceMillProject.Controllers
             ViewBag.BagTypes =
                 _bagBal.GetAllBagTypes();
 
+            if(edit || viewOnly){
+                if(!_edits.Exists("Labour",id.ToString()))return NotFound();
+                if(_edits.Access(ActorId,"Labour",id.ToString())==null)return Forbid();
+                var saved=_edits.Load(ActorId,"Labour",id.ToString());
+                if(!viewOnly&&!saved.Access.CanEdit)return StatusCode(403,saved.Access.LockedReason);
+                SeedMethDetails(unload,saved,viewOnly);
+            }
+            ViewBag.ItemCategoryName = _reports.CategoryNames(methPersonId, User.CompanyId(), true).GetValueOrDefault(unload.UnloadId, "—");
             return View(unload);
         }
 
@@ -153,6 +147,8 @@ namespace RiceMillProject.Controllers
                 return Forbid();
             }
 
+
+            if (_edits.Exists("Labour",unload.UnloadId.ToString())) return SaveMethCorrection(unload);
 
             if (saved.Status != "Assigned")
             {
@@ -333,6 +329,7 @@ namespace RiceMillProject.Controllers
       UnloadTransaction unload,
       int methPersonId)
         {
+            ViewBag.ItemCategoryName = _reports.CategoryNames(methPersonId, User.CompanyId(), true).GetValueOrDefault(unload.UnloadId, "—");
             var workers =
                 _unloadBal.GetWorkersByMeth(
                     methPersonId

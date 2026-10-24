@@ -29,6 +29,9 @@ public class LabWorkflowBAL(IConfiguration configuration)
     public int SaveReport(LabEntryViewModel model, int userId)
     {
         if (model.SubmissionId == Guid.Empty) throw new ArgumentException("Invalid submission. Reload this RST.");
+        // Completed RSTs no longer expose entry items. Resolve an accepted retry first.
+        var submittedReportId = dal.GetSubmittedReportId(model.RSTNumber, model.SubmissionId, userId);
+        if (submittedReportId.HasValue) return submittedReportId.Value;
         var eligible = dal.GetItems(model.RSTNumber);
         var selected = eligible.Where(i => model.SelectedItemIds.Contains(i.ItemId)).ToList();
         if (selected.Count == 0 || selected.Count != model.SelectedItemIds.Distinct().Count())

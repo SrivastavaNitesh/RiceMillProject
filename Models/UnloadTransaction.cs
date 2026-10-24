@@ -20,6 +20,10 @@ namespace RiceMillProject.Models
         public decimal NetWeight { get; set; }
 
         public List<WorkerAllocation> WorkerRows { get; set; } = new();
+        public string? EditVersion { get; set; }
+        public string? CorrectionReason { get; set; }
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public DateTime? EditExpiresAt { get; set; }
         public int UnloadId { get; set; }
         [System.ComponentModel.DataAnnotations.MinLength(1, ErrorMessage = "Select the items actually unloaded.")]
         public int[] SelectedItemIds { get; set; } = [];

@@ -1,0 +1,2 @@
+@model RiceMillProject.Models.RecordEditRow
+<span data-edit-mode="disable" data-edit-expiry="@Model.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")"><button type="button" class="btn btn-outline-primary text-start p-3 w-100 edit-window-action" disabled="@(!Model.CanEdit)" data-edit-url="@Url.Action(Model.ModuleKey=="Labour"?"SupervisorMethWork":"SupervisorAction","Unload",new{id=Model.RecordId,edit=true})" onclick="if(!this.disabled)window.location.href=this.dataset.editUrl;">@(Model.ModuleKey=="Labour"?"Worker Details":"Field Details")</button></span>

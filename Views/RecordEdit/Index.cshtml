@@ -1,0 +1,16 @@
+@model List<RiceMillProject.Models.RecordEditRow>
+@{ ViewData["Title"]=ViewBag.Module=="GateInward"?"Gate Inward Report":"Entry Corrections"; }
+<div class="d-flex justify-content-between gap-3 flex-wrap mb-3"><div><h2>@ViewData["Title"]</h2><p class="text-muted">Your entries, original entry times, correction permissions and history.</p></div>
+@if(User.IsAdminUser()){<a asp-action="Policies" class="btn btn-outline-primary align-self-start">Edit parameters</a>}</div>
+@if(TempData["SuccessMessage"]!=null){<div class="alert alert-success">@TempData["SuccessMessage"]</div>}
+@if(TempData["ErrorMessage"]!=null){<div class="alert alert-danger">@TempData["ErrorMessage"]</div>}
+<div asp-validation-summary="All" class="text-danger"></div>
+<form asp-controller="RecordEdit" asp-action="Index" method="get" class="row g-2 mb-4 align-items-end">
+<div class="col-md-3"><label class="form-label" for="record-module">Entry type</label><select class="form-select" id="record-module" name="module"><option value="">All permitted entries</option>
+@foreach(var m in RiceMillProject.DAL.RecordEditDAL.Modules){<option value="@m" selected="@(ViewBag.Module==m)">@(m=="GateInward"?"Gate inward":m=="Weight"?"Weighment":m=="Labour"?"Labour work":m)</option>}</select></div>
+<div class="col-md-3"><label class="form-label" for="from">From</label><input class="form-control" type="date" id="from" name="from" value="@ViewBag.From"/></div>
+<div class="col-md-3"><label class="form-label" for="to">To</label><input class="form-control" type="date" id="to" name="to" value="@ViewBag.To"/></div><div class="col-md-3"><button class="btn btn-primary">Apply</button></div></form>
+<div class="table-responsive"><table class="table table-striped align-middle"><thead><tr><th>Entry / reference</th><th>Vehicle / party</th><th>Original entry time</th><th>Edit until</th><th>Actions</th></tr></thead><tbody>
+@if(Model.Count==0){<tr><td colspan="5" class="text-center py-4">No entries found for your login and selected dates.</td></tr>}
+@foreach(var row in Model){<tr><td><strong>@row.ReferenceNo</strong><small class="d-block text-muted">@row.ModuleKey</small></td><td>@row.VehicleNumber<small class="d-block">@row.PartyName</small></td><td>@row.EntryAt.ToString("dd MMM yyyy HH:mm")</td><td>@(row.ExpiresAt?.ToString("dd MMM yyyy HH:mm") ?? "Until outward")<small class="d-block text-muted">@row.PolicyName</small></td><td><partial name="_RecordEditActions" model="row"/></td></tr>}
+</tbody></table></div>

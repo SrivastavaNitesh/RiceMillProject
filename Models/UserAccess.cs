@@ -35,7 +35,7 @@ public static class UserAccess
         !user.IsAdminUser() && (user.UserTypeId() == SupervisorUserTypeId || RoleKey(user) == "supervisor");
 
     public static bool IsLabUser(this ClaimsPrincipal user) =>
-        !user.IsAdminUser() && (user.UserTypeId() == LabTechnicianUserTypeId || RoleKey(user) == "labtechnician");
+        !user.IsAdminUser() && user.FindFirst("PostId")?.Value == "5";
 
     private static string RoleKey(ClaimsPrincipal user) =>
         (user.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty).Replace(" ", string.Empty).ToLowerInvariant();
