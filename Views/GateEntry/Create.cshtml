@@ -234,7 +234,7 @@
 
                                         </div>
 
-                                        <div class="col-md-5">
+                                        @if(!RiceMillProject.Models.RecordWorkflowFilter.HidePartyMobile(User)){<div class="col-md-5">
 
                                             <label class="form-label small fw-semibold">
                                                 Mobile No. (Optional)
@@ -247,7 +247,7 @@
                                                    inputmode="numeric"
                                                    placeholder="Enter Mobile Number" />
 
-                                        </div>
+                                        </div>}else{<input type="hidden" id="txtOtherPartyMobile" value=""/>}
 
                                     </div>
 
@@ -453,7 +453,7 @@
                             <label asp-for="ItemCategoryId" class="form-label fw-bold text-dark">
                                 Item Category <span class="text-danger">*</span>
                             </label>
-                            <select asp-for="ItemCategoryId" asp-items="ViewBag.ItemCategories" class="form-select" required>
+                            <select asp-for="ItemCategoryId" id="ddlCategory" asp-items="ViewBag.ItemCategories" class="form-select" required>
                                 <option value="">-- Select Item Category --</option>
                             </select>
                             <span asp-validation-for="ItemCategoryId" class="text-danger"></span>
@@ -463,21 +463,7 @@
                              MATERIAL / VARIETY
                              ================================================= -->
 
-                        <div class="col-md-6">
-                            <label asp-for="CategoryId" class="form-label fw-bold text-dark">
-                                Product Category <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="CategoryId" asp-items="ViewBag.Categories" id="ddlCategory" class="form-select form-select-lg border-primary-subtle" required>
-                                <option value="">-- Select Product Category --</option>
-                            </select>
-                            <select asp-for="ItemId"
-                                    asp-items="ViewBag.Items"
-                                    id="ddlItem"
-                                    class="form-select form-select-lg border-primary-subtle d-none"
-                                    tabindex="-1">
-                                <option value="">-- Material / Variety handled during unloading --</option>
-                            </select>
-                        </div>
+
 
                         <!-- =================================================
                              GROSS WEIGHT
@@ -1881,7 +1867,7 @@ catch (Exception ex)
                             }
 
                             if (!category) {
-                                missing.push('Product Category');
+                                missing.push('Item Category');
                             }
 
 

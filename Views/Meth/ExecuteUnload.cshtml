@@ -12,7 +12,7 @@
         .GroupBy(x => new
         {
             x.WorkerId,
-            x.WorkerName
+            x.WorkerName, x.WorkType
         })
         .Select(g => g.First())
         .ToList();
@@ -283,11 +283,11 @@
                         font-weight:700;
                         color:#596579;
                     ">
-                        Material / Variety
+                        Item Category
                     </label>
 
                     <input type="text"
-                           value="@Model.ItemName"
+                           value="@ViewBag.ItemCategoryName"
                            readonly
                            style="
                                 width:100%;
@@ -402,7 +402,13 @@
     <form asp-action="ExecuteUnload"
           asp-controller="Meth"
           method="post"
-          id="unloadForm">
+          id="unloadForm" data-readonly="@(ViewBag.ReadOnly==true?"true":"false")" data-edit-mode="disable" data-edit-expiry="@Model.EditExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")">
+        <fieldset disabled="@(ViewBag.ReadOnly==true)" class="border-0 p-0 m-0 w-100">
+        @if(!string.IsNullOrEmpty(Model.EditVersion)){
+          <input asp-for="EditVersion" type="hidden"/>
+          <div class="alert alert-primary">@(ViewBag.ReadOnly==true?"View":"Edit") saved work — RST @Model.RSTNumber</div>
+          @if(ViewBag.ReadOnly!=true){<div class="mb-3"><label asp-for="CorrectionReason" class="form-label">Reason for edit</label><textarea asp-for="CorrectionReason" class="form-control" required maxlength="500"></textarea></div>}
+        }
 
         @Html.AntiForgeryToken()
 
@@ -488,7 +494,7 @@
 
                         <div class="worker-card"
                              data-worker-id="@worker.WorkerId"
-                             data-worker-name="@worker.WorkerName"
+                             data-worker-name="@worker.WorkerName" data-saved-work="@worker.WorkType"
                              style="
                                 width:100%;
                                 margin-bottom:18px;
@@ -1105,7 +1111,7 @@
 
 
                 <button type="submit"
-                        id="submitBtn"
+                        id="submitBtn" class="edit-window-action"
                         @(workers.Count == 0 ? "disabled" : null)
                         style="
                             min-height:40px;
@@ -1130,7 +1136,7 @@
 
         </div>
 
-    </form>
+    </fieldset></form>
 
 </div>
 
@@ -1348,6 +1354,7 @@
 </template>
 
 
+<style>form[data-readonly="true"] button{display:none}</style>
 @section Scripts
 {
     @{
@@ -2146,6 +2153,15 @@
 
 
                 // =================================================
+                // Restore saved entries in the same worker and bag controls.
+                const saved=@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.SavedMethDetails ?? new List<Dictionary<string,string?>>()));
+                document.querySelectorAll('.worker-card').forEach(card=>{
+                    const rows=saved.filter(d=>String(d.WorkerId)===card.dataset.workerId&&(!card.dataset.savedWork||d.WorkType===card.dataset.savedWork));
+                    if(!rows.length)return;
+                    card.querySelectorAll('.worker-work-type').forEach(r=>r.checked=r.value===rows[0].WorkType);
+                    const body=card.querySelector('.bag-rows');
+                    rows.forEach((d,i)=>{if(i)body.append(template.content.cloneNode(true));const row=body.querySelectorAll('.bag-row')[i];row.querySelector('.bag-type').value=d.BagTypeId;row.querySelector('.bag-count').value=d.BagCount;row.querySelector('.per-bag-charge').value=d.PerBagCharge;});
+                });
                 // INITIALIZE
                 // =================================================
 

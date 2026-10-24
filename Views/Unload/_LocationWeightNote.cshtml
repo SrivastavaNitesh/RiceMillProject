@@ -1,0 +1,5 @@
+@using System.Data
+@model RiceMillProject.Models.SupervisorLocationReport
+@if(Model.Materials.AsEnumerable().Any(r=>r.Field<bool>("Estimated"))){<p class="small text-muted">* Weight allocated by bag count from the RST net weight; actual item weight is used where recorded.</p>}
+@if(Model.Materials.AsEnumerable().Any(r=>r.IsNull("WeightKg"))){<p class="small text-muted">Pending: weight is not available yet. Pending weights are not counted as zero.</p>}
+@foreach(var notice in Model.Notices){<p class="small text-warning">@notice</p>}

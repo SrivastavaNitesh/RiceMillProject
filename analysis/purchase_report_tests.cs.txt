@@ -70,7 +70,7 @@ if (args.Contains("--database")) {
     var dal = new PurchaseReportDAL(configuration);
     var f = new PurchaseFilter(); PurchaseReportBuilder.Normalize(f, "Locations");
     var all = dal.Load(f);
-    Check(f.CompanyId == all.Companies.Single(c => c.Name == "Main Mill").Id, "Main Mill selected by default");
+    Check(f.CompanyId > 0 && all.Companies.Any(c => c.Id == f.CompanyId), "default company loads without requiring an exact company name");
     Check(all.Headers.All(h => h.CompanyId == f.CompanyId), "default company isolates report data");
     Check(all.Locations.Count > 0, "database locations loaded");
     Check(all.Lots.Select(l => l.DetailId).Distinct().Count() == all.Lots.Count(), "database lots unique");

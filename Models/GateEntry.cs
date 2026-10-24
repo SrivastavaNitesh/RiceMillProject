@@ -40,8 +40,8 @@ namespace RiceMillProject.Models
         // Property is preserved because other project code may use ItemId.
         public int? ItemId { get; set; }
 
-        [Required(ErrorMessage = "Product Category is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Product Category is required.")]
+        [Required(ErrorMessage = "Item Category is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Item Category is required.")]
         public int? CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
 

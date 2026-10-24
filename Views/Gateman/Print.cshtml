@@ -12,7 +12,7 @@
 <tr><th>Gate</th><td>@Model.GateName</td><th>Inward Type</th><td>@Model.InwardTypeName</td></tr>
 <tr><th>RST Requirement</th><td>@(Model.RSTRequired ? "With RST" : "Without RST")</td><th>Status</th><td>@Model.StatusName</td></tr>
 <tr class="section"><th colspan="4">Party & Vehicle Details</th></tr>
-<tr><th>Party / Supplier</th><td>@Model.PartyName</td><th>Party Mobile</th><td>@(string.IsNullOrWhiteSpace(Model.PartyMobile) ? "-" : Model.PartyMobile)</td></tr>
+<tr><th>Party / Supplier</th><td>@Model.PartyName</td>@if(!RiceMillProject.Models.RecordWorkflowFilter.HidePartyMobile(User)){<th>Party Mobile</th><td>@Model.PartyMobile</td>}</tr>
 <tr><th>Transporter</th><td>@(string.IsNullOrWhiteSpace(Model.TransporterName) ? "-" : Model.TransporterName)</td><th>Challan Number</th><td>@(string.IsNullOrWhiteSpace(Model.ChallanNo) ? "-" : Model.ChallanNo)</td></tr>
 <tr><th>Vehicle Number</th><td><strong>@Model.VehicleNo</strong></td><th>Vehicle Type</th><td>@Model.VehicleTypeName</td></tr>
 <tr><th>Driver Name</th><td>@Model.DriverName</td><th>Driver Mobile</th><td>@(string.IsNullOrWhiteSpace(Model.DriverMobile) ? "-" : Model.DriverMobile)</td></tr>

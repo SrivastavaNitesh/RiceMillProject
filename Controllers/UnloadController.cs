@@ -15,8 +15,9 @@ using System.Data;
 namespace RiceMillProject.Controllers
 {
     [Authorize(Policy = "SupervisorAccess")]
-    public class UnloadController : Controller
+    public partial class UnloadController : Controller
     {
+        private readonly RiceMillProject.DAL.RecordEditDAL _edits;
         private readonly UnloadTransactionBAL _unloadBal;
         private readonly GateEntryBAL _gateBal;
         private readonly PersonBAL _personBal;
@@ -28,6 +29,7 @@ namespace RiceMillProject.Controllers
 
         public UnloadController(IConfiguration configuration)
         {
+            _edits = new RiceMillProject.DAL.RecordEditDAL(configuration);
             _unloadBal = new UnloadTransactionBAL(configuration);
             _gateBal = new GateEntryBAL(configuration);
             _personBal = new PersonBAL(configuration);
@@ -41,6 +43,22 @@ namespace RiceMillProject.Controllers
         // ============================================================
         // INDEX
         // ============================================================
+
+        [HttpGet]
+        public IActionResult LocationReport(DateTime? fromDate, DateTime? toDate, int? locationId, string? status, string? search)
+        {
+            if (!ModelState.IsValid || (search?.Length ?? 0) > 200) return BadRequest("Invalid report filters.");
+            var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time")).Date;
+            var from = fromDate?.Date ?? new DateTime(today.Year, today.Month, 1);
+            var to = toDate?.Date ?? new DateTime(today.Year, today.Month, 1).AddMonths(1).AddDays(-1);
+            if (from > to || to == DateTime.MaxValue.Date) return BadRequest("Select a valid date range.");
+            if (GetCurrentPersonId() <= 0 || GetCurrentOfficeId() <= 0) return Forbid();
+            if (status is not (null or "" or "Pending" or "Completed")) return BadRequest("Invalid status.");
+            var report = new RiceMillProject.DAL.SupervisorReportDAL(HttpContext.RequestServices.GetRequiredService<IConfiguration>())
+                .Load(GetCurrentPersonId(), GetCurrentOfficeId(), from, to, locationId, status, search);
+            if (locationId.HasValue && !report.Locations.AsEnumerable().Any(l => l.Field<int>("LocationId") == locationId.Value)) return BadRequest("Location is not available for this company.");
+            return View(report);
+        }
 
         public IActionResult Dashboard()
         {
@@ -655,7 +673,7 @@ namespace RiceMillProject.Controllers
         }
 
         [HttpGet]
-        public IActionResult SupervisorAction(int id)
+        public IActionResult SupervisorAction(int id, bool edit = false, bool viewOnly = false)
         {
             try
             {
@@ -674,6 +692,8 @@ namespace RiceMillProject.Controllers
                 {
                     return NotFound();
                 }
+
+                if (!User.IsAdminUser() && unload.SupervisorId != supervisorId) return Forbid();
 
                 var model = new SupervisorUnloadActionViewModel
                 {
@@ -711,11 +731,8 @@ namespace RiceMillProject.Controllers
                     _itemBal.GetActiveItemCategories();
 
                 ViewBag.ItemCategories =
-                    new SelectList(
-                        categoryTable.DefaultView,
-                        "CategoryId",
-                        "CategoryName"
-                    );
+                    categoryTable.AsEnumerable().Select(row => new SelectListItem
+                    { Value = Convert.ToString(row["CategoryId"]), Text = Convert.ToString(row["CategoryName"]) }).ToList();
 
 
                 // =====================================================
@@ -739,6 +756,12 @@ namespace RiceMillProject.Controllers
                     .Where(x => assignedLocationIds.Contains(x.LocationId)).ToList();
 
 
+                if (edit || viewOnly) {
+                    var correction = _edits.Load(ActorId, "Supervisor", id.ToString());
+                    if (!viewOnly && !correction.Access.CanEdit) return StatusCode(403, correction.Access.LockedReason);
+                    PrepareFieldCorrection(model, correction);
+                    ViewBag.ReadOnly=viewOnly;
+                }
                 return View(model);
             }
             catch (Exception ex)
@@ -756,6 +779,7 @@ namespace RiceMillProject.Controllers
         public IActionResult SupervisorAction(
     SupervisorUnloadActionViewModel model)
         {
+            if (_edits.Exists("Supervisor", model.UnloadId.ToString())) return SaveFieldCorrection(model);
             try
             {
                 int supervisorId =
@@ -970,6 +994,7 @@ namespace RiceMillProject.Controllers
                             supervisorId
                         );
 
+                ViewBag.ItemCategoriesByUnload=new RiceMillProject.DAL.SupervisorReportDAL(HttpContext.RequestServices.GetRequiredService<IConfiguration>()).CategoryNames(supervisorId,GetCurrentOfficeId());
                 return View(records.OrderByDescending(r => r.UnloadTime ?? DateTime.MinValue).ThenByDescending(r => r.UnloadId).ToList());
             }
             catch (Exception ex)
@@ -1031,7 +1056,7 @@ namespace RiceMillProject.Controllers
             }
         }
         [HttpGet]
-        public IActionResult SupervisorMethWork(int id)
+        public IActionResult SupervisorMethWork(int id, bool edit = false, bool viewOnly = false)
         {
             try
             {
@@ -1105,7 +1130,7 @@ namespace RiceMillProject.Controllers
                 // WORK ALREADY ENTERED
                 // =====================================================
 
-                if (string.Equals(
+                if (!edit && !viewOnly && string.Equals(
                         unload.Status,
                         "Unloaded",
                         StringComparison.OrdinalIgnoreCase))
@@ -1159,6 +1184,15 @@ namespace RiceMillProject.Controllers
                     );
 
 
+                if (edit || viewOnly) {
+                    var correction = _edits.Load(ActorId, "Labour", id.ToString());
+                    if (!viewOnly && !correction.Access.CanEdit) return StatusCode(403, correction.Access.LockedReason);
+                    unload.EditVersion=correction.Version; unload.EditExpiresAt=correction.Access.ExpiresAt;
+                    foreach(var saved in correction.Details) { var workerId=N(saved,"WorkerId"); if(!unload.WorkerRows.Any(w=>w.WorkerId==workerId)) unload.WorkerRows.Add(new WorkerAllocation{WorkerId=workerId,WorkerName="Worker "+workerId}); }
+                    ViewBag.SavedWorkerDetails=correction.Details;
+                    ViewBag.ReadOnly=viewOnly;
+                    if(viewOnly){var ids=correction.Details.Select(d=>N(d,"WorkerId")).ToHashSet();unload.WorkerRows=unload.WorkerRows.Where(w=>ids.Contains(w.WorkerId)).ToList();}
+                }
                 return View(unload);
             }
             catch (Exception ex)
@@ -1177,6 +1211,7 @@ namespace RiceMillProject.Controllers
         public IActionResult SupervisorMethWork(
     UnloadTransaction model)
         {
+            if (_edits.Exists("Labour", model.UnloadId.ToString())) return SaveWorkerCorrection(model);
             try
             {
                 int supervisorId =

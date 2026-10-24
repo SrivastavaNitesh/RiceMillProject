@@ -351,6 +351,8 @@
                 }
 
                 <ul class="nav flex-column mb-auto">
+                <partial name="_RecordEditNavigation" />
+
 
                     @if (isGatemanOnly)
                     {
@@ -880,6 +882,7 @@
             <main class="page-content p-4">
 
                 @RenderBody()
+                <script src="~/js/record-edit.js" asp-append-version="true"></script>
 
             </main>
 

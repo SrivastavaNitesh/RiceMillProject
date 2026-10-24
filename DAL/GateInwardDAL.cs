@@ -23,7 +23,7 @@ namespace RiceMillProject.DAL
             {
                 using (SqlCommand cmd = new SqlCommand("SELECT InwardTypeId, InwardTypeName, RSTRequired, IsActive FROM m_InwardTypeMaster WHERE IsActive = 1", con))
                 {
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         while (rdr.Read())
@@ -49,7 +49,7 @@ namespace RiceMillProject.DAL
             {
                 using (SqlCommand cmd = new SqlCommand("SELECT VehicleTypeId, VehicleTypeName, IsActive FROM m_VehicleTypeMaster WHERE IsActive = 1", con))
                 {
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         while (rdr.Read())
@@ -76,7 +76,7 @@ namespace RiceMillProject.DAL
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Action", "SELECT_ALL");
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         var hasCreatedBy = HasColumn(rdr, "CreatedBy");
@@ -114,7 +114,7 @@ namespace RiceMillProject.DAL
             }
             using (SqlConnection statusCon = new SqlConnection(_connectionString))
             {
-                statusCon.Open();
+                RiceMillProject.DAL.RecordEditContext.Open(statusCon);
                 using var statusCmd = new SqlCommand(@"WITH ranked AS (
                     SELECT g.InwardNo, g.RSTNumber, g.GrossWeight, g.Status,
                            COALESCE(s.StatusName, g.Status) AS StatusName,
@@ -180,7 +180,7 @@ LEFT JOIN dbo.P02_Person operatorPerson ON operatorPerson.PersonId=u.PersonId
 LEFT JOIN dbo.m_StatusMaster s ON s.StatusId=h.StatusId
 WHERE h.InwardId=@InwardId;", con);
             cmd.Parameters.Add("@InwardId", SqlDbType.Int).Value = inwardId;
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
             return new InwardHeader
@@ -213,7 +213,7 @@ WHERE h.InwardId=@InwardId;", con);
                 INNER JOIN dbo.m_ItemCategory c ON c.CategoryId = COALESCE(NULLIF(ge.CategoryId, 0), i.CategoryId)
                 WHERE ge.InwardNo IS NOT NULL
                 ORDER BY ge.InwardNo, c.CategoryName", con);
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
             using var reader = cmd.ExecuteReader();
             var categories = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             while (reader.Read())
@@ -241,7 +241,7 @@ JOIN dbo.t_SupervisorUnloadAction a ON a.UnloadId=u.UnloadId AND a.Status='Compl
 JOIN dbo.t_SupervisorUnloadDetail d ON d.SupervisorActionId=a.SupervisorActionId
 LEFT JOIN dbo.m_BagType b ON b.BagTypeId=d.BagTypeId
 GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",con);
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
             using var reader=cmd.ExecuteReader();
             var byId=entries.ToDictionary(e=>e.InwardId);
             while(reader.Read())
@@ -282,7 +282,7 @@ GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",co
                     cmd.Parameters.AddWithValue("@PurposeRemarks", (object?)model.PurposeRemarks ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", model.CreatedBy > 0 ? model.CreatedBy : 1);
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         if (rdr.Read())
@@ -309,7 +309,7 @@ GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",co
                     WHERE t.UserTypeName LIKE '%Gate%' OR u.sa10_usertypeid = 2 OR u.UserId = 2";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         while (rdr.Read())
@@ -342,7 +342,7 @@ GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",co
                 using (SqlCommand cmd = new SqlCommand("SELECT SUM(c) FROM (" + query + ") AS t(c)", con))
                 {
                     cmd.Parameters.AddWithValue("@Mobile", mobileNumber.Trim());
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     object? res = cmd.ExecuteScalar();
                     int count = (res != null && res != DBNull.Value) ? Convert.ToInt32(res) : 0;
                     return count > 0;

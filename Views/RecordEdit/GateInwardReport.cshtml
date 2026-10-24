@@ -1,0 +1,13 @@
+@model List<RiceMillProject.Models.RecordEditRow>
+@{ViewData["Title"]="Gate Inward Report";}
+<div class="erp-page-header"><div class="erp-page-title-group"><div class="erp-page-icon"><i class="bi bi-journal-text"></i></div><div><h3 class="erp-page-title">Gate Inward Report</h3></div></div></div>
+@if(TempData["SuccessMessage"]!=null){<div class="alert alert-success">@TempData["SuccessMessage"]</div>}
+<div asp-validation-summary="All" class="text-danger"></div>
+<form asp-controller="RecordEdit" asp-action="GateInwardReport" method="get" class="row g-2 mb-3 align-items-end">
+<div class="col-md-3"><label for="from" class="form-label">From</label><input type="date" name="from" id="from" value="@ViewBag.From" class="form-control"/></div>
+<div class="col-md-3"><label for="to" class="form-label">To</label><input type="date" name="to" id="to" value="@ViewBag.To" class="form-control"/></div>
+<div class="col-md-auto"><button class="btn btn-primary">Apply</button></div></form>
+<div class="erp-card"><div class="table-responsive"><table class="table table-striped align-middle mb-0"><thead><tr><th>Inward Number</th><th>Vehicle</th><th>Driver</th><th>Party</th><th>Entry time</th><th>Action</th></tr></thead><tbody>
+@if(Model.Count==0){<tr><td colspan="6" class="text-center py-4">No entries found.</td></tr>}
+@foreach(var row in Model){<tr><td>@row.ReferenceNo</td><td>@row.VehicleNumber</td><td>@row.DriverName</td><td>@row.PartyName</td><td>@row.EntryAt.ToString("dd MMM yyyy HH:mm")</td><td><partial name="_RecordEditOnly" model="row"/></td></tr>}
+</tbody></table></div></div>

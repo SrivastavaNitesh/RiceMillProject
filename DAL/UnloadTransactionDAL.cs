@@ -105,7 +105,7 @@ ORDER BY u.UnloadId DESC;";
             using SqlCommand cmd =
                 new SqlCommand(query, con);
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlDataReader reader =
                 cmd.ExecuteReader();
@@ -248,7 +248,7 @@ ORDER BY u.UnloadId DESC;";
             using var con = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand("SELECT LocationId FROM dbo.t_UnloadLocation WHERE UnloadId=@UnloadId AND IsActive=1", con);
             cmd.Parameters.AddWithValue("@UnloadId", unloadId);
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
             using var reader = cmd.ExecuteReader();
             while (reader.Read()) ids.Add(Convert.ToInt32(reader["LocationId"]));
             return ids;
@@ -275,7 +275,7 @@ ORDER BY u.UnloadId DESC;";
                         CommandType.StoredProcedure
                 };
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using var reader =
                 cmd.ExecuteReader();
@@ -372,7 +372,7 @@ ORDER BY u.UnloadId DESC;";
                 JsonSerializer.Serialize(
                     workerIds);
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             cmd.ExecuteNonQuery();
         }
@@ -421,7 +421,7 @@ ORDER BY u.UnloadId DESC;";
             ).Value = locationId;
             cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = officeId;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             object? result =
                 cmd.ExecuteScalar();
@@ -491,7 +491,7 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.Int
             ).Value = numberOfBags;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             int rowsAffected =
                 cmd.ExecuteNonQuery();
@@ -531,7 +531,7 @@ ORDER BY u.UnloadId DESC;";
             ).Value =
                 totalBagDeductionGrams;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             int rowsAffected =
                 cmd.ExecuteNonQuery();
@@ -614,7 +614,7 @@ ORDER BY u.UnloadId DESC;";
                 .Scale = 2;
 
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
 
             object? result =
@@ -667,7 +667,7 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.Int
             ).Value = locationId;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             cmd.ExecuteNonQuery();
         }
@@ -703,7 +703,7 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.Int
             ).Value = methPersonId;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using var reader =
                 cmd.ExecuteReader();
@@ -851,7 +851,7 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.Int
             ).Value = methPersonId;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using var reader =
                 cmd.ExecuteReader();
@@ -951,7 +951,7 @@ ORDER BY u.UnloadId DESC;";
             ).Value = workerJson;
 
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             cmd.ExecuteNonQuery();
         }
@@ -1035,7 +1035,7 @@ ORDER BY u.UnloadId DESC;";
             // EXECUTE
             // =====================================================
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             object? result =
                 cmd.ExecuteScalar();
@@ -1079,7 +1079,7 @@ ORDER BY u.UnloadId DESC;";
             ).Value =
                 supervisorId;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlDataReader reader =
                 cmd.ExecuteReader();
@@ -1240,7 +1240,7 @@ ORDER BY u.UnloadId DESC;";
                 supervisorId;
 
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             cmd.ExecuteNonQuery();
         }

@@ -8,6 +8,10 @@ namespace RiceMillProject.Models
         // RST / UNLOAD DETAILS - READ ONLY
         // =====================================================
 
+        public string? EditVersion { get; set; }
+        public string? CorrectionReason { get; set; }
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public DateTime? EditExpiresAt { get; set; }
         public int UnloadId { get; set; }
 
         public string RSTNumber { get; set; } = "";

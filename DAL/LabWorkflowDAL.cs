@@ -8,6 +8,16 @@ namespace RiceMillProject.DAL;
 public class LabWorkflowDAL(IConfiguration configuration)
 {
     private readonly string connectionString = configuration.GetConnectionString("DefaultConnection") ?? "";
+    public bool CanAccess(int userId, int personId)
+    {
+        if (userId <= 0 || personId <= 0) return false;
+        using var con = new SqlConnection(connectionString);
+        using var cmd = new SqlCommand("SELECT dbo.fn_LabUserCanAccess(@UserId,@PersonId)", con);
+        cmd.Parameters.Add("@UserId", SqlDbType.Int).Value = userId;
+        cmd.Parameters.Add("@PersonId", SqlDbType.Int).Value = personId;
+        con.Open();
+        return Convert.ToBoolean(cmd.ExecuteScalar());
+    }
     private SqlCommand Command(SqlConnection connection, string procedure, params SqlParameter[] parameters)
     {
         var cmd = new SqlCommand(procedure, connection) { CommandType = CommandType.StoredProcedure };
@@ -121,6 +131,7 @@ public class LabWorkflowDAL(IConfiguration configuration)
     }).ToList();
     public List<LabRstSummary> GetRstsForOffice(int officeId)
     {
+        if (officeId <= 0) return [];
         var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         using (var con = new SqlConnection(connectionString))
         using (var cmd = new SqlCommand(@"SELECT DISTINCT g.RSTNumber FROM dbo.t_GateEntry g LEFT JOIN dbo.t_UnloadTransaction u ON u.RSTNumber=g.RSTNumber LEFT JOIN dbo.sa05_user su ON su.PersonId=u.SupervisorId AND su.IsActive=1 WHERE COALESCE(g.TargetOfficeId,su.OfficeId)=@OfficeId", con))
@@ -139,6 +150,19 @@ public class LabWorkflowDAL(IConfiguration configuration)
             if (rst != null) rst.LatestReportId = reportsReader.GetInt32(1);
         }
         return rsts;
+    }
+    public int? GetSubmittedReportId(string rstNumber, Guid submissionId, int userId)
+    {
+        using var con = new SqlConnection(connectionString);
+        using var cmd = new SqlCommand(@"SELECT ReportId FROM dbo.t_LabReport
+            WHERE RSTNumber=@RSTNumber AND SubmissionId=@SubmissionId AND TestedByUserId=@UserId", con);
+        cmd.Parameters.AddRange([
+            P("@RSTNumber", SqlDbType.NVarChar, rstNumber, 50),
+            P("@SubmissionId", SqlDbType.UniqueIdentifier, submissionId),
+            P("@UserId", SqlDbType.Int, userId)]);
+        con.Open();
+        var result = cmd.ExecuteScalar();
+        return result is null or DBNull ? null : Convert.ToInt32(result);
     }
     public int SaveReport(LabEntryViewModel entry, int userId) => Execute("sp_LabReportSave",
         P("@RSTNumber", SqlDbType.NVarChar, entry.RSTNumber, 50), P("@SubmissionId", SqlDbType.UniqueIdentifier, entry.SubmissionId),

@@ -48,7 +48,7 @@ public class GateEntryDAL
                     cmd.CommandType =
                         CommandType.StoredProcedure;
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     using (SqlDataReader reader =
                            cmd.ExecuteReader())
@@ -216,7 +216,7 @@ public class GateEntryDAL
             cmd.CommandType =
                 CommandType.StoredProcedure;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlDataReader reader =
                 cmd.ExecuteReader();
@@ -327,7 +327,7 @@ public class GateEntryDAL
             cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value =
                 entry.CreatedBy > 0 ? entry.CreatedBy : 1;
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             object? result =
                 cmd.ExecuteScalar();
@@ -421,7 +421,7 @@ public class GateEntryDAL
                            query,
                            con))
                 {
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     using (SqlDataReader reader =
                            cmd.ExecuteReader())
@@ -663,7 +663,7 @@ public class GateEntryDAL
                     ).Value =
                         partyId;
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     using SqlDataReader rdr =
                         cmd.ExecuteReader();
@@ -730,7 +730,7 @@ public class GateEntryDAL
                     tareParameter.Scale = 2;
                     tareParameter.Value = tareWeight;
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     rowsAffected =
                         cmd.ExecuteNonQuery();
@@ -749,7 +749,7 @@ public class GateEntryDAL
             };
             cmd.Parameters.Add("@RSTNumber", SqlDbType.NVarChar, 100).Value = rstNumber;
             cmd.Parameters.Add("@GateManUserId", SqlDbType.Int).Value = gateManUserId;
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
             return cmd.ExecuteNonQuery() > 0;
         }
 
@@ -793,7 +793,7 @@ public class GateEntryDAL
                     ).Value =
                         partyId;
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     using SqlDataReader rdr =
                         cmd.ExecuteReader();
@@ -886,7 +886,7 @@ public class GateEntryDAL
                     ).Value =
                         vehicleId;
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     using SqlDataReader rdr =
                         cmd.ExecuteReader();
@@ -1005,7 +1005,7 @@ public class GateEntryDAL
                     ).Value =
                         partyId;
 
-                    con.Open();
+                    RiceMillProject.DAL.RecordEditContext.Open(con);
 
                     using SqlDataReader rdr =
                         cmd.ExecuteReader();
@@ -1063,7 +1063,7 @@ public class GateEntryDAL
             using SqlConnection con =
                 new SqlConnection(_connectionString);
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlTransaction transaction =
                 con.BeginTransaction();
@@ -1329,7 +1329,7 @@ public class GateEntryDAL
             using SqlConnection con =
                 new SqlConnection(_connectionString);
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlTransaction transaction =
                 con.BeginTransaction();
@@ -1509,7 +1509,7 @@ public class GateEntryDAL
             using SqlConnection con =
                 new SqlConnection(_connectionString);
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlTransaction transaction =
                 con.BeginTransaction();
@@ -1763,7 +1763,7 @@ public class GateEntryDAL
             using SqlConnection con =
                 new SqlConnection(_connectionString);
 
-            con.Open();
+            RiceMillProject.DAL.RecordEditContext.Open(con);
 
             using SqlTransaction transaction =
                 con.BeginTransaction();
@@ -1882,7 +1882,7 @@ public class GateEntryDAL
             continueCmd.Parameters.AddWithValue("@RSTNumber", action.RSTNumber);
             continueCmd.Parameters.AddWithValue("@CurrentGrossWeight", action.CurrentGrossWeight);
             continueCmd.Parameters.AddWithValue("@CreatedBy", userId);
-            continueCon.Open(); using var continueReader = continueCmd.ExecuteReader();
+            RiceMillProject.DAL.RecordEditContext.Open(continueCon); using var continueReader = continueCmd.ExecuteReader();
             if (!continueReader.Read()) throw new InvalidOperationException("New RST was not generated.");
             return new WeightmanRstActionResult { ActionId = 0, NewRSTNumber = Convert.ToString(continueReader["NewRSTNumber"]), ReceivedWeight = Convert.ToDecimal(continueReader["ReceivedWeight"]) };
         }
@@ -1893,7 +1893,7 @@ public class GateEntryDAL
         cmd.Parameters.AddWithValue("@CurrentGrossWeight", action.CurrentGrossWeight);
         cmd.Parameters.AddWithValue("@NewRSTNumber", (object?)action.NewRSTNumber ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@CreatedBy", userId);
-        con.Open();
+        RiceMillProject.DAL.RecordEditContext.Open(con);
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) throw new InvalidOperationException("Weightman action was not recorded.");
         return new WeightmanRstActionResult { ActionId = Convert.ToInt64(reader["ActionId"]), ReceivedWeight = Convert.ToDecimal(reader["ReceivedWeight"]) };

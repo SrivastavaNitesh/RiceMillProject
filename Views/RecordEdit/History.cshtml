@@ -1,0 +1,4 @@
+@model System.Data.DataTable
+@{ViewData["Title"]="Entry history — "+ViewBag.Reference;}
+<h2>@ViewData["Title"]</h2><p class="text-muted">Insertion, correction and finalization events. Baseline marks an entry that existed before history tracking started.</p>
+@foreach(System.Data.DataRow r in Model.Rows){<details class="card mb-3"><summary class="card-header">@r["OccurredAt"] — @r["EventType"] — @r["EntityName"] — User @r["ActorUserId"] — Policy @r["PolicyId"]</summary><div class="card-body"><div class="row"><div class="col-md-6"><h6>Before</h6><pre class="text-wrap">@r["BeforeJson"]</pre></div><div class="col-md-6"><h6>After</h6><pre class="text-wrap">@r["AfterJson"]</pre></div></div></div></details>}

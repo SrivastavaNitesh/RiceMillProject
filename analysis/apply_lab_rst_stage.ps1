@@ -7,7 +7,7 @@ $transaction = $null
 try {
     $connection.Open()
     $backupCommand = $connection.CreateCommand()
-    $backupCommand.CommandText = "SELECT o.name,m.definition FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id WHERE o.name IN ('sp_MoveRSTProgress','sp_LabRstList','sp_LabItemOptions','sp_LabReportSave','fn_LabRstItems','fn_LabRstCoverage','sp_LabReportEditGet','sp_LabReportUpdate')"
+    $backupCommand.CommandText = "SELECT o.name,m.definition FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id WHERE o.name IN ('fn_LabUserCanAccess','sp_MoveRSTProgress','sp_LabRstList','sp_LabItemOptions','sp_LabReportSave','fn_LabRstItems','fn_LabRstCoverage','sp_LabReportEditGet','sp_LabReportUpdate')"
     $backup = New-Object System.Data.DataTable
     $adapter = New-Object System.Data.SqlClient.SqlDataAdapter($backupCommand)
     [void]$adapter.Fill($backup)
@@ -15,7 +15,7 @@ try {
     [void](New-Item -ItemType Directory -Force -Path $backupDirectory)
     $backup | Export-Clixml (Join-Path $backupDirectory ('procedures-before-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.xml'))
     $transaction = $connection.BeginTransaction()
-    foreach ($file in @('RST_Progress_Integration.sql','Lab_RST_Stage_Workflow.sql','Lab_Report_Edit.sql')) {
+    foreach ($file in @('Lab_Person_Post_Access.sql','RST_Progress_Integration.sql','Lab_RST_Stage_Workflow.sql','Lab_Report_Edit.sql')) {
         foreach ($batch in [regex]::Split((Get-Content (Join-Path $root $file) -Raw), '(?im)^GO\s*$')) {
             if ([string]::IsNullOrWhiteSpace($batch)) { continue }
             $command = $connection.CreateCommand()

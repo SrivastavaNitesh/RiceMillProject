@@ -51,9 +51,10 @@ public class PurchaseReportDAL(IConfiguration configuration)
     internal const string Query = """
         SET NOCOUNT ON;
         IF @Company IS NULL
-          SELECT @Company=OfficeId FROM dbo.o05_office WHERE OfficeName=N'Main Mill' AND OfficeType=1 AND IsActive=1;
+          SELECT TOP (1) @Company=OfficeId FROM dbo.o05_office WHERE OfficeType=1 AND IsActive=1
+          ORDER BY CASE WHEN OfficeName=N'Main Mill' THEN 0 ELSE 1 END,OfficeId;
         IF @Company IS NULL OR NOT EXISTS(SELECT 1 FROM dbo.o05_office WHERE OfficeId=@Company AND OfficeType=1)
-          THROW 50001,'Select a valid company. Main Mill must be configured for the default report.',1;
+          THROW 50001,'Select a valid active company.',1;
         SELECT g.* INTO #PurchaseRst FROM dbo.t_GateEntry g
         WHERE ISNULL(g.InwardOutward,'Inward')='Inward'
           AND (@AllDates=1 OR (g.GateEntryTime>=@From AND g.GateEntryTime<@Until))

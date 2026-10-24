@@ -18,6 +18,7 @@ try {
     $connection.ChangeDatabase($database)
     $fixture = (Get-Content (Join-Path $PSScriptRoot 'lab_rst_stage_tests.sql') -Raw) -split '-- TEST_BODY', 2
     Invoke-Batches $fixture[0]
+    Invoke-Batches (Get-Content (Join-Path $root 'Lab_Person_Post_Access.sql') -Raw)
     Invoke-Batches (Get-Content (Join-Path $root 'RST_Progress_Integration.sql') -Raw)
     Invoke-Batches (Get-Content (Join-Path $root 'Lab_RST_Stage_Workflow.sql') -Raw)
     Invoke-Batches (Get-Content (Join-Path $root 'Lab_RST_Stage_Workflow.sql') -Raw)

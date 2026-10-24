@@ -11,6 +11,7 @@
 }
 
 <style>
+form[data-readonly="true"] button{display:none}
     .work-page {
         max-width: 1450px;
         margin: 0 auto;
@@ -286,7 +287,15 @@
     <form asp-controller="Unload"
           asp-action="SupervisorMethWork"
           method="post"
-          id="workForm">
+          id="workForm" data-readonly="@(ViewBag.ReadOnly==true?"true":"false")" data-edit-mode="disable" data-edit-expiry="@Model.EditExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")">
+        <fieldset disabled="@(ViewBag.ReadOnly==true)" class="border-0 p-0 m-0 w-100">
+        @if(!string.IsNullOrEmpty(Model.EditVersion)){
+            <input type="hidden" asp-for="EditVersion"/>
+            <div class="alert alert-primary">@(ViewBag.ReadOnly==true?"View":"Edit") saved details — RST @Model.RSTNumber</div>
+            @if(ViewBag.ReadOnly!=true){<div class="mb-3"><label asp-for="CorrectionReason" class="form-label">Reason for edit</label><textarea asp-for="CorrectionReason" class="form-control" maxlength="500" required></textarea></div>}
+        }
+        <div asp-validation-summary="All" class="text-danger"></div>
+
 
         @Html.AntiForgeryToken()
 
@@ -623,7 +632,7 @@
 
                         <button type="submit"
                                 class="btn btn-primary px-4"
-                                id="saveBtn">
+                                id="saveBtn" data-native-edit-save>
 
                             <i class="bi bi-check-circle me-1"></i>
 
@@ -638,7 +647,7 @@
             </div>
         }
 
-    </form>
+    </fieldset></form>
 
 </div>
 
@@ -1154,7 +1163,17 @@
 
             reIndexRows();
 
-            calculateTotals();
+            const saved=@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.SavedWorkerDetails ?? new List<Dictionary<string,string?>>()));
+            const used=new Map();
+            for(const d of saved){
+                const card=[...document.querySelectorAll('.worker-card')].find(c=>c.dataset.workerId===String(d.WorkerId));if(!card)continue;
+                const count=used.get(d.WorkerId)||0;if(count){const body=card.querySelector('.worker-entry-body');const copy=body.querySelector('.work-entry-row').cloneNode(true);copy.querySelectorAll('.work-type-input').forEach(r=>r.checked=false);body.append(copy);reIndexRows();}
+                const row=[...card.querySelectorAll('.work-entry-row')][count];used.set(d.WorkerId,count+1);
+                row.querySelectorAll('.work-type-input').forEach(r=>r.checked=r.value===d.WorkType);
+                row.querySelector('.bag-type-input').value=d.BagTypeId;row.querySelector('.bag-count-input').value=d.BagCount;row.querySelector('.charge-input').value=d.PerBagCharge;
+            }
+            document.getElementById('saveBtn')?.classList.add('edit-window-action');
+            updateRemoveButtons();reIndexRows();calculateTotals();
         }
     );
 

@@ -4,7 +4,7 @@ using RiceMillProject.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => { options.Filters.Add<RecordWorkflowFilter>(); options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute()); });
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -22,7 +22,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("SupervisorAccess", policy => policy.RequireAuthenticatedUser()
         .RequireAssertion(context => context.User.IsSupervisorUser() || context.User.IsAdminUser()));
     options.AddPolicy("LabAccess", policy => policy.RequireAuthenticatedUser()
-        .RequireAssertion(context => context.User.IsLabUser() || context.User.IsAdminUser()));
+        .RequireAssertion(context =>
+            int.TryParse(context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var userId)
+            && int.TryParse(context.User.FindFirst("PersonId")?.Value, out var personId)
+            && new RiceMillProject.DAL.LabWorkflowDAL(builder.Configuration).CanAccess(userId, personId)));
     options.AddPolicy(
     "MethAccess",
     policy => policy
@@ -60,6 +63,11 @@ app.UseRouting();
 app.UseSession();
 
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    RiceMillProject.DAL.RecordEditContext.UserId = int.TryParse(context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var actorId) && actorId > 0 ? actorId : null;
+    try { await next(); } finally { RiceMillProject.DAL.RecordEditContext.UserId = null; }
+});
 app.UseAuthorization();
 
 app.MapStaticAssets();

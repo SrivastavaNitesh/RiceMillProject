@@ -16,7 +16,9 @@ public class LabController(IConfiguration configuration, ILogger<LabController> 
     private readonly LabWorkflowBAL lab = new(configuration);
     private readonly OfficeBAL office = new(configuration);
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private int OfficeId => office.GetOfficeIdByPersonId(UserId);
+    private int OfficeId => int.TryParse(User.FindFirstValue("PersonId"), out var personId) && personId > 0
+        ? office.GetOfficeIdByPersonId(personId)
+        : 0;
     public IActionResult Index() => View(lab.GetRstsForOffice(OfficeId));
 
     [HttpGet]

@@ -1,0 +1,28 @@
+@model RiceMillProject.Models.RecordEditForm
+@{ViewData["Title"]="Correct entry — "+Model.Access.ReferenceNo;}
+<h2>@ViewData["Title"]</h2><p class="text-muted">Entry time: @Model.Access.EntryAt.ToString("dd MMM yyyy HH:mm"). Editing does not extend the time limit.</p>
+<div asp-validation-summary="All" class="alert alert-danger"></div>
+@if(!Model.Access.CanEdit){<div class="alert alert-warning">@Model.Access.LockedReason. Your correction has not been saved.</div>}
+<form asp-action="Edit" method="post" id="record-edit-form" data-edit-expiry="@Model.Access.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm:ss+05:30")">
+<input asp-for="ModuleKey" type="hidden"/><input asp-for="RecordId" type="hidden"/><input asp-for="Version" type="hidden"/>
+<div class="row g-3 mb-4">
+@foreach(var f in Model.Fields){Model.Values.TryGetValue(f.Name,out var value);<div class="col-md-6"><label class="form-label" for="field-@f.Name">@f.Label</label>
+@if(f.Type=="select"){<select name="Values[@f.Name]" id="field-@f.Name" class="form-select" required="@f.Required"><option value="">Select</option>@foreach(var o in f.Options){<option value="@o.Value" selected="@(o.Value==value)">@o.Text</option>}</select>}
+else{<input name="Values[@f.Name]" id="field-@f.Name" class="form-control" value="@value" type="@(f.Type=="integer"||f.Type=="number"?"number":f.Type)" min="0" step="@(f.Type=="integer"?"1":"0.01")" maxlength="@f.MaxLength" required="@f.Required"/>}</div>}
+</div>
+@if(Model.DetailFields.Count>0){
+<h4>@(Model.ModuleKey=="Supervisor"?"Material and location details":"Worker details")</h4><p class="text-muted">Every row must be complete. Material, location and worker totals must agree.</p>
+<div class="table-responsive"><table class="table" id="edit-details"><thead><tr>@foreach(var f in Model.DetailFields){<th>@f.Label</th>}<th></th></tr></thead><tbody>
+@for(int i=0;i<Model.Details.Count;i++){<tr>@foreach(var f in Model.DetailFields){Model.Details[i].TryGetValue(f.Name,out var value);<td>
+@if(f.Type=="select"){<select name="Details[@i][@f.Name]" class="form-select" required><option value="">Select</option>@foreach(var o in f.Options){<option value="@o.Value" selected="@(value==o.Value)">@o.Text</option>}</select>}
+else{<input name="Details[@i][@f.Name]" class="form-control" value="@value" type="number" min="@(f.Name=="BagCount"?1:0)" step="@(f.Type=="integer"?"1":"0.01")" required="@f.Required"/>}</td>}<td><button type="button" class="btn btn-outline-danger remove-detail">Remove</button></td></tr>}
+</tbody></table></div><button type="button" id="add-detail" class="btn btn-outline-secondary mb-4">Add row</button>
+<template id="detail-template"><tr>@foreach(var f in Model.DetailFields){<td>@if(f.Type=="select"){<select data-field="@f.Name" class="form-select" required><option value="">Select</option>@foreach(var o in f.Options){<option value="@o.Value">@o.Text</option>}</select>}else{<input data-field="@f.Name" class="form-control" type="number" min="@(f.Name=="BagCount"?1:0)" step="@(f.Type=="integer"?"1":"0.01")" required="@f.Required"/>}</td>}<td><button type="button" class="btn btn-outline-danger remove-detail">Remove</button></td></tr></template>
+}
+<div class="mb-3"><label asp-for="Reason" class="form-label">Reason for correction</label><textarea asp-for="Reason" class="form-control" maxlength="500" required></textarea></div>
+<button class="btn btn-primary edit-window-action" type="submit" disabled="@(!Model.Access.CanEdit)">Save correction</button><a asp-action="Index" asp-route-module="@Model.ModuleKey" class="btn btn-outline-secondary ms-2">Back</a><span class="edit-window-expired text-danger" hidden>Edit time expired. Changes cannot be submitted.</span>
+</form>
+@section Scripts{<script>
+(()=>{const body=document.querySelector('#edit-details tbody');if(!body)return;const indexRows=()=>{[...body.rows].forEach((row,i)=>{row.querySelectorAll('input,select').forEach(el=>{const field=el.dataset.field||el.name.match(/\[([^\]]+)\]$/)?.[1];el.name=`Details[${i}][${field}]`;});});};document.getElementById('add-detail').onclick=()=>{body.append(document.getElementById('detail-template').content.cloneNode(true));indexRows();};body.addEventListener('click',e=>{if(e.target.closest('.remove-detail')){e.target.closest('tr').remove();indexRows();}});indexRows();})();
+</script>}
+

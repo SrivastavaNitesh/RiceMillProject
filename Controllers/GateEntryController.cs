@@ -270,6 +270,11 @@ namespace RiceMillProject.Controllers
         {
             try
             {
+                // The single Item Category selection is persisted in the existing CategoryId column.
+                entry.CategoryId = entry.ItemCategoryId;
+                ModelState.Remove(nameof(entry.CategoryId));
+                if (!_gateBal.GetItemCategories().AsEnumerable().Any(r => Convert.ToInt32(r["CategoryId"]) == entry.ItemCategoryId))
+                    ModelState.AddModelError(nameof(entry.ItemCategoryId), "Select an active item category.");
                 entry.RSTNumber = (entry.RSTNumber ?? string.Empty).Trim().ToUpperInvariant();
                 entry.TargetOfficeId = null;
                 entry.TargetLocationIds = null;
@@ -375,7 +380,7 @@ namespace RiceMillProject.Controllers
                     .Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
                     .Where(e => !string.IsNullOrWhiteSpace(e)));
                 TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(validationErrors)
-                    ? "Please select Product Category and enter a valid Gross Weight."
+                    ? "Please select Item Category and enter a valid Gross Weight."
                     : validationErrors;
                 PopulateDropdowns(entry);
 
