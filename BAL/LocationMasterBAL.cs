@@ -14,6 +14,7 @@ namespace RiceMillProject.BAL
             _dal = new LocationMasterDAL(configuration);
         }
 
+        public List<LocationSubcompanyOption> GetLocationSubcompanies() => _dal.GetLocationSubcompanies();
         public List<LocationMaster> GetAllLocations() => _dal.GetAllLocations();
         public LocationMaster? GetLocationById(int id) => _dal.GetLocationById(id);
         public bool SaveLocation(LocationMaster model) => _dal.SaveLocation(model);

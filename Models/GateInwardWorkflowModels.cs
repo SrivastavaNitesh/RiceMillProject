@@ -18,6 +18,7 @@ namespace RiceMillProject.Models
         public bool IsActive { get; set; } = true;
     }
 
+    public record RstSlipOption(string RstNumber, bool HasFinalWeight);
     public class InwardHeader
     {
         public int InwardId { get; set; }
@@ -70,6 +71,9 @@ namespace RiceMillProject.Models
         public decimal? RSTGrossWeight { get; set; }
         public decimal? RSTTareWeight { get; set; }
         public decimal? RSTNetWeight { get; set; }
+        public DateTime? OutwardDateTime { get; set; }
+        public DateTime? UnloadDateTime { get; set; }
+        public List<RstSlipOption> RstSlips { get; set; } = new();
         public Dictionary<string, long> SupervisorBags { get; set; } = new();
     }
 }

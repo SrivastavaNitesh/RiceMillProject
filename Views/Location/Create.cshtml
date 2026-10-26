@@ -38,6 +38,13 @@
                     </div>
 
                     <div class="col-md-12">
+                        <label asp-for="SubCompanyId" class="form-label">Subcompany <span class="text-danger">*</span></label>
+                        <select asp-for="SubCompanyId" class="form-select" required><option value="">-- Select Subcompany --</option>
+                        @foreach(var sub in ViewBag.SubCompanies as List<RiceMillProject.Models.LocationSubcompanyOption> ?? new()){
+                            <option value="@sub.SubCompanyId" data-office="@sub.OfficeId" selected="@(Model.SubCompanyId==sub.SubCompanyId)">@sub.SubCompanyName</option>
+                        }</select><span asp-validation-for="SubCompanyId" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-12">
                         <label class="form-label">Location Name <span class="req-star">*</span></label>
                         <input asp-for="LocationName" class="form-control" placeholder="Enter Location Name" required />
                         <span asp-validation-for="LocationName" class="text-danger small"></span>
@@ -99,3 +106,8 @@
         </div>
     </div>
 </div>
+
+@section Scripts {<script>
+(()=>{const office=document.getElementById('OfficeId'),sub=document.getElementById('SubCompanyId');if(!office||!sub)return;
+const filter=()=>{[...sub.options].forEach(o=>{if(!o.value)return;const valid=o.dataset.office===office.value;o.disabled=!valid;o.hidden=!valid;if(!valid&&o.selected)sub.value='';});};office.addEventListener('change',filter);filter();sub.form.addEventListener('reset',()=>setTimeout(filter,0));})();
+</script>}

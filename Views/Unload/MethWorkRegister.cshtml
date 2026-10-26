@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Workforce Management";
+    var finalWeightTimes=ViewBag.FinalWeightTimes as Dictionary<int,DateTime?> ?? new();
     var categoryNames=ViewBag.ItemCategoriesByUnload as Dictionary<int,string> ?? new();
     var savedActions=ViewData["RecordActions"] as List<RiceMillProject.Models.RecordEditRow> ?? new();
 }
@@ -142,7 +143,7 @@
                                 RST Number
                             </th>
 
-                            <th>Assigned Date &amp; Time</th>
+                            <th>Assigned Date &amp; Time</th><th>Unload Date / Time</th>
 
                             <th>
                                 Vehicle
@@ -223,9 +224,11 @@
 
                                     </td>
 
+                                    
                                     <td class="text-nowrap">
                                         @(item.UnloadTime.HasValue ? item.UnloadTime.Value.ToString("dd-MMM-yyyy hh:mm tt") : "-")
                                     </td>
+                                    <td class="text-nowrap">@(finalWeightTimes.GetValueOrDefault(item.UnloadId)?.ToString("dd-MMM-yyyy hh:mm tt") ?? "—")</td>
 
 
                                     <!-- =====================================
@@ -476,7 +479,7 @@
 
                             <tr>
 
-                                <td colspan="10"
+                                <td colspan="11"
                                     class="text-center py-5">
 
                                     <i class="bi bi-inbox

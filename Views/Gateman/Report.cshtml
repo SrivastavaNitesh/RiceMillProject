@@ -162,8 +162,9 @@
                         <th class="text-center" style="width: 50px;">S.N.</th>
                         <th>Inward No</th>
 
-                        <th>Date & Time</th>
-                        <th>Party / Supplier</th>@if(showPartyMobile){<th>Party Mobile Number</th>}
+                        <th>Date & Time</th><th>Unload Date / Time</th><th>Outward Date / Time</th>
+                        <th>Party / Supplier</th>
+                       @*  @if(showPartyMobile){<th>Party Mobile Number</th>} *@
                         <th>Vehicle No</th>
                         <th>Driver Info</th>
                         <th>Item Category Name</th>
@@ -197,8 +198,10 @@
                                     <span class="d-block fw-semibold text-dark">@item.InwardDate.ToString("dd-MMM-yyyy")</span>
                                     <span class="text-muted" style="font-size:0.75rem;">@item.InwardTime</span>
                                 </td>
+                                <td>@(item.UnloadDateTime?.ToString("dd-MMM-yyyy hh:mm tt") ?? "—")</td>
+                                <td>@(item.OutwardDateTime?.ToString("dd-MMM-yyyy hh:mm tt") ?? "—")</td>
                                 <td class="fw-medium text-dark">@(string.IsNullOrWhiteSpace(item.PartyName) ? "-" : item.PartyName)</td>
-                                @if(showPartyMobile){<td>@(string.IsNullOrWhiteSpace(item.PartyMobile) ? "-" : item.PartyMobile)</td>}
+                                @* @if(showPartyMobile){<td>@(string.IsNullOrWhiteSpace(item.PartyMobile) ? "-" : item.PartyMobile)</td>} *@
  <td><span class="badge bg-light text-dark border border-secondary text-uppercase" style="font-size:0.75rem;">@item.VehicleNo</span></td>
                                 <td>
                                     <span class="d-block fw-medium">@item.DriverName</span>
@@ -239,6 +242,7 @@
                                 {
                                     <td class="text-nowrap rst-action-cell report-action">
                                         @{var weightEdit=editRows.FirstOrDefault(r=>r.RecordId==item.RSTNumber);}
+                                        @if(item.RstSlips.Count>0){<div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" type="button"><i class="bi bi-printer me-1"></i>Print Slip</button><ul class="dropdown-menu dropdown-menu-end">@foreach(var slip in item.RstSlips){<li><a class="dropdown-item" asp-controller="GateEntry" asp-action="WeighmentSlip" asp-route-id="@slip.RstNumber" asp-route-stage="first" target="_blank" rel="noopener">@slip.RstNumber — First Slip</a></li>@if(slip.HasFinalWeight){<li><a class="dropdown-item" asp-controller="GateEntry" asp-action="WeighmentSlip" asp-route-id="@slip.RstNumber" asp-route-stage="final" target="_blank" rel="noopener">@slip.RstNumber — Final Slip</a></li>}}</ul></div>}
                                         @if(weightEdit!=null){<partial name="_RecordEditOnly" model="weightEdit"/>}
                                         @if (item.RSTRequired && !item.IsRSTGenerated)
                                         {

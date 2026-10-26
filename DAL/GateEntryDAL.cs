@@ -759,6 +759,16 @@ public class GateEntryDAL
         // through m_VehicleMapping are returned.
         // ============================================================
 
+        public DataTable GetEntryMappings(int partyId)
+        {
+            using var con=new SqlConnection(_connectionString);
+            using var cmd=new SqlCommand(@"SELECT DISTINCT v.VehicleId,v.VehicleNumber,d.PersonId DriverId,d.PersonName DriverName,d.MobileNumber DriverMobile
+                FROM dbo.m_VehicleMapping m JOIN dbo.m_Vehicle v ON v.VehicleId=m.VehicleId AND v.IsActive=1
+                JOIN dbo.P02_Person d ON d.PersonId=m.DriverId AND d.IsActive=1
+                JOIN dbo.P02_Person p ON p.PersonId=m.PartyId AND p.IsActive=1
+                WHERE m.PartyId=@Party AND m.IsActive=1 ORDER BY v.VehicleNumber,d.PersonName",con);
+            cmd.Parameters.Add("@Party",SqlDbType.Int).Value=partyId;using var adapter=new SqlDataAdapter(cmd);var result=new DataTable();adapter.Fill(result);return result;
+        }
         public List<dynamic> GetVehiclesByParty(
             int partyId)
         {

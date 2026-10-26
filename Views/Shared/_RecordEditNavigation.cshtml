@@ -3,12 +3,12 @@
 }
 @if (User.IsGatemanUser() || User.IsAdminUser())
 {
-    <li><a asp-controller="RecordEdit" asp-action="GateInwardReport"><i class="bi bi-journal-text me-2"></i>Gate Inward Report</a></li>
+    <li hidden><a asp-controller="RecordEdit" asp-action="GateInwardReport"><i class="bi bi-journal-text me-2"></i>Gate Inward Report</a></li>
 }
 @if(!User.IsAdminUser() && !User.IsMethUser()){
-<li class="@((User.IsGatemanUser() || User.IsWeightmanUser() || User.IsSupervisorUser()) ? "d-none" : "")"><a asp-controller="RecordEdit" asp-action="Index" class="@(editing ? "active" : "")"><i class="bi bi-pencil-square me-2"></i>Entry Corrections</a></li>
+<li  class="@((User.IsGatemanUser() || User.IsWeightmanUser() || User.IsSupervisorUser()) ? "d-none" : "")" style="display:none;"><a asp-controller="RecordEdit" asp-action="Index" class="@(editing ? "active" : "")"><i class="bi bi-pencil-square me-2"></i>Entry Corrections</a></li>
 }
 @if (User.IsAdminUser())
 {
-    <li><a asp-controller="RecordEdit" asp-action="Policies"><i class="bi bi-sliders me-2"></i>Edit Parameters</a></li>
+    <li style="display:none;"><a asp-controller="RecordEdit" asp-action="Policies"><i class="bi bi-sliders me-2"></i>Edit Parameters</a></li>
 }

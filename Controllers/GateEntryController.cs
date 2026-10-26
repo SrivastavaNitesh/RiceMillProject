@@ -14,7 +14,7 @@ using System.Text.Json;
 namespace RiceMillProject.Controllers
 {
     [Authorize(Policy = "WeightmanAccess")]
-    public class GateEntryController : Controller
+    public partial class GateEntryController : Controller
     {
         private readonly GateEntryBAL _gateBal;
         private readonly VehicleBAL _vehicleBal;
@@ -370,9 +370,7 @@ namespace RiceMillProject.Controllers
                         $"RST saved successfully! RST Number: {savedRST}";
 
 
-                    return RedirectToAction(
-                        "Dashboard"
-                    );
+                    return RedirectToAction(nameof(WeighmentSlip),new{id=savedRST,stage="first"});
                 }
 
                 var validationErrors = string.Join(" ", ModelState.Values
@@ -646,6 +644,9 @@ namespace RiceMillProject.Controllers
                 TempData["SuccessMessage"] = string.IsNullOrWhiteSpace(result.NewRSTNumber)
                     ? $"{action.ActionType} recorded for {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG."
                     : $"New RST {result.NewRSTNumber} generated from {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG.";
+                return string.IsNullOrWhiteSpace(result.NewRSTNumber)
+                    ? RedirectToAction("Report","Gateman")
+                    : RedirectToAction(nameof(WeighmentSlip),new{id=result.NewRSTNumber,stage="first"});
             }
             catch (Exception ex) { TempData["ErrorMessage"] = ex.Message; }
             return RedirectToAction(nameof(Index));
@@ -719,8 +720,8 @@ namespace RiceMillProject.Controllers
                     $"Tare Weight saved successfully for RST {rstNumber}. Net Weight calculated.";
 
                 return RedirectToAction(
-                    nameof(Print),
-                    new { id = rstNumber }
+                    nameof(WeighmentSlip),
+                    new { id = rstNumber, stage="final" }
                 );
             }
             catch (Exception ex)

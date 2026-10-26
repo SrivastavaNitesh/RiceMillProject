@@ -26,8 +26,9 @@ Process? app=null;
 try {
 c.Open();
 Batch(c,File.ReadAllText(Path.Combine(fixtures,"test-schema.sql")));
-Batch(c,File.ReadAllText(Path.Combine(source,"Record_Edit_Workflow.sql")));
-Batch(c,File.ReadAllText(Path.Combine(source,"Record_Edit_Workflow.sql")));
+Batch(c,File.ReadAllText(Path.Combine(source,"Inward_Update_Metadata.sql")));
+Batch(c,File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("RecordEditSqlRoot")??source,"Record_Edit_Workflow.sql")));
+Batch(c,File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("RecordEditSqlRoot")??source,"Record_Edit_Workflow.sql")));
 Batch(c,File.ReadAllText(Path.Combine(fixtures,"sp_GetWorkersByMeth.sql")));
 var config=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"ConnectionStrings:DefaultConnection",builder.ConnectionString}}).Build();
 var dal=new RecordEditDAL(config);
@@ -75,6 +76,7 @@ Insert("m_BagType",("BagTypeId",1),("BagTypeName","Jute"),("IsActive",true));
 Insert("m_LocationMaster",("LocationId",1),("LocationName","Stack 1"),("IsActive",true));
 Insert("t_OfficeLocationMapping",("OfficeId",1),("LocationId",1),("IsActive",true),("UnloadingAllowed",true));
 void Inward(int id,int owner,DateTime at){Actor(owner);Insert("t_InwardHeader",("InwardId",id),("GateEntryNo","GE-"+id),("InwardNo","INW-"+id),("InwardDate",at.Date),("InwardTime",at.ToString("HH:mm")),("GateInDateTime",at),("CreatedBy",owner),("GateId",1),("InwardTypeId",1),("PartyId",200),("PartyName","Supplier Test"),("VehicleNo","UP63AT1234"),("VehicleTypeId",1),("DriverName","Driver Test"),("ApproxNoOfBags",10),("ApproxWeight",100));}
+Insert("m_InwardTypeMaster",("InwardTypeId",2),("InwardTypeName","Without RST"),("RSTRequired",false),("IsActive",true));
 Inward(1,10,now.AddHours(-1));Inward(2,11,now.AddHours(-1));Inward(3,10,now.AddHours(-13));Inward(4,10,now.AddDays(-8));Inward(5,10,now.AddHours(-11));
 Check(dal.List(10,"GateInward").All(r=>r.RecordId!="2"),"Gateman report shows only that Gateman's own entries");
 Check(dal.Access(10,"GateInward","1")!.CanEdit,"Gateman edit inside 12 hours");
@@ -84,6 +86,7 @@ Check(!dal.Access(40,"GateInward","4")!.CanEdit,"Admin edit closes after 7 days"
 Check(dal.Access(41,"GateInward","1")==null,"Admin from another company cannot view/edit records");
 Actor(10);var form=dal.Load(10,"GateInward","1");var oldVersion=form.Version;var entry=form.Access.EntryAt;form.Reason="Correct challan";form.Values["ChallanNo"]="C-UPDATED";dal.Save(10,form);
 Check((string)Scalar("SELECT ChallanNo FROM dbo.t_InwardHeader WHERE InwardId=1")=="C-UPDATED","Valid Gateman correction saved");
+Check(Convert.ToInt32(Scalar("SELECT UpdatedBy FROM dbo.t_InwardHeader WHERE InwardId=1"))==10 && Scalar("SELECT UpdatedOn FROM dbo.t_InwardHeader WHERE InwardId=1")!=DBNull.Value,"Gate update records authenticated UpdatedBy and backend UpdatedOn");
 Check(dal.Access(10,"GateInward","1")!.EntryAt==entry,"Editing does not reset original entry time");
 Denied(()=>dal.Save(10,form),"Stale edit version cannot overwrite a newer correction");
 var fresh=dal.Load(10,"GateInward","1");fresh.Reason="Bad input";fresh.Values["ApproxWeight"]="-10";Denied(()=>dal.Save(10,fresh),"Negative approximate weight rejected");
@@ -180,7 +183,7 @@ Insert("t_SupervisorUnloadDetail",("SupervisorActionId",3),("CategoryId",1),("It
 Insert("t_SupervisorUnloadLocationDetail",("SupervisorActionId",3),("LocationId",1),("BagTypeId",1),("BagCount",10));
 Insert("t_WorkerAllocation",("UnloadId",3),("WorkerId",207),("BagTypeId",1),("BagCount",10),("WorkType","Unloading"),("PerBagCharge",2m),("PalledariAmount",20m),("AllocationTime",serverNow.AddHours(-1)));
 Batch(c,@"CREATE OR ALTER PROCEDURE dbo.sp_GetAllBagTypes AS SELECT * FROM dbo.m_BagType;");
-foreach(var batch in Regex.Split(File.ReadAllText(Path.Combine(source,"Supervisor_Field_Workflow_Update.sql")),@"(?im)^GO\s*$"))
+foreach(var batch in Regex.Split(File.ReadAllText(Path.Combine(Environment.GetEnvironmentVariable("RecordEditSqlRoot")??source,"Supervisor_Field_Workflow_Update.sql")),@"(?im)^GO\s*$"))
     if(batch.Contains("CREATE OR ALTER PROCEDURE dbo.sp_GetSupervisorMethWorkRegister"))Exec(c,batch);
 
 Batch(c,@"CREATE OR ALTER PROCEDURE dbo.sp_CreateGateEntry @RSTNumber nvarchar(100),@InwardNo nvarchar(50),@PartyId int,@VehicleId int,@DriverId int,@GrossWeight decimal(18,2),@TargetOfficeId int=NULL,@ItemId int=NULL,@CategoryId int,@WeightCharge decimal(18,2),@CreatedBy int AS
@@ -227,6 +230,9 @@ using(var gate=await Login(10))
     Check(menu.IndexOf("Dashboard")<menu.IndexOf("Inward Registration")&&menu.IndexOf("Inward Registration")<menu.IndexOf("Gate Inward Report")&&menu.IndexOf("Gate Inward Report")<menu.LastIndexOf("Report"),"Gateman sidebar menu order matches request");
     response=await gate.GetAsync("/RecordEdit/Edit?module=GateInward&id=5");html=await response.Content.ReadAsStringAsync();
     Check(response.StatusCode==HttpStatusCode.OK&&html.Contains("Values[ChallanNo]"),"Correction form renders with named editable fields");
+    Check(html.Contains("Vehicle Inward Entry Form")&&html.Contains("field-VehicleNo")&&html.Contains("field-DriverName")&&html.Contains("type=\"radio\""),"Gate correction matches original entry form layout and selection controls");
+    var invalidVehicle=dal.Load(10,"GateInward","5");invalidVehicle.Reason="Reject unregistered vehicle";invalidVehicle.Values["VehicleNo"]="ZZ99NOTREGISTERED";Denied(()=>dal.Save(10,invalidVehicle),"Gate correction rejects a vehicle absent from the active master");
+    var invalidDriver=dal.Load(10,"GateInward","5");invalidDriver.Reason="Reject unregistered driver";invalidDriver.Values["DriverName"]="Unregistered Driver";Denied(()=>dal.Save(10,invalidDriver),"Gate correction rejects an unknown driver");
     var token=WebUtility.HtmlDecode(Regex.Match(html,"name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
     var httpForm=dal.Load(10,"GateInward","5");
     var body=new Dictionary<string,string>{{"ModuleKey","GateInward"},{"RecordId","5"},{"Version",httpForm.Version},{"Reason","Browser correction"},{"__RequestVerificationToken",token}};
@@ -252,6 +258,14 @@ using(var weightClient=await Login(20))
     response=await weightClient.GetAsync("/RecordEdit/Edit?module=Weight&id=NO-TARE");html=await response.Content.ReadAsStringAsync();
     Check(response.StatusCode==HttpStatusCode.OK&&!html.Contains("id=\"field-TareWeight\"")&&!html.Contains("Correct entry")&&html.Contains("erp-page-title\">NO-TARE"),"Weight edit uses RST heading and entry form styling with no first-tare option");
 
+
+    response=await weightClient.GetAsync("/GateEntry/WeighmentSlip?id=TEST-RST&stage=first");html=await response.Content.ReadAsStringAsync();
+    Check(response.StatusCode==HttpStatusCode.OK&&html.Contains("FIRST WEIGHMENT SLIP")&&html.Contains("Item Category")&&!html.Contains("Tare Weight (KG)")&&!html.Contains("Total Bags"),"First Slip contains entry fields without final weights or unloading details");
+    response=await weightClient.GetAsync("/GateEntry/WeighmentSlip?id=TEST-RST&stage=final");html=await response.Content.ReadAsStringAsync();
+    Check(response.StatusCode==HttpStatusCode.OK&&html.Contains("FINAL WEIGHMENT SLIP")&&html.Contains("Tare Weight (KG)")&&html.Contains("Net Weight (KG)")&&html.Contains("Total Bags")&&html.Contains("Unload Date / Time")&&!html.Contains("9999999999"),"Final Slip contains report fields and bag totals without party mobile");
+    response=await weightClient.GetAsync("/GateEntry/WeighmentSlip?id=NO-TARE&stage=final");Check(response.StatusCode==HttpStatusCode.BadRequest,"Final Slip unavailable until final weight is recorded");
+    response=await weightClient.GetAsync("/Gateman/Report");html=await response.Content.ReadAsStringAsync();
+    Check(html.Contains("Unload Date / Time")&&html.Contains("First Slip")&&html.Contains("Final Slip"),"Weightman report exposes unload datetime and both available print stages");
     response=await weightClient.GetAsync("/GateEntry/Create?inwardId=6");html=await response.Content.ReadAsStringAsync();
     Check(response.StatusCode==HttpStatusCode.OK&&html.Contains("name=\"ItemCategoryId\"")&&!html.Contains("Product Category")&&!html.Contains("name=\"CategoryId\""),"Gate Entry shows only Item Category");
     var categoryToken=WebUtility.HtmlDecode(Regex.Match(html,"name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
@@ -306,6 +320,9 @@ using(var supervisorClient=await Login(30))
     response=await supervisorClient.GetAsync("/Unload/LocationCategories?locationId=1&categoryId=999");Check(response.StatusCode==HttpStatusCode.NotFound,"Category drill-down rejects unknown category at location");
 }
 
+using(var otherOfficeAdmin=await Login(41)){
+var response=await otherOfficeAdmin.GetAsync("/GateEntry/WeighmentSlip?id=TEST-RST&stage=final");Check((response.StatusCode==HttpStatusCode.Forbidden||(response.StatusCode==HttpStatusCode.Redirect&&response.Headers.Location?.ToString().Contains("AccessDenied")==true)),"Slip printing excludes other offices");
+}
 using(var methClient=await Login(60))
 {
     var response=await methClient.GetAsync("/Meth");var html=await response.Content.ReadAsStringAsync();

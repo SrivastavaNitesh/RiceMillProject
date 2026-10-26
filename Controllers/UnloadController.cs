@@ -994,6 +994,7 @@ namespace RiceMillProject.Controllers
                             supervisorId
                         );
 
+                ViewBag.FinalWeightTimes=new RiceMillProject.DAL.SupervisorReportDAL(HttpContext.RequestServices.GetRequiredService<IConfiguration>()).FinalWeightTimes(supervisorId,GetCurrentOfficeId());
                 ViewBag.ItemCategoriesByUnload=new RiceMillProject.DAL.SupervisorReportDAL(HttpContext.RequestServices.GetRequiredService<IConfiguration>()).CategoryNames(supervisorId,GetCurrentOfficeId());
                 return View(records.OrderByDescending(r => r.UnloadTime ?? DateTime.MinValue).ThenByDescending(r => r.UnloadId).ToList());
             }

@@ -114,6 +114,18 @@ public class RecordEditDAL(IConfiguration configuration)
             var details = Read(c,null,$"SELECT * FROM dbo.[{spec.detailTable}] WHERE [{spec.detailKey}]=@Id",("@Id",parent));
             foreach (DataRow row in details.Rows) form.Details.Add(spec.detailFields.ToDictionary(f=>f.Name,f=> (string?)(f.Name=="WorkType" ? S(row,f.Name) switch {"Load"=>"Loading","Unload"=>"Unloading",var x=>x}:S(row,f.Name))));
         }
+        if(module=="GateInward")
+        {
+            form.GateVehicles=Read(c,null,"SELECT VehicleNumber FROM dbo.m_Vehicle WHERE IsActive=1 ORDER BY VehicleNumber").AsEnumerable().Select(r=>new SelectListItem(S(r,"VehicleNumber"),S(r,"VehicleNumber"))).ToList();
+            form.GateDrivers=Read(c,null,@"SELECT DISTINCT p.PersonName FROM dbo.P02_Person p WHERE p.IsActive=1 AND (p.PersonType='Driver' OR EXISTS(
+                SELECT 1 FROM dbo.P11_PersonDesignatation pd JOIN dbo.O12_Designatation d ON d.DesignationId=pd.O12_DesignationId AND d.IsActive=1
+                JOIN dbo.O10_Post post ON post.PostId=d.O10_PostId AND post.IsActive=1
+                WHERE pd.P02_PersonId=p.PersonId AND pd.IsActive=1 AND post.PostId=9)) ORDER BY p.PersonName").AsEnumerable().Select(r=>new SelectListItem(S(r,"PersonName"),S(r,"PersonName"))).ToList();
+            foreach(var pair in new[]{("VehicleNo",form.GateVehicles),("DriverName",form.GateDrivers)})
+                if(form.Values.TryGetValue(pair.Item1,out var selected)&&!string.IsNullOrWhiteSpace(selected)&&!pair.Item2.Any(o=>o.Value==selected))pair.Item2.Add(new(selected,selected));
+            var owner=Read(c,null,"SELECT COALESCE(p.PersonName,u.Username) Name FROM dbo.sa05_user u LEFT JOIN dbo.P02_Person p ON p.PersonId=u.PersonId WHERE u.UserId=@User",("@User",table.Rows[0]["CreatedBy"]));
+            form.GateAddedBy=owner.Rows.Count>0?S(owner.Rows[0],"Name"):"Original Gateman";
+        }
         PopulateOptions(c,form);
         return form;
     }
@@ -125,7 +137,7 @@ public class RecordEditDAL(IConfiguration configuration)
             if(f.Name=="WorkType") { f.Options=[new("Loading","Loading"),new("Unloading","Unloading")];continue; }
             string sql=f.Name switch {
                 "GateId"=>"SELECT GateId Id,GateName Name FROM dbo.m_GateMaster WHERE IsActive=1",
-                "InwardTypeId"=>"SELECT InwardTypeId Id,InwardTypeName Name FROM dbo.m_InwardTypeMaster WHERE IsActive=1",
+                "InwardTypeId"=>"SELECT InwardTypeId Id,CASE InwardTypeId WHEN 1 THEN 'With RST' ELSE 'Without RST' END Name FROM dbo.m_InwardTypeMaster WHERE IsActive=1 AND InwardTypeId IN(1,2)",
                 "VehicleTypeId"=>"SELECT VehicleTypeId Id,VehicleTypeName Name FROM dbo.m_VehicleTypeMaster WHERE IsActive=1",
                 "VehicleId"=>"SELECT VehicleId Id,VehicleNumber Name FROM dbo.m_Vehicle WHERE IsActive=1",
                 "CategoryId"=>"SELECT CategoryId Id,CategoryName Name FROM dbo.m_ItemCategory WHERE IsActive=1",
@@ -192,6 +204,8 @@ public class RecordEditDAL(IConfiguration configuration)
             {
                 case "GateInward":
                     ValidateInward(c,tx,posted.RecordId,values,original);
+                    values["UpdatedBy"]=userId;
+                    values["UpdatedOn"]=TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow,"India Standard Time");
                     values["PartyName"]=Read(c,tx,"SELECT PersonName FROM dbo.P02_Person WHERE PersonId=@Id",("@Id",values["PartyId"])).Rows[0][0];
                     break;
                 case "Weight": ValidateWeight(c,tx,posted.RecordId,values,original);break;
@@ -217,6 +231,18 @@ public class RecordEditDAL(IConfiguration configuration)
     private static void ValidateInward(SqlConnection c,SqlTransaction tx,string id,Dictionary<string,object?> v,DataRow old)
     {
         if(!System.Text.RegularExpressions.Regex.IsMatch((string)v["VehicleNo"]!,@"^[A-Za-z0-9][A-Za-z0-9 -]{2,49}$"))throw new ArgumentException("Enter a valid vehicle number.");
+        if(Convert.ToString(v["VehicleNo"])!=S(old,"VehicleNo") && Read(c,tx,"SELECT 1 FROM dbo.m_Vehicle WHERE VehicleNumber=@Vehicle AND IsActive=1",("@Vehicle",v["VehicleNo"])).Rows.Count==0)
+            throw new ArgumentException("Select an active vehicle from the vehicle master.");
+        if(Convert.ToString(v["DriverName"])!=S(old,"DriverName"))
+        {
+            var drivers=Read(c,tx,@"SELECT DISTINCT p.PersonId,p.MobileNumber FROM dbo.P02_Person p WHERE p.IsActive=1 AND p.PersonName=@Name
+                AND (p.PersonType='Driver' OR EXISTS(SELECT 1 FROM dbo.P11_PersonDesignatation pd
+                JOIN dbo.O12_Designatation d ON d.DesignationId=pd.O12_DesignationId AND d.IsActive=1
+                JOIN dbo.O10_Post post ON post.PostId=d.O10_PostId AND post.IsActive=1
+                WHERE pd.P02_PersonId=p.PersonId AND pd.IsActive=1 AND post.PostId=9))",("@Name",v["DriverName"]));
+            if(drivers.Rows.Count!=1)throw new ArgumentException("Select a unique active driver from the driver master.");
+            v["DriverMobile"]=drivers.Rows[0].IsNull("MobileNumber")?null:drivers.Rows[0]["MobileNumber"];
+        }
         // Linked weighment identities cannot silently diverge from the gate receipt.
         bool identityChanged=new[]{"PartyId","VehicleNo","DriverName","InwardTypeId","VehicleTypeId","GateId"}.Any(k=>Convert.ToString(v[k],CultureInfo.InvariantCulture)!=S(old,k));
         if(identityChanged && Read(c,tx,"SELECT 1 FROM dbo.t_GateEntry WITH(UPDLOCK,HOLDLOCK) WHERE InwardNo=@Inward",("@Inward",old["InwardNo"])).Rows.Count>0)
