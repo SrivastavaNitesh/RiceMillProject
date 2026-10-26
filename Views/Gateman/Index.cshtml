@@ -259,76 +259,6 @@ catch (Exception ex)
         makeSearchableSelect(txtVehicle, 'Search vehicle number');
         makeSearchableSelect(txtDriverName, 'Search driver name / mobile');
 
-        function setOptions(select, rows, valueKey, textKey, placeholder) {
-            if (!select) return;
-            select.innerHTML = '';
-            const first = document.createElement('option');
-            first.value = '';
-            first.textContent = placeholder;
-            select.appendChild(first);
-            (rows || []).forEach(row => {
-                const option = document.createElement('option');
-                const value = row[valueKey] ?? row[valueKey.charAt(0).toLowerCase() + valueKey.slice(1)] ?? '';
-                const text = row[textKey] ?? row[textKey.charAt(0).toLowerCase() + textKey.slice(1)] ?? value;
-                option.value = value;
-                option.textContent = text;
-                option.dataset.id = row.VehicleId ?? row.vehicleId ?? row.DriverId ?? row.driverId ?? '';
-                select.appendChild(option);
-            });
-            refreshSearchableSelect(select);
-        }
-
-        function setDriverOptions(rows) {
-            txtDriverName.innerHTML = '<option value="">Select Driver</option>';
-            txtDriverMobile.value = '';
-            (rows || []).forEach(row => {
-                const name = row.DriverName || row.driverName || '';
-                const mobile = row.MobileNumber || row.mobileNumber || row.driverNameMobile?.split('/').slice(1).join('/').trim() || (row.DriverNameMobile || '').split('/').slice(1).join('/').trim();
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = row.DriverNameMobile || row.driverNameMobile || name;
-                option.dataset.mobile = mobile;
-                txtDriverName.appendChild(option);
-            });
-            refreshSearchableSelect(txtDriverName);
-        }
-
-        async function loadDriversForVehicle() {
-            const partyId = parseInt(txtParty?.value || '0');
-            const vehicleId = parseInt(txtVehicle?.selectedOptions[0]?.dataset.id || '0');
-            const vehicleNumber = txtVehicle?.value?.trim() || '';
-            if (!vehicleId && !vehicleNumber) {
-                setDriverOptions([]);
-                return;
-            }
-            const response = await fetch('/Gateman/GetDriversByVehicle?partyId=' + partyId + '&vehicleId=' + vehicleId + '&vehicleNumber=' + encodeURIComponent(vehicleNumber));
-            const data = await response.json();
-            setDriverOptions(data.drivers);
-            if (data.drivers?.length === 1) {
-                txtDriverName.value = data.drivers[0].DriverName || data.drivers[0].driverName || '';
-                txtDriverName.dispatchEvent(new Event('change'));
-            }
-        }
-
-        if (txtParty) {
-            txtParty.addEventListener('change', async function () {
-                const partyId = parseInt(this.value || '0');
-                setOptions(txtVehicle, [], 'VehicleNumber', 'VehicleNumber', 'Select Vehicle');
-                setDriverOptions([]);
-                if (!partyId) return;
-                const response = await fetch('/Gateman/GetPartyOptions?partyId=' + partyId);
-                const data = await response.json();
-                if (data.success) {
-                    setOptions(txtVehicle, data.vehicles, 'VehicleNumber', 'VehicleNumber', 'Select Vehicle');
-                }
-            });
-        }
-        if (txtVehicle) txtVehicle.addEventListener('change', loadDriversForVehicle);
-
-        if (txtDriverName) txtDriverName.addEventListener('change', function () {
-            txtDriverMobile.value = this.selectedOptions[0]?.dataset.mobile || '';
-        });
-
         // Form Validation & SweetAlert Popup on Submit
         const form = document.getElementById('gatemanForm');
         if (form) {
@@ -370,3 +300,5 @@ catch (Exception ex)
 </script>
 
 
+
+<script src="~/js/gateman-linked-selection.js" asp-append-version="true" defer></script>

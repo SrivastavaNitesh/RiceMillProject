@@ -85,6 +85,16 @@ namespace RiceMillProject.DAL
             return locations;
         }
 
+        public List<LocationSubcompanyOption> GetLocationSubcompanies()
+        {
+            using var con=new SqlConnection(_connectionString);
+            using var cmd=new SqlCommand(@"SELECT s.SubCompanyId,c.OfficeId,s.SubCompanyName FROM dbo.tbl_subcompany s
+                JOIN dbo.tbl_company c ON c.CompanyId=s.CompanyId JOIN dbo.o05_office o ON o.OfficeId=c.OfficeId
+                WHERE s.IsActive=1 AND c.IsActive=1 AND o.IsActive=1 AND o.OfficeType=1 ORDER BY s.SubCompanyName",con);
+            con.Open();using var reader=cmd.ExecuteReader();var result=new List<LocationSubcompanyOption>();
+            while(reader.Read())result.Add(new(reader.GetInt32(0),reader.GetInt32(1),reader.GetString(2)));return result;
+        }
+
         public List<LocationMaster> GetAllLocations()
         {
             var locations = new List<LocationMaster>();
@@ -101,6 +111,7 @@ namespace RiceMillProject.DAL
                         {
                             locations.Add(new LocationMaster
                             {
+                                SubCompanyId = rdr["SubCompanyId"] == DBNull.Value ? null : Convert.ToInt32(rdr["SubCompanyId"]),
                                 LocationId = Convert.ToInt32(rdr["LocationId"]),
                                 OfficeId = rdr["OfficeId"] != DBNull.Value ? Convert.ToInt32(rdr["OfficeId"]) : 0,
                                 OfficeName = rdr["OfficeName"]?.ToString(),
@@ -138,6 +149,7 @@ namespace RiceMillProject.DAL
                         {
                             loc = new LocationMaster
                             {
+                                SubCompanyId = rdr["SubCompanyId"] == DBNull.Value ? null : Convert.ToInt32(rdr["SubCompanyId"]),
                                 LocationId = Convert.ToInt32(rdr["LocationId"]),
                                 OfficeId = rdr["OfficeId"] != DBNull.Value ? Convert.ToInt32(rdr["OfficeId"]) : 0,
                                 OfficeName = rdr["OfficeName"]?.ToString(),
@@ -168,6 +180,7 @@ namespace RiceMillProject.DAL
                     cmd.Parameters.AddWithValue("@Action", model.LocationId == 0 ? "INSERT" : "UPDATE");
                     if (model.LocationId > 0) cmd.Parameters.AddWithValue("@LocationId", model.LocationId);
                     cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = model.OfficeId;
+                    cmd.Parameters.Add("@SubCompanyId", SqlDbType.Int).Value = (object?)model.SubCompanyId ?? DBNull.Value;
                     cmd.Parameters.AddWithValue("@LocationName", model.LocationName);
                     cmd.Parameters.AddWithValue("@LocationType", model.LocationType);
                     cmd.Parameters.AddWithValue("@Capacity", model.Capacity);

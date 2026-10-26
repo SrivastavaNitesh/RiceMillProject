@@ -19,6 +19,12 @@ WHERE ((@Meth=0 AND u.SupervisorId=@Person) OR (@Meth=1 AND u.MethId=@Person)) A
         cmd.Parameters.Add("@Person",SqlDbType.Int).Value=personId;cmd.Parameters.Add("@Office",SqlDbType.Int).Value=officeId;
         con.Open();using var reader=cmd.ExecuteReader();var names=new Dictionary<int,string>();while(reader.Read())names[reader.GetInt32(0)]=reader.IsDBNull(1)?"—":reader.GetString(1);return names;
     }
+    public Dictionary<int,DateTime?> FinalWeightTimes(int personId,int officeId)
+    {
+        using var con=new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
+        using var cmd=new SqlCommand("SELECT u.UnloadId,g.FinalWeightAt FROM dbo.t_UnloadTransaction u JOIN dbo.t_GateEntry g ON g.RSTNumber=u.RSTNumber WHERE u.SupervisorId=@Person AND g.TargetOfficeId=@Office",con);
+        cmd.Parameters.AddWithValue("@Person",personId);cmd.Parameters.AddWithValue("@Office",officeId);con.Open();using var reader=cmd.ExecuteReader();var times=new Dictionary<int,DateTime?>();while(reader.Read())times[reader.GetInt32(0)]=reader.IsDBNull(1)?null:reader.GetDateTime(1);return times;
+    }
     public SupervisorLocationReport Load(int personId, int officeId, DateTime from, DateTime to, int? locationId, string? status, string? search)
     {
         var model = new SupervisorLocationReport { FromDate=from, ToDate=to, LocationId=locationId, Status=status, Search=search };

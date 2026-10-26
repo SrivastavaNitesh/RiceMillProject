@@ -167,7 +167,7 @@ namespace RiceMillProject.Controllers
 
                 if (model.ApproxNoOfBags < 0 || model.ApproxWeight < 0) ModelState.AddModelError("", "Approximate bags and weight cannot be negative.");
                 if (string.IsNullOrWhiteSpace(model.VehicleNo) || !System.Text.RegularExpressions.Regex.IsMatch(model.VehicleNo, @"^[A-Za-z0-9][A-Za-z0-9 -]{2,49}$")) ModelState.AddModelError("VehicleNo", "Enter a valid vehicle number.");
-                if (model.GateId <= 0 || model.InwardTypeId <= 0 || model.VehicleTypeId <= 0) ModelState.AddModelError("", "Select valid gate, inward and vehicle types.");
+                if (model.GateId <= 0 || model.InwardTypeId is not (1 or 2) || model.VehicleTypeId <= 0) ModelState.AddModelError("", "Select valid gate, inward and vehicle types.");
                 if (ModelState.IsValid)
                 {
                     _inwardBal.SaveInwardEntry(model);
@@ -219,6 +219,16 @@ namespace RiceMillProject.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize(Policy="GatemanAccess")]
+        public IActionResult GetEntryMappings(int partyId)
+        {
+            if(partyId<=0)return BadRequest();
+            var rows=_gateBal.GetEntryMappings(partyId).AsEnumerable().Select(r=>new {
+                vehicleId=Convert.ToInt32(r["VehicleId"]),vehicleNumber=Convert.ToString(r["VehicleNumber"]),
+                driverId=Convert.ToInt32(r["DriverId"]),driverName=Convert.ToString(r["DriverName"]),driverMobile=Convert.ToString(r["DriverMobile"])}).ToList();
+            return Json(new{success=true,mappings=rows});
+        }
         [HttpGet]
         public IActionResult GetPartyOptions(int partyId)
         {

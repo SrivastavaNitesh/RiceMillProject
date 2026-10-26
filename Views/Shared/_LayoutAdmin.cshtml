@@ -406,9 +406,21 @@
                             <li class="nav-item">
                                 <a asp-controller="AdminOperations" asp-action="Index">
                                     <i class="bi bi-person-workspace me-2"></i>
-                                    Assign and Manage
+                                    Manage Other Login Work
                                 </a>
                             </li>
+                            <li>
+
+                            <a asp-controller="Lab"
+                               asp-action="Index">
+
+                                <i class="bi bi-moisture me-2"></i>
+
+                                Lab Quality Check
+
+                            </a>
+
+                        </li>
                         }
 
                         <!-- =================================================
@@ -424,7 +436,7 @@
                                         Gateman Dashboard
                                     </a>
                                 </li>
-                            }
+                            
                             <li>
                                 <a asp-controller="Gateman" asp-action="Index">
                                     <i class="bi bi-door-open-fill me-2"></i>
@@ -461,6 +473,7 @@
                                     Security Exception Log
                                 </a>
                             </li>
+                            }
                         }
                     }
 
@@ -468,7 +481,7 @@
                     <!-- =================================================
                          SUPERVISOR UNLOADING
                          ================================================= -->
-                    @if (isAdmin || User.IsInRole("Supervisor"))
+                    @* @if (isAdmin || User.IsInRole("Supervisor"))
                     {
 
                         <li>
@@ -484,35 +497,22 @@
 
                         </li>
 
-                    }
+                    } *@
 
 
                     <!-- =================================================
                          LAB QUALITY CHECK
                          ================================================= -->
-                    @if (isAdmin
-                                    || User.IsInRole("Employee")
-                                    || User.IsInRole("Lab Technician"))
+                    @if (isAdmin|| User.IsInRole("Lab Technician"))
                     {
 
-                        <li>
-
-                            <a asp-controller="Lab"
-                               asp-action="Index">
-
-                                <i class="bi bi-moisture me-2"></i>
-
-                                Lab Quality Check
-
-                            </a>
-
-                        </li>
+                        
 
 
                         <!-- =================================================
                              METH DASHBOARD
                              ================================================= -->
-                        @if (User.IsInRole("Meth"))
+                       @*  @if (User.IsInRole("Meth"))
                         {
 
                             <li>
@@ -528,7 +528,7 @@
 
                             </li>
 
-                        }
+                        } *@
 
                     }
 

@@ -42,6 +42,9 @@ namespace RiceMillProject.Controllers
             if (string.IsNullOrWhiteSpace(model.LocationType) && ModelState[nameof(model.LocationType)]?.Errors.Count == 0)
                 ModelState.AddModelError(nameof(model.LocationType), "Location Type is required");
 
+            if (model.SubCompanyId.HasValue && !_locationBal.GetLocationSubcompanies().Any(s=>s.SubCompanyId==model.SubCompanyId && s.OfficeId==model.OfficeId))
+                ModelState.AddModelError(nameof(model.SubCompanyId), "Select a subcompany belonging to the selected company.");
+
             if (ModelState.IsValid)
             {
                 try
@@ -74,6 +77,7 @@ namespace RiceMillProject.Controllers
         {
             ViewBag.Offices = new SelectList(
                 _locationBal.GetActiveOffices(), "OfficeId", "OfficeName", selectedOfficeId);
+            ViewBag.SubCompanies = _locationBal.GetLocationSubcompanies();
             ViewBag.LocationTypes = _locationBal.GetActiveLocationTypes();
         }
 

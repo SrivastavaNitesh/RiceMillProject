@@ -3,8 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RiceMillProject.Models
 {
+    public record LocationSubcompanyOption(int SubCompanyId, int OfficeId, string SubCompanyName);
+
     public class LocationMaster
     {
+        [Required(ErrorMessage = "Subcompany selection is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a valid subcompany")]
+        public int? SubCompanyId { get; set; }
         public int LocationId { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Company selection is required")]

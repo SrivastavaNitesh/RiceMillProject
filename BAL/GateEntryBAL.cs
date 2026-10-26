@@ -92,6 +92,7 @@ namespace RiceMillProject.BAL
             return _gateDal.GetLinkageByParty(partyId);
         }
 
+        public System.Data.DataTable GetEntryMappings(int partyId) => _gateDal.GetEntryMappings(partyId);
         public List<dynamic> GetVehiclesByParty(int partyId)
         {
             return _gateDal.GetVehiclesByParty(partyId);

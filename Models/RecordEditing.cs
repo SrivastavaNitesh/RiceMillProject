@@ -32,6 +32,9 @@ public class RecordEditForm
     [Required, StringLength(500)] public string Reason { get; set; } = "";
     public Dictionary<string, string?> Values { get; set; } = new();
     public List<Dictionary<string, string?>> Details { get; set; } = [];
+    [ValidateNever] public List<SelectListItem> GateVehicles { get; set; } = [];
+    [ValidateNever] public List<SelectListItem> GateDrivers { get; set; } = [];
+    [ValidateNever] public string GateAddedBy { get; set; } = "";
     [ValidateNever] public string InwardNo { get; set; } = "";
     [ValidateNever] public bool HasRecordedTare { get; set; }
     [ValidateNever] public decimal? NetWeight { get; set; }

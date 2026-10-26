@@ -232,15 +232,17 @@ WHERE h.InwardId=@InwardId;", con);
         {
             using var con = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand(@"
-SELECT h.InwardId,p.MobileNumber,g.RSTNumber,g.TareWeight,g.NetWeight
+SELECT h.InwardId,p.MobileNumber,g.RSTNumber,g.TareWeight,g.NetWeight,unload.UnloadDateTime,CASE WHEN g.Status='Exited' THEN CONVERT(datetime2,g.GateExitTime AT TIME ZONE CURRENT_TIMEZONE_ID() AT TIME ZONE 'India Standard Time') END OutwardDateTime
 FROM dbo.t_InwardHeader h LEFT JOIN dbo.P02_Person p ON p.PersonId=h.PartyId
-LEFT JOIN dbo.t_GateEntry g ON g.InwardNo=h.InwardNo;
-SELECT g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId)) BagTypeName,SUM(CONVERT(bigint,d.BagCount)) BagCount
+LEFT JOIN dbo.t_GateEntry g ON g.InwardNo=h.InwardNo
+OUTER APPLY (SELECT CONVERT(datetime2,MAX(COALESCE(a.CreatedAt,CASE WHEN u.Status IN ('Unloaded','Verified') THEN u.UnloadTime END)) AT TIME ZONE CURRENT_TIMEZONE_ID() AT TIME ZONE 'India Standard Time') UnloadDateTime
+FROM dbo.t_UnloadTransaction u LEFT JOIN dbo.t_SupervisorUnloadAction a ON a.UnloadId=u.UnloadId AND a.Status='Completed' WHERE u.RSTNumber=g.RSTNumber) unload;
+SELECT g.InwardNo,g.RSTNumber,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId)) BagTypeName,SUM(CONVERT(bigint,d.BagCount)) BagCount
 FROM dbo.t_GateEntry g JOIN dbo.t_UnloadTransaction u ON u.RSTNumber=g.RSTNumber
 JOIN dbo.t_SupervisorUnloadAction a ON a.UnloadId=u.UnloadId AND a.Status='Completed'
 JOIN dbo.t_SupervisorUnloadDetail d ON d.SupervisorActionId=a.SupervisorActionId
 LEFT JOIN dbo.m_BagType b ON b.BagTypeId=d.BagTypeId
-GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",con);
+GROUP BY g.InwardNo,g.RSTNumber,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",con);
             RiceMillProject.DAL.RecordEditContext.Open(con);
             using var reader=cmd.ExecuteReader();
             var byId=entries.ToDictionary(e=>e.InwardId);
@@ -248,14 +250,18 @@ GROUP BY g.InwardNo,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagTypeId));",co
             {
                 if(!byId.TryGetValue(Convert.ToInt32(reader["InwardId"]),out var entry)) continue;
                 entry.PartyMobile=reader["MobileNumber"]?.ToString();
-                if(entry.RSTNumber != reader["RSTNumber"]?.ToString()) continue;
+                var slipRst=reader["RSTNumber"]?.ToString();
+                if(!string.IsNullOrWhiteSpace(slipRst)&&!entry.RstSlips.Any(s=>s.RstNumber==slipRst))entry.RstSlips.Add(new(slipRst,reader["TareWeight"]!=DBNull.Value&&reader["NetWeight"]!=DBNull.Value));
+                if(entry.RSTNumber != slipRst) continue;
+                entry.OutwardDateTime=reader["OutwardDateTime"]==DBNull.Value?null:Convert.ToDateTime(reader["OutwardDateTime"]);
+                entry.UnloadDateTime=reader["UnloadDateTime"]==DBNull.Value?null:Convert.ToDateTime(reader["UnloadDateTime"]);
                 entry.RSTTareWeight=reader["TareWeight"]==DBNull.Value ? null : Convert.ToDecimal(reader["TareWeight"]);
                 entry.RSTNetWeight=reader["NetWeight"]==DBNull.Value ? null : Convert.ToDecimal(reader["NetWeight"]);
             }
             reader.NextResult();
             var byInward=entries.Where(e=>!string.IsNullOrEmpty(e.InwardNo)).ToLookup(e=>e.InwardNo!);
             while(reader.Read())
-                foreach(var entry in byInward[reader["InwardNo"]?.ToString() ?? ""])
+                foreach(var entry in byInward[reader["InwardNo"]?.ToString() ?? ""].Where(e=>e.RSTNumber==reader["RSTNumber"]?.ToString()))
                     entry.SupervisorBags[reader["BagTypeName"].ToString()!]=Convert.ToInt64(reader["BagCount"]);
         }
 

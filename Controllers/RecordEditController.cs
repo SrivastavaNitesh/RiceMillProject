@@ -33,7 +33,7 @@ public class RecordEditController(IConfiguration configuration, ILogger<RecordEd
         try {
             var model=edits.Load(UserId,module,id);
             if(!model.Access.CanEdit)return StatusCode(403,model.Access.LockedReason);
-            return View(model.ModuleKey=="Weight"?"WeightEdit":"Edit",model);
+            return View(model.ModuleKey=="Weight"?"WeightEdit":model.ModuleKey=="GateInward"?"GateEdit":"Edit",model);
         }catch(UnauthorizedAccessException){return Forbid();}
         catch(ArgumentException){return NotFound();}
     }
@@ -51,8 +51,9 @@ public class RecordEditController(IConfiguration configuration, ILogger<RecordEd
         catch(SqlException ex){logger.LogWarning(ex,"Record correction failed");ModelState.AddModelError("",ex.Number>=50000?ex.Message:"The correction could not be saved. No changes were committed.");}
         try {
             var fresh=edits.Load(UserId,model.ModuleKey,model.RecordId);
+            model.GateVehicles=fresh.GateVehicles;model.GateDrivers=fresh.GateDrivers;model.GateAddedBy=fresh.GateAddedBy;
             model.Access=fresh.Access;model.Fields=fresh.Fields;model.DetailFields=fresh.DetailFields;model.InwardNo=fresh.InwardNo;model.HasRecordedTare=fresh.HasRecordedTare;model.NetWeight=fresh.NetWeight;
-            return View(model.ModuleKey=="Weight"?"WeightEdit":"Edit",model);
+            return View(model.ModuleKey=="Weight"?"WeightEdit":model.ModuleKey=="GateInward"?"GateEdit":"Edit",model);
         }catch(UnauthorizedAccessException){return Forbid();}
         catch(ArgumentException){return NotFound();}
     }
