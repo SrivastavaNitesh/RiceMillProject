@@ -15,7 +15,7 @@
 .agro-ui :is(.top-header,.meth-top-header,.lab-topbar){min-height:68px;padding:15px 28px;background:#ffffffed!important}
 .agro-ui :is(.top-header h4,.meth-top-title){font-size:16px!important;letter-spacing:-.4px!important}
 .agro-ui .card{border-radius:10px!important;box-shadow:0 2px 5px #24362c03!important}.agro-ui .card-header{padding:17px 22px}
-.agro-ui .table thead th{background:#f6f8f7!important;font-size:10px;color:#78857e!important;letter-spacing:.08em}.agro-ui .table tbody td{padding:15px 16px}
+.agro-ui .table thead th{background:linear-gradient(180deg,#eef7f5,#e1f0ed)!important;font-size:10px;color:#214b47!important;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #78beb5}.agro-ui .table tbody td{padding:15px 16px}
 .agro-ui .form-control,.agro-ui .form-select{border-color:#dfe5e1;border-radius:8px;min-height:44px}.agro-ui .btn{border-radius:8px;padding:10px 17px}
 .agro-ui .erp-page-header{background:#fff!important;border:1px solid var(--agro-line);color:var(--agro-ink)!important;padding:24px!important}.agro-ui .erp-page-header :is(h1,h2,h3,h4,.text-white){color:var(--agro-ink)!important}
 }

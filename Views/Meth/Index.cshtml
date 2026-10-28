@@ -1,12 +1,242 @@
-@model List<RiceMillProject.Models.UnloadTransaction>
-@{ViewData["Title"]="Meth Dashboard";var access=ViewBag.MethAccess as List<RiceMillProject.Models.RecordEditRow>??new();var saved=access.Select(a=>a.RecordId).ToHashSet();var pending=Model.Count(a=>!saved.Contains(a.UnloadId.ToString()));var completed=Model.Count-pending;}
-<link rel="stylesheet" href="~/css/supervisor-report.css" asp-append-version="true"/>
-<div class="erp-page-header mb-4"><h3 class="erp-page-title">Meth Dashboard</h3></div>
-@if(TempData["SuccessMessage"]!=null){<div class="alert alert-success">@TempData["SuccessMessage"]</div>}
-@if(TempData["ErrorMessage"]!=null){<div class="alert alert-danger">@TempData["ErrorMessage"]</div>}
-<div class="row g-4 mb-4">
-<div class="col-md-4"><a class="sr-card" asp-action="WorkReport" asp-route-status="pending"><div class="sr-card-top"><span class="sr-icon"><i class="bi bi-hourglass-split"></i></span></div><h4>Pending Work</h4><div class="sr-metrics"><strong>@pending</strong></div><div class="sr-card-footer">Open report <i class="bi bi-arrow-right"></i></div></a></div>
-<div class="col-md-4"><a class="sr-card" asp-action="WorkReport" asp-route-status="completed"><div class="sr-card-top"><span class="sr-icon"><i class="bi bi-check2-circle"></i></span></div><h4>Completed Work</h4><div class="sr-metrics"><strong>@completed</strong></div><div class="sr-card-footer">Open report <i class="bi bi-arrow-right"></i></div></a></div>
-<div class="col-md-4"><a class="sr-card" asp-action="WorkReport" asp-route-status="all"><div class="sr-card-top"><span class="sr-icon"><i class="bi bi-truck"></i></span></div><h4>All Assigned RST</h4><div class="sr-metrics"><strong>@Model.Count</strong></div><div class="sr-card-footer">Open report <i class="bi bi-arrow-right"></i></div></a></div>
+@model MethDashboard
+@{
+    ViewData["Title"] = "Meth Dashboard";
+
+    var pending =
+        ViewBag.PendingUnloads
+        as List<RiceMillProject.Models.UnloadTransaction>
+        ?? new();
+
+    var completed =
+        ViewBag.CompletedUnloads
+        as List<RiceMillProject.Models.UnloadTransaction>
+        ?? new();
+
+    var viewMode = ViewBag.ViewMode as string ?? "Dashboard";
+    var showPending = false;
+    var showCompleted = false;
+}
+
+<style>
+.meth-dash-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:24px 27px;margin-bottom:18px;border:1px solid #d8e8e5;border-radius:19px;background:linear-gradient(135deg,#fff,#f0faf8);box-shadow:0 10px 30px rgba(17,76,69,.08)}.meth-dash-hero h2{margin:4px 0;color:#173e45;font-size:25px;font-weight:800}.meth-dash-hero p{margin:0;color:#71838a;font-size:12px}.meth-live{padding:9px 13px;border-radius:999px;background:#e5f7f2;color:#087b6f;font-size:11px;font-weight:800}.meth-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:18px}.meth-kpi{padding:17px;border:1px solid #dfeae8;border-top:3px solid var(--accent);border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(18,65,60,.05)}.meth-kpi span{display:block;color:#718188;font-size:10px;font-weight:800;text-transform:uppercase}.meth-kpi strong{display:block;margin-top:7px;color:#173b43;font-size:25px}.meth-charts{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:14px;margin-bottom:18px}.meth-chart{min-height:330px;padding:15px;border:1px solid #dfeae8;border-radius:15px;background:#fff;box-shadow:0 6px 20px rgba(18,65,60,.05)}.awaiting-note{margin-bottom:18px;padding:15px 18px;border:1px solid #f0dba1;border-radius:13px;background:#fff9e9;color:#65551e}.awaiting-note strong{color:#6f5810}@@media(max-width:1100px){.meth-kpis{grid-template-columns:repeat(3,1fr)}.meth-charts{grid-template-columns:1fr}}@@media(max-width:650px){.meth-kpis{grid-template-columns:repeat(2,1fr)}.meth-dash-hero{align-items:flex-start;flex-direction:column}}
+</style>
+
+@if (viewMode == "Dashboard")
+{
+    <section class="meth-dash-hero"><div><small class="text-success fw-bold">LABOUR OPERATIONS CENTER</small><h2>@Model.MethName</h2><p>@Model.CompanyName · Assigned unloading and worker handling overview</p></div><span class="meth-live"><i class="bi bi-circle-fill me-1"></i> Live Meth Data</span></section>
+    <section class="meth-kpis"><div class="meth-kpi" style="--accent:#e6a800"><span>Action Pending</span><strong>@Model.PendingWork</strong></div><div class="meth-kpi" style="--accent:#15937f"><span>Completed RST</span><strong>@Model.CompletedWork</strong></div><div class="meth-kpi" style="--accent:#2475d0"><span>Today Handled Bags</span><strong>@Model.TodayHandledBags</strong></div><div class="meth-kpi" style="--accent:#8a54d1"><span>Total Labour Payable</span><strong>₹@Model.TotalPayable.ToString("0.00")</strong></div><div class="meth-kpi" style="--accent:#ee7e22"><span>Awaiting Assignment</span><strong>@Model.AwaitingAssignment</strong></div></section>
+    @if(Model.AwaitingRsts.Any()){<div class="awaiting-note"><strong><i class="bi bi-hourglass-split me-2"></i>Waiting for Supervisor Assignment:</strong> @string.Join(", ",Model.AwaitingRsts.Select(x=>$"{x.RSTNumber} ({x.VehicleNumber})"))<div class="small mt-1">Supervisor jab Meth assign karega tab ye RST Assigned Work Queue me action ke liye aa jayega.</div></div>}
+    <section class="meth-charts"><div id="methStatusChart" class="meth-chart"></div><div id="methTrendChart" class="meth-chart"></div><div id="methWorkChart" class="meth-chart"></div></section>
+}
+
+<div class="erp-page-header">
+    <div class="erp-page-title-group">
+        <div class="erp-page-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+
+        <div>
+            <h3 class="erp-page-title">
+                @(viewMode == "Queue" ? "MY WORK QUEUE" : viewMode == "History" ? "UNLOADING HISTORY" : "METH DASHBOARD")
+            </h3>
+
+            <p class="erp-page-subtitle">
+                @(viewMode == "History" ? "Completed worker handling records" : "Your assigned unloading work")
+            </p>
+        </div>
+    </div>
 </div>
-<div class="erp-card"><div class="erp-card-header">Assigned RST</div><partial name="_MethWorkTable" model="Model"/></div>
+
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="erp-card mb-0">
+            <div class="erp-card-body">
+                <small class="text-muted">
+                    Pending Work
+                </small>
+
+                <h2 class="fw-bold text-primary mb-0">
+                    @pending.Count
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="erp-card mb-0">
+            <div class="erp-card-body">
+                <small class="text-muted">
+                    Completed Work
+                </small>
+
+                <h2 class="fw-bold text-success mb-0">
+                    @completed.Count
+                </h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@if (showPending)
+{
+<div class="erp-card">
+
+    <div class="erp-card-header">
+        <span>
+            <i class="bi bi-truck me-2 text-primary"></i>
+            Assigned RST
+        </span>
+    </div>
+
+    <div class="erp-card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="erp-table">
+
+                <thead>
+                    <tr>
+                        <th>RST Number</th>
+                        <th>Vehicle</th>
+                        <th>Party</th>
+                        <th>Material</th>
+                        <th>Location</th>
+                        <th>Supervisor</th>
+                        <th>Status</th>
+                        <th class="text-center">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                @if (pending.Any())
+                {
+                    foreach (var item in pending)
+                    {
+                        <tr>
+
+                            <td class="fw-bold text-primary">
+                                @item.RSTNumber
+                            </td>
+
+                            <td>
+                                @item.VehicleNumber
+                            </td>
+
+                            <td>
+                                @item.PartyName
+                            </td>
+
+                            <td>
+                                @item.ItemName
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @item.LocationName
+                                </span>
+                            </td>
+
+                            <td>
+                                @item.SupervisorName
+                            </td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    Assigned
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+
+                                <a asp-controller="Meth"
+                                   asp-action="ExecuteUnload"
+                                   asp-route-id="@item.UnloadId"
+                                   class="btn-erp-primary">
+
+                                    <i class="bi bi-play-circle me-1"></i>
+
+                                    Take Action
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8"
+                            class="text-center py-5 text-muted">
+
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+
+                            No unloading work assigned.
+
+                        </td>
+                    </tr>
+                }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+}
+
+@if (showCompleted)
+{
+<div class="erp-card mt-4">
+    <div class="erp-card-header"><span><i class="bi bi-check2-circle me-2 text-success"></i>Completed Work History</span></div>
+    <div class="erp-card-body p-0"><div class="table-responsive"><table class="erp-table">
+        <thead><tr><th>RST Number</th><th>Vehicle</th><th>Party</th><th>Material</th><th>Location</th><th>Supervisor</th><th>Status</th></tr></thead>
+        <tbody>
+        @if (completed.Any())
+        {
+            foreach (var item in completed)
+            {
+                <tr><td class="fw-bold text-success">@item.RSTNumber</td><td>@item.VehicleNumber</td><td>@item.PartyName</td><td>@item.ItemName</td><td>@item.LocationName</td><td>@item.SupervisorName</td><td><span class="badge bg-success-subtle text-success border border-success-subtle">Work Recorded</span></td></tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-clock-history fs-1 d-block mb-2"></i>No completed work record found.</td></tr>
+        }
+        </tbody>
+    </table></div></div>
+</div>
+}
+
+@if (viewMode == "Dashboard")
+{
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+const common={chart:{backgroundColor:'#fff',style:{fontFamily:'inherit'}},credits:{enabled:false},title:{style:{color:'#24454b',fontSize:'14px',fontWeight:'700'}},legend:{itemStyle:{color:'#536a70',fontSize:'11px'}}};
+Highcharts.chart('methStatusChart',Highcharts.merge(common,{chart:{type:'pie'},title:{text:'Work Status'},plotOptions:{pie:{innerSize:'58%',dataLabels:{enabled:true,format:'{point.name}: {point.y}'}}},series:[{name:'RST',data:@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Statuses.Select(x=>new{name=x.Name,y=x.Value})))}]}));
+Highcharts.chart('methTrendChart',Highcharts.merge(common,{chart:{type:'areaspline'},title:{text:'Last 7 Days Handled Bags'},xAxis:{categories:@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DailyTrend.Select(x=>x.DateLabel)))},yAxis:{title:{text:'Bags'},min:0},series:[{name:'Handled Bags',data:@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DailyTrend.Select(x=>x.Bags))),color:'#0b8b80',fillColor:{linearGradient:[0,0,0,260],stops:[[0,'rgba(11,139,128,.28)'],[1,'rgba(11,139,128,0)']]}}]}));
+Highcharts.chart('methWorkChart',Highcharts.merge(common,{chart:{type:'column'},title:{text:'Loading / Unloading Bags'},xAxis:{categories:@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WorkTypes.Select(x=>x.Name)))},yAxis:{title:{text:'Bags'},min:0},series:[{name:'Bags',data:@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WorkTypes.Select(x=>x.Value))),color:'#2d7fc1'}]}));
+});
+</script>
+}

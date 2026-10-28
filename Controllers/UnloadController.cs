@@ -8,7 +8,6 @@ using RiceMillProject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Security.Claims;
 using System.Data;
 
@@ -26,6 +25,7 @@ namespace RiceMillProject.Controllers
         private readonly OfficeBAL _officeBal;
         private readonly LabWorkflowBAL _labWorkflow;
         private readonly LocationMasterBAL _locationBal;
+        private readonly SupervisorDashboardBAL _supervisorDashboardBal;
 
         public UnloadController(IConfiguration configuration)
         {
@@ -38,6 +38,7 @@ namespace RiceMillProject.Controllers
             _officeBal = new OfficeBAL(configuration);
             _labWorkflow = new LabWorkflowBAL(configuration);
             _locationBal = new LocationMasterBAL(configuration);
+            _supervisorDashboardBal = new SupervisorDashboardBAL(configuration);
         }
 
         // ============================================================
@@ -64,50 +65,13 @@ namespace RiceMillProject.Controllers
         {
             try
             {
-                int supervisorId = GetCurrentPersonId();
-                int officeId = GetCurrentOfficeId();
-                var gateEntries = _gateBal.GetAllGateEntries()
-                    .Where(e => officeId <= 0 || e.TargetOfficeId == officeId)
-                    .ToList();
-                var allUnloads = _unloadBal.GetAllUnloading();
-                var unloads = supervisorId > 0
-                    ? _unloadBal.GetSupervisorMethWorkRegister(supervisorId)
-                    : new List<UnloadTransaction>();
-                var assigned = allUnloads.Select(u => u.RSTNumber).Distinct().ToList();
-                ViewBag.PendingAssignments = gateEntries.Count(e => (e.Status == "WaitingForSupervisor" || e.Status == "Entered") && !assigned.Contains(e.RSTNumber));
-                ViewBag.PendingVerifications = unloads.Count(u => u.Status == "Unloaded" || u.Status == "Assigned");
-                ViewBag.CompletedUnloading = unloads.Count(u => u.IsSupervisorActionCompleted && (u.UnloadTime ?? DateTime.MinValue).Date == DateTime.Today);
-                ViewBag.WorkerPending = unloads.Count(u => !u.IsWorkerWorkCompleted);
-                ViewBag.FieldPending = unloads.Count(u => !u.IsSupervisorActionCompleted);
-                var bothPending = unloads.Count(u => !u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted);
-                var workerOnly = unloads.Count(u => !u.IsWorkerWorkCompleted && u.IsSupervisorActionCompleted);
-                var fieldOnly = unloads.Count(u => u.IsWorkerWorkCompleted && !u.IsSupervisorActionCompleted);
-                var fullyCompleted = unloads.Count(u => u.IsWorkerWorkCompleted && u.IsSupervisorActionCompleted);
-                ViewBag.WorkStatusChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, fullyCompleted });
-                ViewBag.DailyTrend = JsonSerializer.Serialize(Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).Select(d => new { date = d.ToString("dd-MMM"), count = unloads.Count(u => u.IsSupervisorActionCompleted && (u.UnloadTime ?? DateTime.MinValue).Date == d.Date) }));
-                ViewBag.AttentionItems = unloads.Where(u => !u.IsWorkerWorkCompleted || !u.IsSupervisorActionCompleted)
-                    .OrderBy(u => u.UnloadTime ?? DateTime.MaxValue).Take(10).ToList();
-                var todayEntries = gateEntries.Where(e => e.GateEntryTime.Date == DateTime.Today).ToList();
-                ViewBag.TodayBags = todayEntries.Sum(e => e.TotalBags ?? 0);
-                ViewBag.PendingWeighment = gateEntries.Count(e => e.GrossWeight <= 0);
-                var meths = _personBal.GetEmployeeList("Meth", officeId > 0 ? officeId : null);
-                var assignedMethIds = unloads.Where(u => u.MethId > 0 && u.Status != "Completed").Select(u => u.MethId).Distinct().ToHashSet();
-                ViewBag.TotalMeth = meths.Count;
-                ViewBag.AssignedMeth = assignedMethIds.Count;
-                ViewBag.FreeMeth = Math.Max(0, meths.Count - assignedMethIds.Count);
-                ViewBag.CategoryChart = JsonSerializer.Serialize(todayEntries.GroupBy(e => string.IsNullOrWhiteSpace(e.ItemCategoryName) ? "Uncategorised" : e.ItemCategoryName).Select(g => new { name = g.Key, y = g.Sum(e => e.TotalBags ?? 0) }));
-                ViewBag.SupervisorChart = JsonSerializer.Serialize(new[] { (int)ViewBag.PendingAssignments, bothPending, workerOnly, fieldOnly, (int)ViewBag.CompletedUnloading });
+                return View(_supervisorDashboardBal.GetDashboard(GetCurrentPersonId(), GetCurrentOfficeId()));
             }
             catch (Exception ex)
             {
                 ViewBag.ErrorMessage = "Dashboard data could not be loaded: " + ex.Message;
-                ViewBag.PendingAssignments = ViewBag.PendingVerifications = ViewBag.CompletedUnloading = ViewBag.TodayBags = ViewBag.PendingWeighment = ViewBag.TotalMeth = ViewBag.AssignedMeth = ViewBag.FreeMeth = 0;
-                ViewBag.SupervisorChart = "[0,0,0,0,0]";
-                ViewBag.WorkStatusChart = "[0,0,0,0,0]";
-                ViewBag.DailyTrend = "[]";
-                ViewBag.CategoryChart = "[]";
+                return View(new SupervisorDashboard());
             }
-            return View();
         }
 
         public IActionResult Index()
@@ -1535,44 +1499,11 @@ namespace RiceMillProject.Controllers
                 }
 
 
-                // =====================================================
-                // SAVE EACH WORKER ENTRY
-                // =====================================================
-
-                foreach (var row in rows)
-                {
-                    int allocationId =
-                        _unloadBal
-                            .SaveWorkerAllocation(
-                                model.UnloadId,
-                                row.WorkerId,
-                                row.WorkType,
-                                row.BagTypeId
-                                    .GetValueOrDefault(),
-                                row.BagCount,
-                                row.PerBagCharge
-                            );
-
-
-                    if (allocationId <= 0)
-                    {
-                        throw new InvalidOperationException(
-                            $"Work details could not be saved for {row.WorkerName}."
-                        );
-                    }
-                }
-
-
-                // =====================================================
-                // FINALIZE WORK ENTRY
-                // Total bags calculate + Status = Unloaded
-                // =====================================================
-
-                _unloadBal
-                    .FinalizeSupervisorMethWork(
-                        model.UnloadId,
-                        supervisorId
-                    );
+                _unloadBal.CompleteSupervisorWorkerWork(
+                    model.UnloadId,
+                    supervisorId,
+                    rows
+                );
 
 
                 // =====================================================

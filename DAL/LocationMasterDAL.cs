@@ -57,6 +57,75 @@ namespace RiceMillProject.DAL
             return locationTypes;
         }
 
+        public List<CompanyOption> GetActiveCompanies()
+        {
+            var companies = new List<CompanyOption>();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT CompanyId,OfficeId,CompanyName
+                FROM dbo.tbl_company
+                WHERE IsActive=1 AND OfficeId IS NOT NULL
+                ORDER BY CompanyName", con);
+            con.Open();
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                companies.Add(new CompanyOption
+                {
+                    CompanyId = Convert.ToInt32(reader["CompanyId"]),
+                    OfficeId = Convert.ToInt32(reader["OfficeId"]),
+                    CompanyName = reader["CompanyName"]?.ToString() ?? string.Empty
+                });
+            }
+            return companies;
+        }
+
+        public List<SubCompanyOption> GetActiveSubCompanies(int companyId)
+        {
+            var subCompanies = new List<SubCompanyOption>();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT SubCompanyId,CompanyId,SubCompanyName
+                FROM dbo.tbl_subcompany
+                WHERE CompanyId=@CompanyId AND IsActive=1
+                ORDER BY SubCompanyName", con);
+            cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = companyId;
+            con.Open();
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                subCompanies.Add(new SubCompanyOption
+                {
+                    SubCompanyId = Convert.ToInt32(reader["SubCompanyId"]),
+                    CompanyId = Convert.ToInt32(reader["CompanyId"]),
+                    SubCompanyName = reader["SubCompanyName"]?.ToString() ?? string.Empty
+                });
+            }
+            return subCompanies;
+        }
+
+        public int GetOfficeIdForCompany(int companyId)
+        {
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(
+                "SELECT ISNULL(OfficeId,0) FROM dbo.tbl_company WHERE CompanyId=@CompanyId AND IsActive=1", con);
+            cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = companyId;
+            con.Open();
+            return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+        }
+
+        public bool IsSubCompanyInCompany(int subCompanyId, int companyId)
+        {
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand(@"
+                SELECT COUNT(1) FROM dbo.tbl_subcompany
+                WHERE SubCompanyId=@SubCompanyId AND CompanyId=@CompanyId AND IsActive=1", con);
+            cmd.Parameters.Add("@SubCompanyId", SqlDbType.Int).Value = subCompanyId;
+            cmd.Parameters.Add("@CompanyId", SqlDbType.Int).Value = companyId;
+            con.Open();
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        }
+
         public List<LocationMaster> GetCompanyUnloadingLocations(int officeId)
         {
             var locations = new List<LocationMaster>();
@@ -111,8 +180,11 @@ namespace RiceMillProject.DAL
                         {
                             locations.Add(new LocationMaster
                             {
-                                SubCompanyId = rdr["SubCompanyId"] == DBNull.Value ? null : Convert.ToInt32(rdr["SubCompanyId"]),
                                 LocationId = Convert.ToInt32(rdr["LocationId"]),
+                                CompanyId = rdr["CompanyId"] != DBNull.Value ? Convert.ToInt32(rdr["CompanyId"]) : 0,
+                                CompanyName = rdr["CompanyName"]?.ToString(),
+                                SubCompanyId = rdr["SubCompanyId"] != DBNull.Value ? Convert.ToInt32(rdr["SubCompanyId"]) : 0,
+                                SubCompanyName = rdr["SubCompanyName"]?.ToString(),
                                 OfficeId = rdr["OfficeId"] != DBNull.Value ? Convert.ToInt32(rdr["OfficeId"]) : 0,
                                 OfficeName = rdr["OfficeName"]?.ToString(),
                                 LocationCode = rdr["LocationCode"]?.ToString(),
@@ -149,8 +221,11 @@ namespace RiceMillProject.DAL
                         {
                             loc = new LocationMaster
                             {
-                                SubCompanyId = rdr["SubCompanyId"] == DBNull.Value ? null : Convert.ToInt32(rdr["SubCompanyId"]),
                                 LocationId = Convert.ToInt32(rdr["LocationId"]),
+                                CompanyId = rdr["CompanyId"] != DBNull.Value ? Convert.ToInt32(rdr["CompanyId"]) : 0,
+                                CompanyName = rdr["CompanyName"]?.ToString(),
+                                SubCompanyId = rdr["SubCompanyId"] != DBNull.Value ? Convert.ToInt32(rdr["SubCompanyId"]) : 0,
+                                SubCompanyName = rdr["SubCompanyName"]?.ToString(),
                                 OfficeId = rdr["OfficeId"] != DBNull.Value ? Convert.ToInt32(rdr["OfficeId"]) : 0,
                                 OfficeName = rdr["OfficeName"]?.ToString(),
                                 LocationCode = rdr["LocationCode"]?.ToString(),
@@ -180,7 +255,7 @@ namespace RiceMillProject.DAL
                     cmd.Parameters.AddWithValue("@Action", model.LocationId == 0 ? "INSERT" : "UPDATE");
                     if (model.LocationId > 0) cmd.Parameters.AddWithValue("@LocationId", model.LocationId);
                     cmd.Parameters.Add("@OfficeId", SqlDbType.Int).Value = model.OfficeId;
-                    cmd.Parameters.Add("@SubCompanyId", SqlDbType.Int).Value = (object?)model.SubCompanyId ?? DBNull.Value;
+                    cmd.Parameters.Add("@SubCompanyId", SqlDbType.Int).Value = model.SubCompanyId > 0 ? model.SubCompanyId : DBNull.Value;
                     cmd.Parameters.AddWithValue("@LocationName", model.LocationName);
                     cmd.Parameters.AddWithValue("@LocationType", model.LocationType);
                     cmd.Parameters.AddWithValue("@Capacity", model.Capacity);

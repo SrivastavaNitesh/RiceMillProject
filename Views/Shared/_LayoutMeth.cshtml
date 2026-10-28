@@ -747,14 +747,21 @@
                 <partial name="_RecordEditNavigation" />
 
 
+                <li class="nav-item">
+                    <a asp-controller="OrderReturn" asp-action="Index" class="@MethActive("OrderReturn", "Index")">
+                        <i class="bi bi-arrow-return-left"></i>
+                        <span>Order Returns</span>
+                    </a>
+                </li>
+
 
                 <!-- DASHBOARD -->
 
                 <li class="nav-item">
 
                     <a asp-controller="Meth"
-                       asp-action="Index"
-                       class="@MethActive("Meth", "Index")">
+                       asp-action="Dashboard"
+                       class="@MethActive("Meth", "Dashboard")">
 
                         <i class="bi bi-speedometer2"></i>
 
@@ -780,30 +787,13 @@
                 <li class="nav-item">
 
                     <a asp-controller="Meth"
-                       asp-action="Index"
-                       class="@MethActive("Meth", "Index")">
-
-                        <i class="bi bi-truck-flatbed"></i>
-
-                        <span>
-                            Assigned Unloading
-                        </span>
-
-                    </a>
-
-                </li>
-
-
-                <li class="nav-item">
-
-                    <a asp-controller="Meth"
-                       asp-action="Index"
-                       class="@MethActive("Meth", "Index")">
+                       asp-action="Report"
+                       class="@MethActive("Meth", "Report")">
 
                         <i class="bi bi-list-check"></i>
 
                         <span>
-                            My Work Queue
+                            Work Report
                         </span>
 
                     </a>
@@ -816,23 +806,6 @@
                      OTHER DEVELOPER:
                      UNLOADING REPORT PRESERVED
                      ================================================= -->
-
-                <li class="nav-item">
-
-                    <a asp-controller="Report"
-                       asp-action="UnloadSummaryReport"
-                       class="@MethActive("Report", "UnloadSummaryReport")">
-
-                        <i class="bi bi-file-earmark-text"></i>
-
-                        <span>
-                            Unloading Report
-                        </span>
-
-                    </a>
-
-                </li>
-
 
 
                 <!-- =================================================
@@ -968,7 +941,7 @@
 
                                     <a class="dropdown-item"
                                        asp-controller="Meth"
-                                       asp-action="Index">
+                                       asp-action="Dashboard">
 
                                         <i class="bi bi-speedometer2 me-2"></i>
 
@@ -982,12 +955,12 @@
                                 <li>
 
                                     <a class="dropdown-item"
-                                       asp-controller="Report"
-                                       asp-action="UnloadSummaryReport">
+                                       asp-controller="Meth"
+                                       asp-action="Report">
 
                                         <i class="bi bi-file-earmark-text me-2"></i>
 
-                                        Unloading Report
+                                        Work Report
 
                                     </a>
 

@@ -742,6 +742,11 @@ ORDER BY u.UnloadId DESC;";
                                 : Convert.ToInt32(
                                     reader["MethId"]),
 
+                        IsWorkerWorkCompleted =
+                            HasColumn(reader, "IsWorkerWorkCompleted") &&
+                            reader["IsWorkerWorkCompleted"] != DBNull.Value &&
+                            Convert.ToBoolean(reader["IsWorkerWorkCompleted"]),
+
                         ItemId =
                             reader["ItemId"] ==
                             DBNull.Value
@@ -886,7 +891,9 @@ ORDER BY u.UnloadId DESC;";
         public void CompleteMethUnload(
             int unloadId,
             int methPersonId,
-            List<WorkerAllocation> workerRows)
+            List<WorkerAllocation> workerRows,
+            List<ReturnBagDetailInput>? returnRows = null,
+            string? returnReason = null)
         {
             var validRows =
                 workerRows
@@ -924,7 +931,7 @@ ORDER BY u.UnloadId DESC;";
 
             using var cmd =
                 new SqlCommand(
-                    "sp_MethCompleteUnload",
+                    "sp_MethCompleteUnloadWithReturn",
                     con)
                 {
                     CommandType =
@@ -949,6 +956,11 @@ ORDER BY u.UnloadId DESC;";
                 SqlDbType.NVarChar,
                 -1
             ).Value = workerJson;
+
+            cmd.Parameters.Add("@ReturnRows", SqlDbType.NVarChar, -1).Value =
+                JsonSerializer.Serialize((returnRows ?? []).Where(x => x.BagTypeId > 0 && x.BagCount > 0));
+            cmd.Parameters.Add("@ReturnReason", SqlDbType.NVarChar, 500).Value =
+                string.IsNullOrWhiteSpace(returnReason) ? DBNull.Value : returnReason.Trim();
 
 
             RiceMillProject.DAL.RecordEditContext.Open(con);
@@ -1242,6 +1254,25 @@ ORDER BY u.UnloadId DESC;";
 
             RiceMillProject.DAL.RecordEditContext.Open(con);
 
+            cmd.ExecuteNonQuery();
+        }
+
+        public void CompleteSupervisorWorkerWork(int unloadId, int supervisorId, List<WorkerAllocation> workerRows)
+        {
+            string workerJson = JsonSerializer.Serialize(workerRows.Select(x => new
+            {
+                x.WorkerId,
+                x.WorkType,
+                BagTypeId = x.BagTypeId.GetValueOrDefault(),
+                x.BagCount,
+                x.PerBagCharge
+            }));
+            using SqlConnection con = new(_connectionString);
+            using SqlCommand cmd = new("sp_SupervisorCompleteWorkerWork", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+            cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
+            cmd.Parameters.Add("@WorkerRows", SqlDbType.NVarChar, -1).Value = workerJson;
+            con.Open();
             cmd.ExecuteNonQuery();
         }
     }

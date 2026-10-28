@@ -24,6 +24,9 @@ namespace RiceMillProject.Models
         public string? CorrectionReason { get; set; }
         [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
         public DateTime? EditExpiresAt { get; set; }
+        public bool HasDamagedReturn { get; set; }
+        public string? ReturnReason { get; set; }
+        public List<ReturnBagDetailInput> ReturnRows { get; set; } = new();
         public int UnloadId { get; set; }
         [System.ComponentModel.DataAnnotations.MinLength(1, ErrorMessage = "Select the items actually unloaded.")]
         public int[] SelectedItemIds { get; set; } = [];
@@ -47,5 +50,11 @@ namespace RiceMillProject.Models
         public string? MethName { get; set; }
         public string? BagTypeName { get; set; }
         public string? ItemName { get; set; }
+    }
+
+    public class ReturnBagDetailInput
+    {
+        public int BagTypeId { get; set; }
+        public int BagCount { get; set; }
     }
 }

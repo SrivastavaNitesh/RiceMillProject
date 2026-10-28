@@ -49,7 +49,7 @@ public class AdminOperationsController : Controller
             "Gateman" => RedirectToAction("Index", "Gateman"),
             "Weightman" => RedirectToAction("Report", "Gateman"),
             "Supervisor" => RedirectToAction("Dashboard", "Unload"),
-            _ => RedirectToAction("Index", "Meth")
+            _ => RedirectToAction("Dashboard", "Meth")
         };
     }
 

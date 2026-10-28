@@ -43,7 +43,7 @@ namespace RiceMillProject.Controllers
             if (User.IsMethUser())
             {
                 return RedirectToAction(
-                    "Index",
+                    "Dashboard",
                     "Meth"
                 );
             }

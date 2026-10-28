@@ -1,0 +1,135 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using RiceMillProject.Models;
+
+var checks = 0;
+void Check(bool condition, string name)
+{
+    if (!condition) throw new Exception(name);
+    checks++;
+    Console.WriteLine("PASS: " + name);
+}
+
+bool IsValid(object model)
+{
+    var results = new List<ValidationResult>();
+    return Validator.TryValidateObject(model, new ValidationContext(model), results, true);
+}
+
+var directLocation = new LocationMaster
+{
+    CompanyId = 1,
+    OfficeId = 1,
+    SubCompanyId = 0,
+    LocationName = "Direct Store",
+    LocationType = "Godown"
+};
+Check(IsValid(directLocation), "location accepts direct main-company mapping");
+directLocation.CompanyId = 0;
+Check(!IsValid(directLocation), "location rejects missing main company");
+directLocation.CompanyId = 1;
+directLocation.LocationName = "";
+Check(!IsValid(directLocation), "location rejects missing name");
+
+Check(!IsValid(new CreateOrderReturnInput()), "return request requires unload, bags and reason");
+Check(IsValid(new CreateOrderReturnInput { UnloadId = 8, RequestedBags = 300, Reason = "Damaged bags" }), "valid return request accepted");
+Check(!IsValid(new CreateReturnDispatchInput { OrderReturnId = 1, DispatchBags = 0 }), "return dispatch rejects zero bags");
+Check(IsValid(new SaveReturnWeightInput { DispatchId = 1, VehicleId = 1, GrossWeight = 100, TareWeight = 101 }), "weight input fields accept positive values before database cross-check");
+Check(new OrderReturnSummary { ApprovedBags = 300, DispatchedBags = 120 }.RemainingBags == 180, "remaining return bags calculated correctly");
+Check(new OrderReturnSummary { ApprovedBags = 100, DispatchedBags = 120 }.RemainingBags == 0, "remaining bags never become negative");
+
+var root = Directory.GetCurrentDirectory();
+string Read(string path) => File.ReadAllText(Path.Combine(root, path));
+var hierarchySql = Read("Company_SubCompany_Location_Hierarchy.sql");
+var optionalSql = Read("Location_Optional_SubCompany.sql");
+var orderReturnSql = Read("Order_Return_Module.sql");
+var methSql = Read("Meth_Assignment_Visibility_Fix.sql");
+var deploymentSql = Read("Live_Deployment_2026-10-28.sql");
+
+Check(hierarchySql.Contains("CREATE TABLE dbo.tbl_company") && hierarchySql.Contains("CREATE TABLE dbo.tbl_subcompany"), "hierarchy migration creates company tables");
+Check(!hierarchySql.Contains("WHERE SubCompanyId IS NULL;"), "hierarchy migration preserves direct-company locations");
+Check(optionalSql.Contains("@SubCompanyId INT=NULL") && optionalSql.Contains("c.CompanyId"), "optional subcompany procedure returns direct company identity");
+Check(orderReturnSql.Contains("CREATE TABLE dbo.tbl_OrderReturn") && orderReturnSql.Contains("CREATE TABLE dbo.tbl_OrderReturnWorker"), "order return migration contains core and worker tables");
+Check(orderReturnSql.Contains("sp_CreateOrderReturn") && orderReturnSql.Contains("sp_CompleteOrderReturnOutward"), "order return lifecycle procedures included");
+Check(orderReturnSql.Contains("@GrossWeight<@TareWeight THROW"), "database rejects return tare weight above gross weight");
+Check(methSql.Contains("tbl_OrderReturnBagDetail") && methSql.Contains("sp_MethCompleteUnloadWithReturn"), "Meth inline damaged-return database flow included");
+
+var expectedOrder = new[]
+{
+    "Company_SubCompany_Location_Hierarchy.sql",
+    "Location_Optional_SubCompany.sql",
+    "Supervisor_Dashboard_Analytics.sql",
+    "Order_Return_Module.sql",
+    "Meth_Assignment_Visibility_Fix.sql"
+};
+var positions = expectedOrder.Select(fileName => deploymentSql.IndexOf(fileName, StringComparison.Ordinal)).ToArray();
+Check(positions.All(position => position >= 0) && positions.SequenceEqual(positions.Order()), "live deployment includes scripts in dependency order");
+
+if (args.Contains("--database"))
+{
+    var configuration = new ConfigurationBuilder().SetBasePath(root).AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
+    var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new Exception("DefaultConnection missing");
+    await using var connection = new SqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    var requiredObjects = new[]
+    {
+        "dbo.tbl_company", "dbo.tbl_subcompany", "dbo.tbl_OrderReturn", "dbo.tbl_OrderReturnDispatch",
+        "dbo.tbl_OrderReturnMovement", "dbo.tbl_OrderReturnWorker", "dbo.tbl_OrderReturnStatusHistory",
+        "dbo.tbl_OrderReturnBagDetail", "dbo.sp_ManageLocationMaster", "dbo.sp_GetSupervisorDashboard",
+        "dbo.sp_CreateOrderReturn", "dbo.sp_DecideOrderReturn", "dbo.sp_CreateOrderReturnDispatch",
+        "dbo.sp_SaveOrderReturnMovement", "dbo.sp_SaveOrderReturnWeight", "dbo.sp_CompleteOrderReturnOutward",
+        "dbo.sp_GetMethAssignments", "dbo.sp_GetMethDashboard", "dbo.sp_MethCompleteUnloadWithReturn"
+    };
+    foreach (var objectName in requiredObjects)
+    {
+        await using var command = new SqlCommand("SELECT OBJECT_ID(@Name)", connection);
+        command.Parameters.AddWithValue("@Name", objectName);
+        var objectId = await command.ExecuteScalarAsync();
+        Check(objectId is not null && objectId != DBNull.Value, "database object exists: " + objectName);
+    }
+
+    await using (var nullableCommand = new SqlCommand("SELECT is_nullable FROM sys.columns WHERE object_id=OBJECT_ID('dbo.m_LocationMaster') AND name='SubCompanyId'", connection))
+        Check(Convert.ToBoolean(await nullableCommand.ExecuteScalarAsync()), "database allows NULL subcompany for direct locations");
+
+    await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+    var testName = "ROLLBACK DIRECT " + Guid.NewGuid().ToString("N")[..8];
+    try
+    {
+        int officeId;
+        await using (var officeCommand = new SqlCommand("SELECT TOP(1) OfficeId FROM dbo.tbl_company WHERE IsActive=1 AND OfficeId IS NOT NULL ORDER BY CompanyId", connection, transaction))
+            officeId = Convert.ToInt32(await officeCommand.ExecuteScalarAsync());
+
+        await using (var insert = new SqlCommand("dbo.sp_ManageLocationMaster", connection, transaction) { CommandType = System.Data.CommandType.StoredProcedure })
+        {
+            insert.Parameters.AddWithValue("@Action", "INSERT");
+            var code = insert.Parameters.Add("@LocationCode", System.Data.SqlDbType.NVarChar, 20);
+            code.Direction = System.Data.ParameterDirection.InputOutput;
+            code.Value = DBNull.Value;
+            insert.Parameters.AddWithValue("@LocationName", testName);
+            insert.Parameters.AddWithValue("@LocationType", "Godown");
+            insert.Parameters.AddWithValue("@Capacity", 1m);
+            insert.Parameters.AddWithValue("@CapacityUnit", "MT");
+            insert.Parameters.AddWithValue("@CreatedBy", 1);
+            insert.Parameters.AddWithValue("@OfficeId", officeId);
+            insert.Parameters.AddWithValue("@SubCompanyId", DBNull.Value);
+            await insert.ExecuteNonQueryAsync();
+        }
+
+        await using var verify = new SqlCommand("SELECT COUNT(1) FROM dbo.m_LocationMaster l JOIN dbo.t_OfficeLocationMapping m ON m.LocationId=l.LocationId AND m.IsActive=1 WHERE l.LocationName=@Name AND l.SubCompanyId IS NULL AND m.OfficeId=@OfficeId", connection, transaction);
+        verify.Parameters.AddWithValue("@Name", testName);
+        verify.Parameters.AddWithValue("@OfficeId", officeId);
+        Check(Convert.ToInt32(await verify.ExecuteScalarAsync()) == 1, "direct location saves with company mapping and NULL subcompany");
+    }
+    finally
+    {
+        await transaction.RollbackAsync();
+    }
+
+    await using var persisted = new SqlCommand("SELECT COUNT(1) FROM dbo.m_LocationMaster WHERE LocationName=@Name", connection);
+    persisted.Parameters.AddWithValue("@Name", testName);
+    Check(Convert.ToInt32(await persisted.ExecuteScalarAsync()) == 0, "direct location integration test rolls back cleanly");
+}
+
+Console.WriteLine($"ALL CURRENT WORKFLOW TESTS PASSED ({checks} checks)");

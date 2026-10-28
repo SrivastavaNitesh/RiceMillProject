@@ -113,12 +113,16 @@ namespace RiceMillProject.BAL
         public void CompleteMethUnload(
             int unloadId,
             int methPersonId,
-            List<WorkerAllocation> workerRows)
+            List<WorkerAllocation> workerRows,
+            List<ReturnBagDetailInput>? returnRows = null,
+            string? returnReason = null)
         {
             _unloadDal.CompleteMethUnload(
                 unloadId,
                 methPersonId,
-                workerRows
+                workerRows,
+                returnRows,
+                returnReason
             );
         }
         public int SaveSupervisorUnloadAction(
@@ -158,6 +162,11 @@ namespace RiceMillProject.BAL
                 unloadId,
                 supervisorId
             );
+        }
+
+        public void CompleteSupervisorWorkerWork(int unloadId, int supervisorId, List<WorkerAllocation> workerRows)
+        {
+            _unloadDal.CompleteSupervisorWorkerWork(unloadId, supervisorId, workerRows);
         }
     }
 }

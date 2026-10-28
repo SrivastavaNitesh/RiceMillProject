@@ -21,7 +21,7 @@ body.agro-ui{font-family:"Segoe UI",Arial,sans-serif!important;font-size:14px;li
 .agro-ui .card-footer{background:#f8fafb;border-top:1px solid var(--agro-line);padding:16px 22px}
 .agro-ui .table-responsive{border:1px solid var(--agro-line);border-radius:10px;background:white}
 .agro-ui .table{color:var(--agro-ink);--bs-table-striped-bg:#f8fafb;--bs-table-hover-bg:#edf6f4;--bs-table-striped-color:#20333e;--bs-table-hover-color:#20333e;border-color:var(--agro-line);margin-bottom:0;font-size:13px}
-.agro-ui .table thead th{background:#edf3f5!important;color:#415d68!important;font-size:11px;font-weight:650;letter-spacing:.035em;text-transform:uppercase;vertical-align:middle;padding:14px 16px;border-color:var(--agro-line)}
+.agro-ui .table thead th{background:linear-gradient(180deg,#eef7f5,#e1f0ed)!important;color:#214b47!important;font-size:11px;font-weight:700;letter-spacing:.045em;text-transform:uppercase;vertical-align:middle;padding:14px 16px;border-color:#cce1dd;border-bottom:2px solid #78beb5}
 .agro-ui .table tbody td,.agro-ui .table tbody th{padding:14px 16px;vertical-align:middle;border-color:var(--agro-line);font-size:13px}
 .agro-ui .table tfoot{font-weight:650;background:#edf3f5}
 .agro-ui .form-label{font-size:12px;font-weight:650;color:#415460;margin-bottom:7px}

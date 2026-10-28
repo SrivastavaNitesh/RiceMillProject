@@ -44,12 +44,13 @@
         margin-bottom: 0;
     }
     .erp-table thead th {
-        background: linear-gradient(135deg, #123f46, #087f83) !important;
-        color: #ffffff !important;
+        background: linear-gradient(180deg, #eef7f5, #dfeeea) !important;
+        color: #214b47 !important;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.025em;
         border: 0 !important;
+        border-bottom: 2px solid #68b8ae !important;
         padding: 0.75rem 0.8rem;
         white-space: nowrap;
         vertical-align: middle;
@@ -217,7 +218,15 @@
                                 <td>
                                     @if (item.RSTRequired)
                                     {
-                                        if (item.IsRSTGenerated)
+                                        if (string.Equals(item.RstStatus, "Exited", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="erp-badge bg-success text-white border border-success"><i class="bi bi-check-circle me-1"></i>Outward Completed</span>
+                                        }
+                                        else if (string.Equals(item.RstStatus, "WaitingForGateOut", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="erp-badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-hourglass-split me-1"></i>Waiting for Outward</span>
+                                        }
+                                        else if (item.IsRSTGenerated)
                                         {
                                             <span class="erp-badge bg-success-subtle text-success border border-success-subtle">RST Generated</span>
                                         }
@@ -280,7 +289,14 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted">-</span>
+                                            if (string.Equals(item.RstStatus, "Exited", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="erp-badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>Outward Done</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
                                         }
                                     </td>
                                 }

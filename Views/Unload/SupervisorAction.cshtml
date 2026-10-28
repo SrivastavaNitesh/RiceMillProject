@@ -1040,6 +1040,11 @@ form[data-readonly="true"] button{display:none}
         </div>
 
     </fieldset></form>
+    <div class="mt-3 text-end">
+        <a asp-controller="OrderReturn" asp-action="Index" asp-route-unloadId="@vm.UnloadId" class="btn btn-outline-danger">
+            <i class="bi bi-arrow-return-left me-1"></i> Create return request for this RST
+        </a>
+    </div>
 
 </div>
 

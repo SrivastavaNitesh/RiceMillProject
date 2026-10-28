@@ -7,10 +7,18 @@ namespace RiceMillProject.Models
 
     public class LocationMaster
     {
-        [Required(ErrorMessage = "Subcompany selection is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Select a valid subcompany")]
-        public int? SubCompanyId { get; set; }
         public int LocationId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Main company selection is required")]
+        [Display(Name = "Main Company")]
+        public int CompanyId { get; set; }
+
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "Subcompany (Optional)")]
+        public int SubCompanyId { get; set; }
+
+        public string? SubCompanyName { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Company selection is required")]
         [Display(Name = "Company")]
@@ -46,6 +54,20 @@ namespace RiceMillProject.Models
 
         [Display(Name = "Status")]
         public bool IsActive { get; set; } = true;
+    }
+
+    public class CompanyOption
+    {
+        public int CompanyId { get; set; }
+        public int OfficeId { get; set; }
+        public string CompanyName { get; set; } = string.Empty;
+    }
+
+    public class SubCompanyOption
+    {
+        public int SubCompanyId { get; set; }
+        public int CompanyId { get; set; }
+        public string SubCompanyName { get; set; } = string.Empty;
     }
 
     public class OfficeLocationMapping

@@ -55,6 +55,11 @@
 
         <nav aria-label="Laboratory navigation">
 
+            <a class="lab-nav-link" asp-controller="OrderReturn" asp-action="Index">
+                <span class="lab-nav-symbol"><i class="bi bi-arrow-return-left"></i></span>
+                <span>Return Decisions</span>
+            </a>
+
             <a class="lab-nav-link @(checks ? "active" : "")"
                aria-current="@(checks ? "page" : null)"
                asp-controller="Lab"

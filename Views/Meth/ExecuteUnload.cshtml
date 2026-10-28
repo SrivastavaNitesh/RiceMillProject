@@ -1006,6 +1006,24 @@
             </div>
 
 
+            <div style="padding:18px;border-top:1px solid #e4e8ee;background:#fffaf7;">
+                <label for="HasDamagedReturn" style="display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;">
+                    <span><strong style="color:#8c3c25;"><i class="bi bi-exclamation-diamond me-2"></i>Damaged / Return Bags</strong><small style="display:block;margin-top:4px;color:#7c6d68;">Unloading ke time damaged bags ko bag type-wise record karein.</small></span>
+                    <span class="form-check form-switch m-0"><input asp-for="HasDamagedReturn" class="form-check-input" type="checkbox" role="switch" style="width:44px;height:23px;" /></span>
+                </label>
+                <div id="returnBagPanel" style="display:none;margin-top:16px;padding:16px;border:1px solid #f0cdbf;border-radius:11px;background:#fff;">
+                    <div class="row g-3">
+                        @for (int r = 0; r < bagTypes.Count; r++)
+                        {
+                            <div class="col-md-4"><input type="hidden" name="ReturnRows[@r].BagTypeId" value="@bagTypes[r].BagTypeId" /><label style="display:block;margin-bottom:6px;font-size:12px;font-weight:750;color:#4b5563;">@bagTypes[r].BagTypeName</label><input type="number" name="ReturnRows[@r].BagCount" class="form-control return-bag-count" min="0" value="0" placeholder="Damaged bags" /></div>
+                        }
+                        <div class="col-md-4"><label style="display:block;margin-bottom:6px;font-size:12px;font-weight:750;color:#4b5563;">Total Return Bags</label><div id="returnBagTotal" style="height:40px;padding:9px 12px;border-radius:7px;background:#fff0ea;color:#a23e20;font-weight:800;">0</div></div>
+                        <div class="col-12"><label asp-for="ReturnReason" style="display:block;margin-bottom:6px;font-size:12px;font-weight:750;color:#4b5563;">Damage / Return Reason</label><textarea asp-for="ReturnReason" class="form-control" rows="2" maxlength="500" placeholder="Example: moisture, damaged grain, torn bags or quality rejection"></textarea></div>
+                    </div>
+                    <div style="margin-top:12px;padding:10px 12px;border-radius:8px;background:#fff8db;color:#705d16;font-size:12px;"><i class="bi bi-info-circle me-1"></i> Worker payment total handled bags par hoga. Return quantity usi handled total se zyada nahi ho sakti.</div>
+                </div>
+            </div>
+
             <!-- =====================================================
                  GRAND SUMMARY
                  ===================================================== -->
@@ -1088,7 +1106,7 @@
                 background:#ffffff;
             ">
 
-                <a asp-action="Index"
+                <a asp-action="Dashboard"
                    style="
                         min-height:39px;
                         padding:9px 15px;
@@ -1137,7 +1155,6 @@
         </div>
 
     </fieldset></form>
-
 </div>
 
 
@@ -1374,6 +1391,15 @@
                     document.getElementById(
                         "unloadForm"
                     );
+
+                const returnToggle = document.getElementById("HasDamagedReturn");
+                const returnPanel = document.getElementById("returnBagPanel");
+                const returnReason = document.getElementById("ReturnReason");
+                function updateReturnTotal(){let total=0;document.querySelectorAll('.return-bag-count').forEach(x=>total+=(parseInt(x.value)||0));const output=document.getElementById('returnBagTotal');if(output)output.textContent=total;return total;}
+                function updateReturnPanel(){const enabled=returnToggle&&returnToggle.checked;if(returnPanel)returnPanel.style.display=enabled?'block':'none';document.querySelectorAll('.return-bag-count').forEach(x=>{x.disabled=!enabled;if(!enabled)x.value=0;});if(returnReason){returnReason.disabled=!enabled;if(!enabled)returnReason.value='';}updateReturnTotal();}
+                returnToggle?.addEventListener('change',updateReturnPanel);
+                document.querySelectorAll('.return-bag-count').forEach(x=>x.addEventListener('input',updateReturnTotal));
+                updateReturnPanel();
 
                 const template =
                     document.getElementById(
@@ -1889,6 +1915,11 @@
                     "submit",
                     function (event)
                     {
+                        const damagedTotal=updateReturnTotal();
+                        const handledTotal=parseInt(document.getElementById('totalBags')?.textContent||'0')||0;
+                        if(returnToggle?.checked&&damagedTotal<=0){event.preventDefault();alert('Please enter damaged/return bag quantity.');return;}
+                        if(returnToggle?.checked&&damagedTotal>handledTotal){event.preventDefault();alert('Damaged/return bags cannot exceed total handled bags.');return;}
+                        if(returnToggle?.checked&&!returnReason?.value.trim()){event.preventDefault();alert('Please enter damage/return reason.');return;}
                         form
                             .querySelectorAll(
                                 ".dynamic-post-field"

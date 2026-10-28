@@ -15,6 +15,7 @@ namespace RiceMillProject.Controllers
         private readonly BagTypeBAL _bagBal;
         private readonly RiceMillProject.DAL.RecordEditDAL _edits;
         private readonly RiceMillProject.DAL.SupervisorReportDAL _reports;
+        private readonly MethDashboardBAL _dashboardBal;
 
         public MethController(
             IConfiguration configuration)
@@ -26,6 +27,8 @@ namespace RiceMillProject.Controllers
 
             _bagBal =
                 new BagTypeBAL(configuration);
+
+            _dashboardBal = new MethDashboardBAL(configuration);
         }
 
 
@@ -43,10 +46,54 @@ namespace RiceMillProject.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var assignments=PrepareMethReport();
-            ViewBag.PendingUnloads=assignments.Where(a=>!SavedIds.Contains(a.UnloadId.ToString())).ToList();
-            ViewBag.CompletedUnloads=assignments.Where(a=>SavedIds.Contains(a.UnloadId.ToString())).ToList();
-            return View(assignments);
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        [HttpGet]
+        public IActionResult Dashboard()
+        {
+            return LoadDashboard();
+        }
+
+        [HttpGet]
+        public IActionResult Report(string status="All", string? search=null, DateTime? fromDate=null, DateTime? toDate=null)
+        {
+            var rows=_unloadBal.GetMethAssignments(CurrentPersonId()).AsEnumerable();
+            if(status=="Pending") rows=rows.Where(x=>x.Status=="Assigned"&&!x.IsWorkerWorkCompleted);
+            else if(status=="Completed") rows=rows.Where(x=>x.IsWorkerWorkCompleted||x.Status!="Assigned");
+            if(!string.IsNullOrWhiteSpace(search)) rows=rows.Where(x=>x.RSTNumber.Contains(search,StringComparison.OrdinalIgnoreCase)||(x.VehicleNumber?.Contains(search,StringComparison.OrdinalIgnoreCase)??false)||(x.PartyName?.Contains(search,StringComparison.OrdinalIgnoreCase)??false));
+            if(fromDate.HasValue) rows=rows.Where(x=>x.UnloadTime.HasValue&&x.UnloadTime.Value.Date>=fromDate.Value.Date);
+            if(toDate.HasValue) rows=rows.Where(x=>x.UnloadTime.HasValue&&x.UnloadTime.Value.Date<=toDate.Value.Date);
+            return View(new MethWorkReport{Status=status,Search=search??"",FromDate=fromDate,ToDate=toDate,Rows=rows.ToList()});
+        }
+
+        private IActionResult LoadDashboard()
+        {
+            int methPersonId =
+                CurrentPersonId();
+
+            var assignments =
+                _unloadBal.GetMethAssignments(
+                    methPersonId
+                );
+
+            ViewBag.PendingUnloads =
+                assignments
+                    .Where(x =>
+                        x.Status == "Assigned" &&
+                        !x.IsWorkerWorkCompleted)
+                    .ToList();
+
+            ViewBag.CompletedUnloads =
+                assignments
+                    .Where(x =>
+                        x.IsWorkerWorkCompleted ||
+                        x.Status != "Assigned")
+                    .ToList();
+
+            ViewBag.ViewMode = "Dashboard";
+
+            return View("Index", _dashboardBal.Get(methPersonId));
         }
 
 
@@ -273,6 +320,34 @@ namespace RiceMillProject.Controllers
                 }
             }
 
+            var returnRows = unload.HasDamagedReturn
+                ? (unload.ReturnRows ?? []).Where(x => x.BagTypeId > 0 && x.BagCount > 0).ToList()
+                : [];
+            if (unload.HasDamagedReturn)
+            {
+                if (returnRows.Count == 0 || string.IsNullOrWhiteSpace(unload.ReturnReason))
+                {
+                    ModelState.Clear();
+                    ModelState.AddModelError(string.Empty, "Damaged/return bag type, quantity and reason are required.");
+                    PrepareExecuteUnloadView(saved, methPersonId);
+                    return View(saved);
+                }
+                if (returnRows.GroupBy(x => x.BagTypeId).Any(x => x.Count() > 1))
+                {
+                    ModelState.Clear();
+                    ModelState.AddModelError(string.Empty, "Same return bag type cannot be entered twice.");
+                    PrepareExecuteUnloadView(saved, methPersonId);
+                    return View(saved);
+                }
+                if (returnRows.Sum(x => x.BagCount) > workerRows.Sum(x => x.BagCount))
+                {
+                    ModelState.Clear();
+                    ModelState.AddModelError(string.Empty, "Damaged/return bags cannot exceed total handled bags.");
+                    PrepareExecuteUnloadView(saved, methPersonId);
+                    return View(saved);
+                }
+            }
+
 
             // ============================================================
             // SAVE
@@ -283,7 +358,9 @@ namespace RiceMillProject.Controllers
                 _unloadBal.CompleteMethUnload(
                     unload.UnloadId,
                     methPersonId,
-                    workerRows
+                    workerRows,
+                    returnRows,
+                    unload.ReturnReason
                 );
 
 

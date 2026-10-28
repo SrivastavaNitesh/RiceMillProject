@@ -17,33 +17,53 @@ namespace RiceMillProject.Controllers
             _locationBal = new LocationMasterBAL(configuration);
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int? subCompanyId)
         {
             var locations = _locationBal.GetAllLocations();
+            var subCompanies = locations
+                .Where(item => item.SubCompanyId > 0)
+                .GroupBy(item => new { item.SubCompanyId, item.SubCompanyName })
+                .Select(group => new SubCompanyOption
+                {
+                    SubCompanyId = group.Key.SubCompanyId,
+                    SubCompanyName = group.Key.SubCompanyName ?? "Unassigned Subcompany"
+                })
+                .OrderBy(item => item.SubCompanyName)
+                .ToList();
+
+            if (subCompanyId.GetValueOrDefault() > 0)
+                locations = locations.Where(item => item.SubCompanyId == subCompanyId).ToList();
+
+            ViewBag.SubCompanyFilter = new SelectList(subCompanies, "SubCompanyId", "SubCompanyName", subCompanyId);
+            ViewBag.SelectedSubCompanyId = subCompanyId;
             return View(locations);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            PopulateOffices();
+            PopulateHierarchy();
             return View(new LocationMaster { IsActive = true, CapacityUnit = "MT" });
         }
 
         [HttpPost]
         public IActionResult Create(LocationMaster model)
         {
-            if (model.OfficeId <= 0 && ModelState[nameof(model.OfficeId)]?.Errors.Count == 0)
-                ModelState.AddModelError(nameof(model.OfficeId), "Company selection is required");
+            if (model.CompanyId > 0)
+                model.OfficeId = _locationBal.GetOfficeIdForCompany(model.CompanyId);
+            ModelState.Remove(nameof(model.OfficeId));
+
+            if (model.OfficeId <= 0)
+                ModelState.AddModelError(nameof(model.CompanyId), "Valid main company selection is required");
+
+            if (model.SubCompanyId > 0 && !_locationBal.IsSubCompanyInCompany(model.SubCompanyId, model.CompanyId))
+                ModelState.AddModelError(nameof(model.SubCompanyId), "Selected subcompany does not belong to the main company");
 
             if (string.IsNullOrWhiteSpace(model.LocationName) && ModelState[nameof(model.LocationName)]?.Errors.Count == 0)
                 ModelState.AddModelError(nameof(model.LocationName), "Location Name is required");
 
             if (string.IsNullOrWhiteSpace(model.LocationType) && ModelState[nameof(model.LocationType)]?.Errors.Count == 0)
                 ModelState.AddModelError(nameof(model.LocationType), "Location Type is required");
-
-            if (model.SubCompanyId.HasValue && !_locationBal.GetLocationSubcompanies().Any(s=>s.SubCompanyId==model.SubCompanyId && s.OfficeId==model.OfficeId))
-                ModelState.AddModelError(nameof(model.SubCompanyId), "Select a subcompany belonging to the selected company.");
 
             if (ModelState.IsValid)
             {
@@ -59,8 +79,8 @@ namespace RiceMillProject.Controllers
                     TempData["ErrorMessage"] = "Location could not be saved: " + ex.Message;
                 }
             }
-            TempData["ErrorMessage"] ??= "Please select Company, Location Name and Location Type.";
-            PopulateOffices(model.OfficeId);
+            TempData["ErrorMessage"] ??= "Please select Main Company, Location Name and Location Type.";
+            PopulateHierarchy(model.CompanyId, model.SubCompanyId);
             return View(model);
         }
 
@@ -69,15 +89,26 @@ namespace RiceMillProject.Controllers
         {
             var model = _locationBal.GetLocationById(id);
             if (model == null) return NotFound();
-            PopulateOffices(model.OfficeId);
+            PopulateHierarchy(model.CompanyId, model.SubCompanyId);
             return View("Create", model);
         }
 
-        private void PopulateOffices(int? selectedOfficeId = null)
+        [HttpGet]
+        public IActionResult GetSubCompanies(int companyId)
         {
-            ViewBag.Offices = new SelectList(
-                _locationBal.GetActiveOffices(), "OfficeId", "OfficeName", selectedOfficeId);
-            ViewBag.SubCompanies = _locationBal.GetLocationSubcompanies();
+            return Json(_locationBal.GetActiveSubCompanies(companyId)
+                .Select(item => new { id = item.SubCompanyId, name = item.SubCompanyName }));
+        }
+
+        private void PopulateHierarchy(int? selectedCompanyId = null, int? selectedSubCompanyId = null)
+        {
+            ViewBag.Companies = new SelectList(
+                _locationBal.GetActiveCompanies(), "CompanyId", "CompanyName", selectedCompanyId);
+            ViewBag.SubCompanies = new SelectList(
+                selectedCompanyId.GetValueOrDefault() > 0
+                    ? _locationBal.GetActiveSubCompanies(selectedCompanyId!.Value)
+                    : new List<SubCompanyOption>(),
+                "SubCompanyId", "SubCompanyName", selectedSubCompanyId);
             ViewBag.LocationTypes = _locationBal.GetActiveLocationTypes();
         }
 

@@ -17,7 +17,7 @@ namespace RiceMillProject.Controllers
             if (User.IsWeightmanUser()) return RedirectToAction("Dashboard", "GateEntry");
             if (User.IsSupervisorUser()) return RedirectToAction("Dashboard", "Unload");
             if (User.IsLabUser()) return RedirectToAction("Index", "Lab");
-            if (User.IsMethUser()) return RedirectToAction("Index", "Meth");
+            if (User.IsMethUser()) return RedirectToAction("Dashboard", "Meth");
 
             // Support existing login cookies containing only PostId.
             return User.FindFirst("PostId")?.Value switch
@@ -27,7 +27,7 @@ namespace RiceMillProject.Controllers
                 "3" => RedirectToAction("Dashboard", "Unload"),
                 "4" => RedirectToAction("Index", "Dashboard"),
                 "5" => RedirectToAction("Index", "Lab"),
-                "6" => RedirectToAction("Index", "Meth"),
+                "6" => RedirectToAction("Dashboard", "Meth"),
                 _ => View()
             };
         }

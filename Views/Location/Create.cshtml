@@ -29,12 +29,20 @@
                 <form asp-action="Create" method="post" class="row g-3">
                     <input type="hidden" asp-for="LocationId" />
 
-                    <div class="col-md-12">
-                        <label class="form-label">Company <span class="req-star">*</span></label>
-                        <select asp-for="OfficeId" asp-items="ViewBag.Offices" class="form-select" required>
-                            <option value="">Select Company</option>
+                    <div class="col-md-6">
+                        <label class="form-label">Main Company <span class="req-star">*</span></label>
+                        <select asp-for="CompanyId" asp-items="ViewBag.Companies" class="form-select" required>
+                            <option value="">Select Main Company</option>
                         </select>
-                        <span asp-validation-for="OfficeId" class="text-danger small"></span>
+                        <span asp-validation-for="CompanyId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Subcompany <span class="text-muted small">(Optional)</span></label>
+                        <select asp-for="SubCompanyId" asp-items="ViewBag.SubCompanies" class="form-select">
+                            <option value="0">Direct under Main Company</option>
+                        </select>
+                        <span asp-validation-for="SubCompanyId" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
@@ -107,7 +115,17 @@
     </div>
 </div>
 
-@section Scripts {<script>
-(()=>{const office=document.getElementById('OfficeId'),sub=document.getElementById('SubCompanyId');if(!office||!sub)return;
-const filter=()=>{[...sub.options].forEach(o=>{if(!o.value)return;const valid=o.dataset.office===office.value;o.disabled=!valid;o.hidden=!valid;if(!valid&&o.selected)sub.value='';});};office.addEventListener('change',filter);filter();sub.form.addEventListener('reset',()=>setTimeout(filter,0));})();
-</script>}
+@section Scripts {
+    <script>
+        document.getElementById('CompanyId')?.addEventListener('change', async function () {
+            const subCompany = document.getElementById('SubCompanyId');
+            subCompany.innerHTML = '<option value="0">Direct under Main Company</option>';
+            if (!this.value) return;
+
+            const response = await fetch('@Url.Action("GetSubCompanies", "Location")?companyId=' + encodeURIComponent(this.value));
+            if (!response.ok) return;
+            const items = await response.json();
+            items.forEach(item => subCompany.add(new Option(item.name, item.id)));
+        });
+    </script>
+}
