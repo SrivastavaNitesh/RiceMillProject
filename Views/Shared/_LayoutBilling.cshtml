@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="~/css/billing.css" asp-append-version="true" />    <link rel="stylesheet" href="~/css/annapurna-theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/annapurna-design.css" asp-append-version="true" />
 <script src="~/js/annapurna-theme.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="~/css/searchable-selects.css" asp-append-version="true" />
 </head>
 <body class="agro-ui lab-shell">
     <a href="#lab-content" class="lab-skip">Skip to content</a>
@@ -29,7 +31,9 @@
         <main id="lab-content" class="lab-content" tabindex="-1">@RenderBody()</main>
         <footer class="lab-footer">ANNAPURNA AGRO INDIA PVT. LTD. &middot; Billing &amp; payment records</footer>
     </div>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="~/js/searchable-selects.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/lab-shell.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

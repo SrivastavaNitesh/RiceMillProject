@@ -46,6 +46,15 @@ public class OrderReturnSource
     public string VehicleNumber { get; set; } = "";
     public string PartyName { get; set; } = "";
     public int AvailableBags { get; set; }
+    public int ReturnBags { get; set; }
+    public int OrderReturnId { get; set; }
+    public string ReturnNumber { get; set; } = "";
+    public string ReturnStatus { get; set; } = "";
+    public string StageCode { get; set; } = "";
+    public string StageName { get; set; } = "";
+    public DateTime LastUpdatedAt { get; set; }
+    public bool CanCreateReturn { get; set; }
+    public string ActionMessage { get; set; } = "";
 }
 
 public class LookupOption

@@ -194,7 +194,7 @@
                                  * has already been entered.
                                  */
 
-                                bool workEntered = item.IsWorkerWorkCompleted;
+                                bool workEntered = item.IsMethWorkEntered;
 
 
                                 /*
@@ -203,9 +203,7 @@
                                  */
 
                                 bool supervisorCompleted = item.IsSupervisorActionCompleted;
-                                // Supervisor Field Details are the authoritative completion
-                                // for this register; Worker Details are optional follow-up.
-                                bool overallCompleted = supervisorCompleted;
+                                bool overallCompleted = supervisorCompleted && workEntered;
 
 
                                 <tr>
@@ -316,7 +314,7 @@
 
                                     <td class="text-center">
 
-                                        @if (item.NumberOfBags.GetValueOrDefault() > 0)
+                                        @if (item.MethBagTotal > 0 || item.NumberOfBags.GetValueOrDefault() > 0)
                                         {
                                             <span class="badge
                                                 bg-success-subtle
@@ -324,7 +322,7 @@
                                                 px-3
                                                 py-2">
 
-                                                @(item.NumberOfBags ?? 0)
+                                                @(item.MethBagTotal > 0 ? item.MethBagTotal : item.NumberOfBags ?? 0)
 
                                             </span>
                                         }
@@ -369,13 +367,13 @@
 
                                                 <i class="bi bi-clipboard-check me-1"></i>
 
-                                                Worker Entered / Field Completed
+                                                Meth Entered / Field Completed
 
                                             </span>
                                         }
                                         else if (supervisorCompleted)
                                         {
-                                            <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2">Field Entered / Worker Pending</span>
+                                            <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2">Field Entered / Meth Pending</span>
                                         }
                                         else
                                         {
@@ -400,52 +398,33 @@
                                          ===================================== -->
 
                                     <td class="text-center pe-4 action-cell"><div class="d-flex gap-2 justify-content-center align-items-start flex-wrap">
-
-                                        @if (supervisorCompleted)
-                                        {
-                                            <!-- FINAL COMPLETED -->
-
-                                            <button type="button"
-                                                    class="btn
-                                                btn-sm
-                                                btn-success"
-                                                    disabled>
-
-                                                <i class="bi bi-check-circle-fill me-1"></i>
-
-                                                Completed
-
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button type="button" class="btn btn-sm btn-primary fw-semibold"
-                                                    data-bs-toggle="modal" data-bs-target="#actionModal-@item.UnloadId">
-                                                <i class="bi bi-list-check me-1"></i> Choose Action
-                                            </button>
-                                            <div class="modal fade" id="actionModal-@item.UnloadId" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">RST: @item.RSTNumber</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="d-grid gap-3">
-                                                                @if (workEntered)
-                                                                { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Worker Details <span class="float-end">Completed</span></button> }
-                                                                else
-                                                                { <a class="btn btn-outline-warning text-start p-3" asp-controller="Unload" asp-action="SupervisorMethWork" asp-route-id="@item.UnloadId"><i class="bi bi-people me-2"></i>Worker Details <span class="float-end">Pending</span></a> }
-                                                                @if (supervisorCompleted)
-                                                                { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Field Details <span class="float-end">Completed</span></button> }
-                                                                else
-                                                                { <a class="btn btn-outline-primary text-start p-3" asp-controller="Unload" asp-action="SupervisorAction" asp-route-id="@item.UnloadId"><i class="bi bi-clipboard-check me-2"></i>Field Details <span class="float-end">Pending</span></a> }
-                                                            </div>
+                                        <button type="button" class="btn btn-sm btn-primary fw-semibold"
+                                                data-bs-toggle="modal" data-bs-target="#actionModal-@item.UnloadId">
+                                            <i class="bi bi-list-check me-1"></i> Choose Action
+                                        </button>
+                                        <div class="modal fade" id="actionModal-@item.UnloadId" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content border-0 shadow">
+                                                    <div class="modal-header bg-light">
+                                                        <div><div class="small text-muted">Select next action</div><h5 class="modal-title mb-0">RST: @item.RSTNumber</h5></div>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body p-4">
+                                                        <div class="d-grid gap-3">
+                                                            <a class="btn @(workEntered ? "btn-outline-success" : "btn-outline-warning") text-start p-3"
+                                                               asp-action="SupervisorMethEntry" asp-route-id="@item.UnloadId">
+                                                                <i class="bi bi-person-workspace me-2"></i>Meth Details
+                                                                <span class="float-end">@(workEntered ? "Saved / Edit" : "Pending")</span>
+                                                            </a>
+                                                            @if (supervisorCompleted)
+                                                            { <button class="btn btn-outline-success text-start p-3" disabled><i class="bi bi-check-circle me-2"></i>Field Details <span class="float-end">Completed</span></button> }
+                                                            else
+                                                            { <a class="btn btn-outline-primary text-start p-3" asp-controller="Unload" asp-action="SupervisorAction" asp-route-id="@item.UnloadId"><i class="bi bi-clipboard-check me-2"></i>Field Details <span class="float-end">Pending</span></a> }
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        }
+                                        </div>
 
 
                                         @{
@@ -457,13 +436,13 @@
                                         @if(workerEdit!=null||fieldEdit!=null){
                                         <span data-edit-mode="disable" data-edit-expiry="@(expires==default?null:expires.ToString("yyyy-MM-ddTHH:mm:ss+05:30"))"><button type="button" class="btn btn-sm btn-outline-primary edit-window-action" disabled="@(!canEdit)" data-bs-toggle="modal" data-bs-target="#editModal-@item.UnloadId">Edit</button></span>
                                         <div class="modal fade" id="editModal-@item.UnloadId" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit — RST @item.RSTNumber</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body d-grid gap-3">
-                                        @if(workerEdit!=null){<partial name="_WorkforceEditOption" model="workerEdit"/>}else{<button class="btn btn-outline-secondary p-3" disabled>Worker Details — not entered</button>}
+                                        <a class="btn btn-outline-warning text-start p-3" asp-action="SupervisorMethEntry" asp-route-id="@item.UnloadId">Meth Details <span class="float-end">@(workEntered ? "Saved / Edit" : "Pending")</span></a>
                                         @if(fieldEdit!=null){<partial name="_WorkforceEditOption" model="fieldEdit"/>}else{<button class="btn btn-outline-secondary p-3" disabled>Field Details — not entered</button>}
                                         </div></div></div></div>}
 
                                         <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewModal-@item.UnloadId">View</button>
                                         <div class="modal fade" id="viewModal-@item.UnloadId" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">View — RST @item.RSTNumber</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body d-grid gap-3">
-                                        @if(workerEdit!=null){<a class="btn btn-outline-warning text-start p-3" asp-action="SupervisorMethWork" asp-route-id="@item.UnloadId" asp-route-viewOnly="true">Worker Details</a>}else{<button class="btn btn-outline-secondary p-3" disabled>Worker Details — not entered</button>}
+                                        @if(workEntered){<a class="btn btn-outline-warning text-start p-3" asp-action="SupervisorMethEntry" asp-route-id="@item.UnloadId">Meth Details <span class="float-end">Saved</span></a>}else{<button class="btn btn-outline-secondary text-start p-3" disabled>Meth Details <span class="float-end">Not entered</span></button>}
                                         @if(fieldEdit!=null){<a class="btn btn-outline-primary text-start p-3" asp-action="SupervisorAction" asp-route-id="@item.UnloadId" asp-route-viewOnly="true">Field Details</a>}else{<button class="btn btn-outline-secondary p-3" disabled>Field Details — not entered</button>}
                                         </div></div></div></div></div>
                                     </td>

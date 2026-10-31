@@ -12,6 +12,10 @@
                 "Unload" => "_LayoutSupervisor",
                 "Meth" => "_LayoutMeth",
                 "Lab" => "_LayoutLab",
+                "OrderReturn" when workRole == "Gateman" => "_LayoutGateman",
+                "OrderReturn" when workRole == "Weightman" => "_LayoutWeighbridge",
+                "OrderReturn" when workRole == "Supervisor" => "_LayoutSupervisor",
+                "OrderReturn" when workRole == "Worker" => "_LayoutMeth",
                 "Gateman" when workRole == "Weightman" => "_LayoutWeighbridge",
                 "Gateman" => "_LayoutGateman",
                 _ => "_LayoutAdmin"

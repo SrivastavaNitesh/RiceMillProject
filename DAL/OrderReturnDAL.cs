@@ -19,7 +19,14 @@ public class OrderReturnDAL(IConfiguration configuration)
         var data = new DataSet();
         adapter.Fill(data);
         if (data.Tables.Count > 0) page.Returns = data.Tables[0].AsEnumerable().Select(MapSummary).ToList();
-        if (data.Tables.Count > 1) page.EligibleRsts = data.Tables[1].AsEnumerable().Select(row => new OrderReturnSource { UnloadId = Int(row,"UnloadId"), RSTNumber = Text(row,"RSTNumber"), VehicleNumber = Text(row,"VehicleNumber"), PartyName = Text(row,"PartyName"), AvailableBags = Int(row,"AvailableBags") }).ToList();
+        if (data.Tables.Count > 1) page.EligibleRsts = data.Tables[1].AsEnumerable().Select(row => new OrderReturnSource
+        {
+            UnloadId = Int(row,"UnloadId"), RSTNumber = Text(row,"RSTNumber"), VehicleNumber = Text(row,"VehicleNumber"),
+            PartyName = Text(row,"PartyName"), AvailableBags = Int(row,"AvailableBags"), ReturnBags = Int(row,"ReturnBags"),
+            OrderReturnId = Int(row,"OrderReturnId"), ReturnNumber = Text(row,"ReturnNumber"), ReturnStatus = Text(row,"ReturnStatus"),
+            StageCode = Text(row,"StageCode"), StageName = Text(row,"StageName"), LastUpdatedAt = Date(row,"LastUpdatedAt"),
+            CanCreateReturn = Bool(row,"CanCreateReturn"), ActionMessage = Text(row,"ActionMessage")
+        }).ToList();
         if (data.Tables.Count > 2) page.Locations = Options(data.Tables[2]);
         if (data.Tables.Count > 3) page.Vehicles = Options(data.Tables[3]);
         if (data.Tables.Count > 4) page.BagTypes = Options(data.Tables[4]);
@@ -57,5 +64,6 @@ public class OrderReturnDAL(IConfiguration configuration)
     { using var connection=new SqlConnection(connectionString);using var command=new SqlCommand(procedure,connection){CommandType=CommandType.StoredProcedure};add(command.Parameters);connection.Open();command.ExecuteNonQuery(); }
     private static OrderReturnSummary MapSummary(DataRow row)=>new(){OrderReturnId=Int(row,"OrderReturnId"),ReturnNumber=Text(row,"ReturnNumber"),UnloadId=Int(row,"UnloadId"),RSTNumber=Text(row,"RSTNumber"),VehicleNumber=Text(row,"VehicleNumber"),PartyName=Text(row,"PartyName"),SourceLocationName=Text(row,"SourceLocationName"),RequestedBags=Int(row,"RequestedBags"),ApprovedBags=Int(row,"ApprovedBags"),DispatchedBags=Int(row,"DispatchedBags"),ReturnReason=Text(row,"ReturnReason"),QualityRemarks=Text(row,"QualityRemarks"),QualityDecision=Text(row,"QualityDecision"),Status=Text(row,"Status"),RequestedAt=Date(row,"RequestedAt")};
     private static List<LookupOption> Options(DataTable table)=>table.AsEnumerable().Select(row=>new LookupOption{Id=Int(row,"Id"),Name=Text(row,"Name")}).ToList();
+    private static bool Bool(DataRow r,string c)=>r[c]!=DBNull.Value&&Convert.ToBoolean(r[c]);
     private static string Text(DataRow r,string c)=>r[c]==DBNull.Value?"":Convert.ToString(r[c])??""; private static int Int(DataRow r,string c)=>r[c]==DBNull.Value?0:Convert.ToInt32(r[c]); private static int? NullableInt(DataRow r,string c)=>r[c]==DBNull.Value?null:Convert.ToInt32(r[c]); private static decimal Decimal(DataRow r,string c)=>r[c]==DBNull.Value?0:Convert.ToDecimal(r[c]); private static decimal? NullableDecimal(DataRow r,string c)=>r[c]==DBNull.Value?null:Convert.ToDecimal(r[c]); private static DateTime Date(DataRow r,string c)=>r[c]==DBNull.Value?DateTime.MinValue:Convert.ToDateTime(r[c]);
 }

@@ -1,5 +1,29 @@
 // Enterprise ERP Global JavaScript - Active Link & DataTables Auto-Initializer
 document.addEventListener("DOMContentLoaded", function () {
+    // Numeric entry UX: remove framework-generated zero only when the field
+    // already expects user input (placeholder) or zero is below its minimum.
+    const prepareNumericInput = input => {
+        if (!(input instanceof HTMLInputElement) || input.type !== "number") return;
+        if (input.readOnly || input.disabled || input.dataset.preserveZero === "true") return;
+
+        const minimum = input.min === "" ? null : Number(input.min);
+        const hasEntryPlaceholder = input.hasAttribute("placeholder");
+        const shouldEmptyZero = input.dataset.emptyZero === "true"
+            || hasEntryPlaceholder
+            || (Number.isFinite(minimum) && minimum > 0);
+
+        if (!shouldEmptyZero || input.value === "" || Number(input.value) !== 0) return;
+        input.value = "";
+        if (!hasEntryPlaceholder) input.placeholder = input.dataset.placeholder || "Enter value";
+    };
+
+    document.querySelectorAll('input[type="number"]').forEach(prepareNumericInput);
+    new MutationObserver(mutations => mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+        if (!(node instanceof Element)) return;
+        if (node.matches('input[type="number"]')) prepareNumericInput(node);
+        node.querySelectorAll?.('input[type="number"]').forEach(prepareNumericInput);
+    }))).observe(document.body, { childList: true, subtree: true });
+
     // 1. ACTIVE LINK AUTO-MATCHER
     const normalizePath = path => path.toLowerCase().replace(/\/+$/, "").replace(/\/index$/, "");
     const currentPath = normalizePath(window.location.pathname);

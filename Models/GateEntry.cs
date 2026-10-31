@@ -8,7 +8,8 @@ namespace RiceMillProject.Models
     {
         public int InwardId { get; set; }
         [Required(ErrorMessage = "RST number is required.")]
-        [StringLength(100, MinimumLength = 1, ErrorMessage = "RST number cannot exceed 100 characters.")]
+        [StringLength(6, MinimumLength = 1, ErrorMessage = "RST number must contain 1 to 6 digits.")]
+        [RegularExpression(@"^[0-9]{1,6}$", ErrorMessage = "RST number must contain only 1 to 6 digits.")]
         public string RSTNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Gate inward entry is required.")]

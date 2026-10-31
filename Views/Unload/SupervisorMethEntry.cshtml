@@ -1,0 +1,132 @@
+@model RiceMillProject.Models.SupervisorMethEntryViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Meth Unloading Entry";
+    var bagTypes = ViewBag.BagTypes as IEnumerable<SelectListItem> ?? [];
+}
+
+<style>
+    .meth-entry-page{max-width:1250px;margin:0 auto}.meth-entry-hero{position:relative;background:#fff;border:1px solid #dce8e6;border-radius:16px;padding:22px 150px;text-align:center;box-shadow:0 6px 20px rgba(24,60,67,.06)}
+    .meth-entry-hero-icon{width:48px;height:48px;margin:0 auto 10px;border-radius:14px;display:grid;place-items:center;background:#e8f6f3;color:#087f73;font-size:1.35rem}.meth-entry-hero h3{font-size:1.45rem;font-weight:750;color:#173c39;margin:0}.meth-entry-hero p{color:#71817f;margin:6px 0 0}.meth-back{position:absolute;right:22px;top:50%;transform:translateY(-50%)}
+    .meth-entry-card{background:#fff;border:1px solid #dce9e7;border-radius:16px;box-shadow:0 8px 24px rgba(24,60,67,.07);overflow:hidden}.meth-entry-card-header{padding:16px 20px;background:#f6faf9;border-bottom:1px solid #dce9e7;font-weight:750;color:#174d48}
+    .meth-info{height:100%;padding:14px 16px;background:#f8fbfb;border:1px solid #e1eceb;border-radius:12px}.meth-info span{display:block;color:#6b7d7b;font-size:.75rem;text-transform:uppercase;font-weight:700;letter-spacing:.04em}.meth-info strong{display:block;margin-top:4px;color:#183b38}
+    .meth-row{padding:16px;border:1px solid #dfebe9;border-radius:12px;background:#fcfefe;margin-bottom:12px}.meth-row-total{font-size:1.05rem;font-weight:800;color:#087f73;padding-top:9px}.meth-summary{background:#eaf7f4;border:1px solid #bfe4dc;border-radius:12px;padding:16px}.meth-summary strong{font-size:1.2rem;color:#096c63}.work-pill{display:inline-flex!important;align-items:center;padding:5px 10px;border-radius:999px;background:#dff4ef;color:#08776d!important;font-size:.8rem!important;font-weight:750;letter-spacing:0!important;text-transform:none!important}
+    .loose-section{padding:18px;border:1px solid #f0d8aa;border-radius:14px;background:#fffaf0}.loose-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#fff0cc;color:#9a6500;font-size:1.15rem}.loose-note{color:#7b6b4c;font-size:.86rem}
+    .return-section{padding:18px;border:1px solid #f0c7c7;border-radius:14px;background:#fff7f7}.return-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#ffe4e4;color:#b43d3d;font-size:1.15rem}.return-note{color:#765858;font-size:.86rem}
+    @@media(max-width:767px){.meth-entry-hero{padding:20px}.meth-back{position:static;transform:none;margin-top:16px}.meth-entry-hero h3{font-size:1.25rem}}
+</style>
+
+<div class="meth-entry-page">
+    <div class="meth-entry-hero mb-4">
+        <div class="meth-entry-hero-icon"><i class="bi bi-person-workspace"></i></div>
+        <h3>Meth Unloading Details</h3>
+        <p>Bag type, quantity aur per bag payment details enter karein</p>
+        <a asp-action="MethWorkRegister" class="btn btn-sm btn-outline-secondary meth-back"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+
+    <div class="meth-entry-card mb-4">
+        <div class="meth-entry-card-header"><i class="bi bi-receipt-cutoff me-2"></i>RST &amp; Assignment Details</div>
+        <div class="p-3 p-md-4"><div class="row g-3">
+            <div class="col-md-4 col-lg-2"><div class="meth-info"><span>RST Number</span><strong>@Model.RSTNumber</strong></div></div>
+            <div class="col-md-4 col-lg-2"><div class="meth-info"><span>Vehicle</span><strong>@(Model.VehicleNumber.Length > 0 ? Model.VehicleNumber : "-")</strong></div></div>
+            <div class="col-md-4 col-lg-2"><div class="meth-info"><span>Party</span><strong>@(Model.PartyName.Length > 0 ? Model.PartyName : "-")</strong></div></div>
+            <div class="col-md-4 col-lg-2"><div class="meth-info"><span>Assigned Meth</span><strong>@Model.MethName</strong></div></div>
+            <div class="col-md-4 col-lg-2"><div class="meth-info"><span>Location</span><strong>@Model.LocationName</strong></div></div>
+            <div class="col-md-4 col-lg-2"><div class="meth-info"><span>Work Type</span><strong><span class="work-pill">Unloading</span></strong></div></div>
+        </div></div>
+    </div>
+
+    <form asp-action="SupervisorMethEntry" method="post" id="methEntryForm">
+        <input asp-for="UnloadId" type="hidden" />
+        <div class="meth-entry-card">
+            <div class="meth-entry-card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-bag-check me-2"></i>Bag-wise Meth Payment</span><button type="button" id="addRow" class="btn btn-sm btn-outline-success"><i class="bi bi-plus-lg me-1"></i>Add Bag Type</button></div>
+            <div class="p-3 p-md-4">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div id="entryRows">
+                    @for (var index = 0; index < Model.Rows.Count; index++)
+                    {
+                        <div class="meth-row" data-row>
+                            <input asp-for="Rows[index].EntryId" type="hidden" />
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4"><label class="form-label fw-semibold">Bag Type</label><select asp-for="Rows[index].BagTypeId" asp-items="bagTypes" class="form-select bag-type" required><option value="">Select Bag Type</option></select></div>
+                                <div class="col-md-3"><label class="form-label fw-semibold">Bag Count</label><input asp-for="Rows[index].BagCount" type="number" min="1" class="form-control bag-count" placeholder="Enter bag count" required /></div>
+                                <div class="col-md-3"><label class="form-label fw-semibold">Per Bag Price (Rs.)</label><input asp-for="Rows[index].PerBagPrice" type="number" min="0" step="0.01" class="form-control bag-price" placeholder="Enter price per bag" data-preserve-zero="@(Model.Rows[index].EntryId > 0 ? "true" : "false")" required /></div>
+                                <div class="col-md-2"><label class="form-label fw-semibold">Total Amount</label><div class="meth-row-total">Rs. <span data-row-total>0.00</span></div></div>
+                                <div class="col-12 text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bi bi-trash"></i> Remove</button></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="meth-summary d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3"><div>Total Meth unloading payment automatic calculate hoga.</div><div class="d-flex gap-4"><span>Total Bags: <strong id="grandBags">0</strong></span><span>Total Amount: <strong>Rs. <span id="grandAmount">0.00</span></strong></span></div></div>
+                <div class="loose-section mt-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto"><div class="loose-icon"><i class="bi bi-basket2"></i></div></div>
+                        <div class="col-md">
+                            <h6 class="mb-1 fw-bold text-dark">Loose Collection</h6>
+                            <div class="loose-note">Vehicle me gira hua material collect karke equivalent bag count record karein. Is count par abhi koi rate apply nahi hoga.</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="LooseBagCount" class="form-label fw-semibold">Loose Bags Count</label>
+                            <input asp-for="LooseBagCount" type="number" min="0" class="form-control" placeholder="Enter count, 0 if none" data-preserve-zero="@(Model.LooseBagCount.HasValue ? "true" : "false")" required />
+                            <span asp-validation-for="LooseBagCount" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="return-section mt-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto"><div class="return-icon"><i class="bi bi-arrow-return-left"></i></div></div>
+                        <div class="col-md">
+                            <h6 class="mb-1 fw-bold text-dark">Return During Unloading</h6>
+                            <div class="return-note">Agar unloading ke time kuch bags return karne hain to option enable karke return bag count enter karein.</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-switch mb-2">
+                                <input asp-for="HasReturnDuringUnloading" class="form-check-input" type="checkbox" id="hasReturnDuringUnloading" />
+                                <label class="form-check-label fw-semibold" for="hasReturnDuringUnloading">Return bags</label>
+                            </div>
+                            <div id="returnCountWrap" class="@(Model.HasReturnDuringUnloading ? "" : "d-none")">
+                                <label asp-for="ReturnBagCount" class="form-label fw-semibold">Return Bag Count</label>
+                                <input asp-for="ReturnBagCount" type="number" min="1" class="form-control" placeholder="Enter return bag count" data-preserve-zero="@(Model.ReturnBagCount.GetValueOrDefault() > 0 ? "true" : "false")" />
+                                <span asp-validation-for="ReturnBagCount" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-4 pt-3 border-top"><button class="btn btn-success px-4" type="submit"><i class="bi bi-check-circle me-1"></i>Save Meth Details</button><a asp-action="MethWorkRegister" class="btn btn-outline-secondary">Cancel</a></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<template id="rowTemplate">
+    <div class="meth-row" data-row><input type="hidden" data-name="EntryId" value="0" /><div class="row g-3 align-items-end">
+        <div class="col-md-4"><label class="form-label fw-semibold">Bag Type</label><select data-name="BagTypeId" class="form-select bag-type" required><option value="">Select Bag Type</option>@foreach(var bag in bagTypes){<option value="@bag.Value">@bag.Text</option>}</select></div>
+        <div class="col-md-3"><label class="form-label fw-semibold">Bag Count</label><input data-name="BagCount" type="number" min="1" class="form-control bag-count" required /></div>
+        <div class="col-md-3"><label class="form-label fw-semibold">Per Bag Price (Rs.)</label><input data-name="PerBagPrice" type="number" min="0" step="0.01" class="form-control bag-price" required /></div>
+        <div class="col-md-2"><label class="form-label fw-semibold">Total Amount</label><div class="meth-row-total">Rs. <span data-row-total>0.00</span></div></div>
+        <div class="col-12 text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bi bi-trash"></i> Remove</button></div>
+    </div></div>
+</template>
+
+@section Scripts {
+<script>
+(() => {
+    const rows = document.getElementById('entryRows');
+    const rename = () => rows.querySelectorAll('[data-row]').forEach((row, index) => row.querySelectorAll('[name],[data-name]').forEach(input => {
+        const property = input.dataset.name || input.name.split('.').pop();
+        input.name = `Rows[${index}].${property}`;
+    }));
+    const calculate = () => { let bags = 0, amount = 0; rows.querySelectorAll('[data-row]').forEach(row => { const count = Number(row.querySelector('.bag-count')?.value || 0); const price = Number(row.querySelector('.bag-price')?.value || 0); bags += count; amount += count * price; row.querySelector('[data-row-total]').textContent = (count * price).toFixed(2); }); document.getElementById('grandBags').textContent = bags; document.getElementById('grandAmount').textContent = amount.toFixed(2); };
+    document.getElementById('addRow').addEventListener('click', () => { rows.append(document.getElementById('rowTemplate').content.cloneNode(true)); rename(); calculate(); });
+    rows.addEventListener('input', calculate);
+    rows.addEventListener('click', event => { const button = event.target.closest('.remove-row'); if (!button) return; if (rows.querySelectorAll('[data-row]').length === 1) { button.closest('[data-row]').querySelectorAll('input,select').forEach(input => input.value = ''); } else button.closest('[data-row]').remove(); rename(); calculate(); });
+    const returnToggle = document.getElementById('hasReturnDuringUnloading');
+    const returnWrap = document.getElementById('returnCountWrap');
+    const returnCount = document.getElementById('ReturnBagCount');
+    const updateReturn = () => { const enabled = returnToggle.checked; returnWrap.classList.toggle('d-none', !enabled); returnCount.required = enabled; if (!enabled) returnCount.value = ''; };
+    returnToggle.addEventListener('change', updateReturn);
+    updateReturn();
+    rename(); calculate();
+})();
+</script>
+}

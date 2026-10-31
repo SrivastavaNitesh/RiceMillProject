@@ -28,6 +28,8 @@ namespace RiceMillProject.BAL
                 throw new ArgumentNullException(nameof(entry));
             if (string.IsNullOrWhiteSpace(entry.RSTNumber))
                 throw new ArgumentException("RST number is required.", nameof(entry));
+            if (!System.Text.RegularExpressions.Regex.IsMatch(entry.RSTNumber.Trim(), @"^[0-9]{1,6}$"))
+                throw new ArgumentException("RST number must contain only 1 to 6 digits.", nameof(entry));
             if (string.IsNullOrWhiteSpace(entry.InwardNo))
                 throw new ArgumentException("Inward entry is required.", nameof(entry));
             if (entry.GrossWeight <= 0)

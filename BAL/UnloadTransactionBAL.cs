@@ -168,5 +168,14 @@ namespace RiceMillProject.BAL
         {
             _unloadDal.CompleteSupervisorWorkerWork(unloadId, supervisorId, workerRows);
         }
+
+        public List<SupervisorMethEntryRow> GetSupervisorMethEntries(int unloadId, int supervisorId) =>
+            _unloadDal.GetSupervisorMethEntries(unloadId, supervisorId);
+
+        public SupervisorMethExtraCounts GetSupervisorMethExtraCounts(int unloadId, int supervisorId) =>
+            _unloadDal.GetSupervisorMethExtraCounts(unloadId, supervisorId);
+
+        public void SaveSupervisorMethEntries(int unloadId, int supervisorId, int looseBagCount, int returnBagCount, List<SupervisorMethEntryRow> rows) =>
+            _unloadDal.SaveSupervisorMethEntries(unloadId, supervisorId, looseBagCount, returnBagCount, rows);
     }
 }

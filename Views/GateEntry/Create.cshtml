@@ -101,7 +101,7 @@
                         <div class="col-12">
                             <label asp-for="RSTNumber" class="form-label fw-bold text-dark">RST Number <span class="text-danger">*</span></label>
                            @*  <input asp-for="RSTNumber" class="form-control border-primary-subtle text-uppercase" maxlength="100" autocomplete="off" placeholder="Enter unique RST number" required /> *@
-                           <input asp-for="RSTNumber" class="form-control border-primary-subtle" type="text" inputmode="numeric" maxlength="6" minlength="6" pattern="[0-9]{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)" autocomplete="off" placeholder="Enter 6 digit RST number" title="Enter exactly 6 digits" required />
+                           <input asp-for="RSTNumber" class="form-control border-primary-subtle" type="text" inputmode="numeric" maxlength="6" minlength="1" pattern="[0-9]{1,6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)" autocomplete="off" placeholder="Enter 1 to 6 digit RST number" title="Enter 1 to 6 digits only" required />
                             <span asp-validation-for="RSTNumber" class="text-danger small"></span>
                             <small class="text-muted">Enter the physical/manual RST number. Duplicate numbers are not allowed.</small>
                         </div>

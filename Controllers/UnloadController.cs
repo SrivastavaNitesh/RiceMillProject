@@ -1021,6 +1021,98 @@ namespace RiceMillProject.Controllers
             }
         }
         [HttpGet]
+        public IActionResult SupervisorMethEntry(int id)
+        {
+            try
+            {
+                var supervisorId = GetCurrentPersonId();
+                if (supervisorId <= 0) return Forbid();
+
+                var unload = _unloadBal.GetSupervisorMethWorkRegister(supervisorId)
+                    .FirstOrDefault(row => row.UnloadId == id);
+                if (unload == null) return NotFound();
+                var extraCounts = _unloadBal.GetSupervisorMethExtraCounts(id, supervisorId);
+
+                var model = new SupervisorMethEntryViewModel
+                {
+                    UnloadId = unload.UnloadId,
+                    RSTNumber = unload.RSTNumber,
+                    VehicleNumber = unload.VehicleNumber ?? string.Empty,
+                    PartyName = unload.PartyName ?? string.Empty,
+                    MethName = unload.MethName ?? string.Empty,
+                    LocationName = unload.LocationName ?? string.Empty,
+                    UnloadTime = unload.UnloadTime,
+                    Rows = _unloadBal.GetSupervisorMethEntries(id, supervisorId),
+                    LooseBagCount = extraCounts.LooseBagCount,
+                    ReturnBagCount = extraCounts.ReturnBagCount,
+                    HasReturnDuringUnloading = extraCounts.ReturnBagCount.GetValueOrDefault() > 0
+                };
+
+                if (model.Rows.Count == 0) model.Rows.Add(new SupervisorMethEntryRow());
+                ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName");
+                return View(model);
+            }
+            catch (SqlException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(MethWorkRegister));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SupervisorMethEntry(SupervisorMethEntryViewModel model)
+        {
+            try
+            {
+                var supervisorId = GetCurrentPersonId();
+                if (supervisorId <= 0) return Forbid();
+
+                var unload = _unloadBal.GetSupervisorMethWorkRegister(supervisorId)
+                    .FirstOrDefault(row => row.UnloadId == model.UnloadId);
+                if (unload == null) return NotFound();
+
+                var rows = (model.Rows ?? [])
+                    .Where(row => row.BagTypeId > 0 || row.BagCount > 0 || row.PerBagPrice > 0)
+                    .ToList();
+                if (rows.Count == 0)
+                    ModelState.AddModelError(string.Empty, "Please enter at least one Meth unloading row.");
+                if (rows.Any(row => row.BagTypeId <= 0 || row.BagCount <= 0 || row.PerBagPrice < 0))
+                    ModelState.AddModelError(string.Empty, "Each row requires bag type, positive bag count and a valid per bag price.");
+                if (rows.GroupBy(row => row.BagTypeId).Any(group => group.Count() > 1))
+                    ModelState.AddModelError(string.Empty, "Same bag type cannot be entered twice.");
+                if (!model.LooseBagCount.HasValue || model.LooseBagCount < 0)
+                    ModelState.AddModelError(nameof(model.LooseBagCount), "Enter loose bag count, or enter 0 when there are no loose bags.");
+                if (model.HasReturnDuringUnloading && model.ReturnBagCount.GetValueOrDefault() <= 0)
+                    ModelState.AddModelError(nameof(model.ReturnBagCount), "Enter return bag count when return during unloading is selected.");
+                if (!model.HasReturnDuringUnloading) model.ReturnBagCount = 0;
+
+                if (!ModelState.IsValid)
+                {
+                    model.RSTNumber = unload.RSTNumber;
+                    model.VehicleNumber = unload.VehicleNumber ?? string.Empty;
+                    model.PartyName = unload.PartyName ?? string.Empty;
+                    model.MethName = unload.MethName ?? string.Empty;
+                    model.LocationName = unload.LocationName ?? string.Empty;
+                    model.UnloadTime = unload.UnloadTime;
+                    model.Rows = rows.Count > 0 ? rows : [new SupervisorMethEntryRow()];
+                    ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName");
+                    return View(model);
+                }
+
+                _unloadBal.SaveSupervisorMethEntries(model.UnloadId, supervisorId, model.LooseBagCount!.Value, model.ReturnBagCount.GetValueOrDefault(), rows);
+                TempData["SuccessMessage"] = $"Meth unloading payment details saved for RST {unload.RSTNumber}.";
+                return RedirectToAction(nameof(MethWorkRegister));
+            }
+            catch (SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName");
+                return View(model);
+            }
+        }
+
+        [HttpGet]
         public IActionResult SupervisorMethWork(int id, bool edit = false, bool viewOnly = false)
         {
             try

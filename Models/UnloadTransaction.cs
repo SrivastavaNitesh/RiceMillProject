@@ -7,6 +7,7 @@ namespace RiceMillProject.Models
         public int? LocationId { get; set; }
         public bool IsSupervisorActionCompleted { get; set; }
         public bool IsWorkerWorkCompleted { get; set; }
+        public bool IsMethWorkEntered { get; set; }
         public string? VehicleNumber { get; set; }
 
         public string? PartyName { get; set; }
@@ -40,6 +41,7 @@ namespace RiceMillProject.Models
         public int? ItemId { get; set; }
         public int? BagTypeId { get; set; }
         public int? NumberOfBags { get; set; }
+        public int MethBagTotal { get; set; }
         public decimal? TotalBagDeductionGrams { get; set; }
         public DateTime? UnloadTime { get; set; }
         public string Status { get; set; } = "Assigned";

@@ -46,13 +46,6 @@
                     </div>
 
                     <div class="col-md-12">
-                        <label asp-for="SubCompanyId" class="form-label">Subcompany <span class="text-danger">*</span></label>
-                        <select asp-for="SubCompanyId" class="form-select" required><option value="">-- Select Subcompany --</option>
-                        @foreach(var sub in ViewBag.SubCompanies as List<RiceMillProject.Models.LocationSubcompanyOption> ?? new()){
-                            <option value="@sub.SubCompanyId" data-office="@sub.OfficeId" selected="@(Model.SubCompanyId==sub.SubCompanyId)">@sub.SubCompanyName</option>
-                        }</select><span asp-validation-for="SubCompanyId" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-12">
                         <label class="form-label">Location Name <span class="req-star">*</span></label>
                         <input asp-for="LocationName" class="form-control" placeholder="Enter Location Name" required />
                         <span asp-validation-for="LocationName" class="text-danger small"></span>

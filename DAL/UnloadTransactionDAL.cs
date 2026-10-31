@@ -1196,7 +1196,16 @@ ORDER BY u.UnloadId DESC;";
                         IsWorkerWorkCompleted =
                             HasColumn(reader, "IsWorkerWorkCompleted") &&
                             reader["IsWorkerWorkCompleted"] != DBNull.Value &&
-                            Convert.ToBoolean(reader["IsWorkerWorkCompleted"])
+                            Convert.ToBoolean(reader["IsWorkerWorkCompleted"]),
+                        IsMethWorkEntered =
+                            HasColumn(reader, "IsMethWorkEntered") &&
+                            reader["IsMethWorkEntered"] != DBNull.Value &&
+                            Convert.ToBoolean(reader["IsMethWorkEntered"]),
+                        MethBagTotal =
+                            HasColumn(reader, "MethBagTotal") &&
+                            reader["MethBagTotal"] != DBNull.Value
+                                ? Convert.ToInt32(reader["MethBagTotal"])
+                                : 0
                     }
                 );
             }
@@ -1272,6 +1281,64 @@ ORDER BY u.UnloadId DESC;";
             cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
             cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
             cmd.Parameters.Add("@WorkerRows", SqlDbType.NVarChar, -1).Value = workerJson;
+            con.Open();
+            cmd.ExecuteNonQuery();
+        }
+
+        public List<SupervisorMethEntryRow> GetSupervisorMethEntries(int unloadId, int supervisorId)
+        {
+            var rows = new List<SupervisorMethEntryRow>();
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_GetSupervisorMethEntry", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+            cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                rows.Add(new SupervisorMethEntryRow
+                {
+                    EntryId = Convert.ToInt32(reader["EntryId"]),
+                    BagTypeId = Convert.ToInt32(reader["BagTypeId"]),
+                    BagTypeName = reader["BagTypeName"]?.ToString() ?? string.Empty,
+                    BagCount = Convert.ToInt32(reader["BagCount"]),
+                    PerBagPrice = Convert.ToDecimal(reader["PerBagPrice"])
+                });
+            }
+            return rows;
+        }
+
+        public SupervisorMethExtraCounts GetSupervisorMethExtraCounts(int unloadId, int supervisorId)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_GetSupervisorMethLooseEntry", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+            cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
+            con.Open();
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return new SupervisorMethExtraCounts();
+            return new SupervisorMethExtraCounts
+            {
+                LooseBagCount = reader["LooseBagCount"] == DBNull.Value ? null : Convert.ToInt32(reader["LooseBagCount"]),
+                ReturnBagCount = reader["ReturnBagCount"] == DBNull.Value ? null : Convert.ToInt32(reader["ReturnBagCount"])
+            };
+        }
+
+        public void SaveSupervisorMethEntries(int unloadId, int supervisorId, int looseBagCount, int returnBagCount, List<SupervisorMethEntryRow> rows)
+        {
+            var json = JsonSerializer.Serialize(rows.Select(row => new
+            {
+                row.BagTypeId,
+                row.BagCount,
+                row.PerBagPrice
+            }));
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_SaveSupervisorMethEntry", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+            cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
+            cmd.Parameters.Add("@LooseBagCount", SqlDbType.Int).Value = looseBagCount;
+            cmd.Parameters.Add("@ReturnBagCount", SqlDbType.Int).Value = returnBagCount;
+            cmd.Parameters.Add("@Rows", SqlDbType.NVarChar, -1).Value = json;
             con.Open();
             cmd.ExecuteNonQuery();
         }
