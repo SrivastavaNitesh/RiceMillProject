@@ -967,6 +967,19 @@ ORDER BY u.UnloadId DESC;";
 
             cmd.ExecuteNonQuery();
         }
+        public DateTime? GetSupervisorFormFillDate(int unloadId)
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(
+                "SELECT FormFillDate FROM dbo.t_SupervisorUnloadAction WHERE UnloadId=@UnloadId AND IsActive=1 AND IsDeleted=0",
+                con
+            );
+            cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
+            con.Open();
+            var value = cmd.ExecuteScalar();
+            return value == null || value == DBNull.Value ? null : Convert.ToDateTime(value);
+        }
+
         public int SaveSupervisorUnloadAction(
     int unloadId,
     int supervisorId,
@@ -974,6 +987,7 @@ ORDER BY u.UnloadId DESC;";
     int stackJute,
     int haudiPP,
     int haudiJute,
+    DateTime formFillDate,
     List<SupervisorUnloadCategoryRow> categoryRows,
     List<SupervisorUnloadLocationBagRow> locationRows)
         {
@@ -1031,6 +1045,11 @@ ORDER BY u.UnloadId DESC;";
                 "@HaudiJute",
                 SqlDbType.Int
             ).Value = haudiJute;
+
+            cmd.Parameters.Add(
+                "@FormFillDate",
+                SqlDbType.Date
+            ).Value = formFillDate.Date;
 
 
             cmd.Parameters.Add(
@@ -1285,13 +1304,14 @@ ORDER BY u.UnloadId DESC;";
             cmd.ExecuteNonQuery();
         }
 
-        public List<SupervisorMethEntryRow> GetSupervisorMethEntries(int unloadId, int supervisorId)
+        public List<SupervisorMethEntryRow> GetSupervisorMethEntries(int unloadId, int supervisorId, string workType)
         {
             var rows = new List<SupervisorMethEntryRow>();
             using var con = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand("sp_GetSupervisorMethEntry", con) { CommandType = CommandType.StoredProcedure };
             cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
             cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
+            cmd.Parameters.Add("@WorkType", SqlDbType.NVarChar, 30).Value = workType;
             con.Open();
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -1324,9 +1344,15 @@ ORDER BY u.UnloadId DESC;";
             };
         }
 
-        public void SaveSupervisorMethEntries(int unloadId, int supervisorId, int looseBagCount, int returnBagCount, List<SupervisorMethEntryRow> rows)
+        public void SaveSupervisorMethEntries(int unloadId, int supervisorId, int looseBagCount, List<SupervisorMethEntryRow> rows, List<SupervisorMethEntryRow> returnRows)
         {
             var json = JsonSerializer.Serialize(rows.Select(row => new
+            {
+                row.BagTypeId,
+                row.BagCount,
+                row.PerBagPrice
+            }));
+            var returnJson = JsonSerializer.Serialize(returnRows.Select(row => new
             {
                 row.BagTypeId,
                 row.BagCount,
@@ -1337,8 +1363,8 @@ ORDER BY u.UnloadId DESC;";
             cmd.Parameters.Add("@UnloadId", SqlDbType.Int).Value = unloadId;
             cmd.Parameters.Add("@SupervisorId", SqlDbType.Int).Value = supervisorId;
             cmd.Parameters.Add("@LooseBagCount", SqlDbType.Int).Value = looseBagCount;
-            cmd.Parameters.Add("@ReturnBagCount", SqlDbType.Int).Value = returnBagCount;
             cmd.Parameters.Add("@Rows", SqlDbType.NVarChar, -1).Value = json;
+            cmd.Parameters.Add("@ReturnRows", SqlDbType.NVarChar, -1).Value = returnJson;
             con.Open();
             cmd.ExecuteNonQuery();
         }

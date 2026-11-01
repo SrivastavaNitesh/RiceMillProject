@@ -12,6 +12,7 @@ namespace RiceMillProject.Models
         public string LocationName { get; set; } = string.Empty;
         public DateTime? UnloadTime { get; set; }
         public List<SupervisorMethEntryRow> Rows { get; set; } = [];
+        public List<SupervisorMethEntryRow> ReturnRows { get; set; } = [];
 
         [Required(ErrorMessage = "Loose bag count is required. Enter 0 when there are no loose bags.")]
         [Range(0, int.MaxValue, ErrorMessage = "Loose bag count cannot be negative.")]
@@ -24,6 +25,10 @@ namespace RiceMillProject.Models
 
         public int TotalBags => Rows.Sum(row => row.BagCount);
         public decimal TotalAmount => Rows.Sum(row => row.TotalAmount);
+        public int TotalReturnBags => ReturnRows.Sum(row => row.BagCount);
+        public int FinalBags => Math.Max(0, TotalBags - TotalReturnBags);
+        public decimal ReturnLoadingAmount => ReturnRows.Sum(row => row.TotalAmount);
+        public decimal TotalPayableAmount => TotalAmount + ReturnLoadingAmount;
     }
 
     public class SupervisorMethExtraCounts

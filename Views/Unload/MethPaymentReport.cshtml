@@ -1,0 +1,54 @@
+@model RiceMillProject.Models.MethPaymentReport
+@{
+    ViewData["Title"] = "Labour Work Settlement Report";
+}
+<style>
+.mpr{max-width:1580px;margin:auto;padding:20px}.mpr-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 25px;border:1px solid #d8e7e5;border-radius:16px;background:linear-gradient(120deg,#fff,#f2faf8);box-shadow:0 8px 25px rgba(20,70,65,.07)}.mpr-title{display:flex;gap:14px;align-items:center}.mpr-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:#07877c;color:#fff;font-size:21px}.mpr h1{margin:0;color:#173b42;font-size:24px;font-weight:800}.mpr-sub{margin-top:4px;color:#6d8086;font-size:12px}.mpr-filter,.mpr-card{margin-top:16px;border:1px solid #dce8e7;border-radius:14px;background:#fff;box-shadow:0 6px 20px rgba(25,60,65,.05)}.mpr-filter{padding:17px}.mpr-filter label{font-size:11px;font-weight:750;color:#496068}.mpr-filter .form-control,.mpr-filter .form-select{height:42px;border-radius:9px;border-color:#d1dfdd}.mpr-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-top:15px}.mpr-kpi{padding:16px 18px;border:1px solid #dce9e7;border-radius:13px;background:#fff}.mpr-kpi span{display:block;color:#6e8187;font-size:11px;font-weight:700}.mpr-kpi strong{display:block;margin-top:5px;color:#087b72;font-size:22px}.mpr-group-head{display:flex;justify-content:space-between;align-items:center;padding:15px 19px;border-bottom:1px solid #e3ecea;background:#f5faf9}.mpr-group-head h5{margin:0;color:#17443f;font-size:15px;font-weight:800}.mpr-table{width:100%;border-collapse:collapse}.mpr-table th{padding:12px 14px;background:#edf6f5;color:#3e5f5b;font-size:11px}.mpr-table td{padding:13px 14px;border-bottom:1px solid #edf1f0;color:#334a50;font-size:12px}.mpr-rst{border:0;background:none;color:#087d74;font-weight:800;padding:0}.mpr-rst:hover{text-decoration:underline}.mpr-badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#e8f6f3;color:#08786f;font-size:10px;font-weight:750}.mpr-return{color:#c34d4d}.mpr-detail{display:none;background:#fbfdfd}.mpr-detail.open{display:table-row}.mpr-detail-box{padding:14px 20px}.mpr-detail-table{width:100%;border:1px solid #dce8e6;border-radius:10px;overflow:hidden}.mpr-detail-table th,.mpr-detail-table td{padding:9px 12px;font-size:11px}.mpr-detail-table th{background:#f0f6f5}.mpr-empty{padding:50px;text-align:center;color:#849398}@@media(max-width:900px){.mpr-kpis{grid-template-columns:repeat(2,1fr)}.mpr-hero{align-items:flex-start;flex-direction:column}}@@media(max-width:550px){.mpr{padding:12px}.mpr-kpis{grid-template-columns:1fr}}
+</style>
+<div class="mpr">
+    <header class="mpr-hero"><div class="mpr-title"><span class="mpr-icon"><i class="bi bi-cash-stack"></i></span><div><h1>Labour Work Settlement Report</h1><div class="mpr-sub">Supervisor-wise unloading aur return-loading work aur payable amount details</div></div></div><span class="mpr-badge"><i class="bi bi-shield-check me-1"></i>@(Model.IsAdminView ? "All Supervisors" : "My Supervisor Data")</span></header>
+    <form method="get" class="mpr-filter"><div class="row g-3 align-items-end">
+        <div class="col-md-2"><label>From Date</label><input type="date" name="fromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" class="form-control" /></div>
+        <div class="col-md-2"><label>To Date</label><input type="date" name="toDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="form-control" /></div>
+        @if(Model.IsAdminView){<div class="col-md-2"><label>Supervisor</label><select name="supervisorId" class="form-select"><option value="">All Supervisors</option>@foreach(var x in Model.Supervisors){<option value="@x.Id" selected="@(Model.SupervisorId==x.Id)">@x.Name</option>}</select></div>}
+        <div class="col-md-2"><label>Meth</label><select name="methId" class="form-select"><option value="">All Meth</option>@foreach(var x in Model.Meths){<option value="@x.Id" selected="@(Model.MethId==x.Id)">@x.Name</option>}</select></div>
+        <div class="col-md-2"><label>Search RST / Name</label><input name="search" value="@Model.Search" maxlength="100" class="form-control" placeholder="Type to search" /></div>
+        <div class="col-md-2 d-flex gap-2"><button class="btn btn-success flex-fill"><i class="bi bi-funnel me-1"></i>Apply</button><button class="btn btn-outline-success" type="submit" name="excel" value="true" title="Download complete Excel"><i class="bi bi-file-earmark-excel"></i></button><a asp-action="MethPaymentReport" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a></div>
+    </div></form>
+    <div class="mpr-kpis"><div class="mpr-kpi"><span>Unloaded Bags</span><strong>@Model.UnloadingBags.ToString("N0")</strong></div><div class="mpr-kpi"><span>Return Loaded Bags</span><strong class="mpr-return">@Model.ReturnBags.ToString("N0")</strong></div><div class="mpr-kpi"><span>Final Retained Bags</span><strong>@Model.FinalBags.ToString("N0")</strong></div><div class="mpr-kpi"><span>Total Labour Payable</span><strong>₹@Model.TotalPayable.ToString("N2")</strong></div></div>
+    @if(Model.Rows.Count==0){<div class="mpr-card mpr-empty"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No labour work entries found for selected filters.</div>}
+    @foreach (var group in Model.Rows.GroupBy(x => new { x.SupervisorId, x.SupervisorName }))
+    {
+        <section class="mpr-card">
+            <div class="mpr-group-head"><h5><i class="bi bi-person-badge me-2"></i>@group.Key.SupervisorName</h5><span class="mpr-badge">@group.Count() RST</span></div>
+            <div class="table-responsive"><table class="mpr-table"><thead><tr><th>RST Number</th><th>Date</th><th>Meth</th><th>Unloaded</th><th>Returned</th><th>Final Bags</th><th>Unload Amount</th><th>Return Amount</th><th>Total Payable</th></tr></thead><tbody>
+            @foreach (var row in group)
+            {
+                var detailId = $"mpr-detail-{row.UnloadId}";
+                <tr><td><button type="button" class="mpr-rst" data-detail="@detailId"><i class="bi bi-chevron-right me-1"></i>@row.RSTNumber</button></td><td>@row.WorkDate.ToString("dd MMM yyyy")</td><td>@row.MethName</td><td>@row.UnloadingBags.ToString("N0")</td><td class="mpr-return">@row.ReturnBags.ToString("N0")</td><td><strong>@row.FinalBags.ToString("N0")</strong></td><td>₹@row.UnloadingAmount.ToString("N2")</td><td>₹@row.ReturnLoadingAmount.ToString("N2")</td><td><strong>₹@row.TotalPayable.ToString("N2")</strong></td></tr>
+                <tr id="@detailId" class="mpr-detail"><td colspan="9"><div class="mpr-detail-box">
+                    <div class="fw-bold mb-2">RST @row.RSTNumber — Bag-wise Payment Details</div>
+                    <table class="mpr-detail-table"><thead><tr><th>Work</th><th>Bag Type</th><th>Count</th><th>Per Bag Rate</th><th>Amount</th></tr></thead><tbody>
+                    @foreach (var workGroup in row.Details.GroupBy(x => x.WorkType))
+                    {
+                        var detailIndex = 0;
+                        foreach (var detail in workGroup)
+                        {
+                            <tr>
+                                @if (detailIndex == 0)
+                                {
+                                    <td rowspan="@workGroup.Count()" class="align-middle"><span class="mpr-badge">@(workGroup.Key == "ReturnLoading" ? "Return Loading" : "Unloading")</span></td>
+                                }
+                                <td>@detail.BagTypeName</td><td>@detail.BagCount.ToString("N0")</td><td>₹@detail.PerBagPrice.ToString("N2")</td><td>₹@detail.Amount.ToString("N2")</td>
+                            </tr>
+                            detailIndex++;
+                        }
+                    }
+                    </tbody></table>
+                </div></td></tr>
+            }
+            </tbody></table></div>
+        </section>
+    }
+</div>
+<script>document.querySelectorAll('.mpr-rst').forEach(button=>button.addEventListener('click',()=>{const row=document.getElementById(button.dataset.detail);row.classList.toggle('open');const icon=button.querySelector('i');icon.classList.toggle('bi-chevron-right');icon.classList.toggle('bi-chevron-down');}));</script>

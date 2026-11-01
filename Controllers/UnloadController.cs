@@ -61,6 +61,26 @@ namespace RiceMillProject.Controllers
             return View(report);
         }
 
+        [HttpGet]
+        public IActionResult MethPaymentReport(DateTime? fromDate, DateTime? toDate, int? supervisorId, int? methId, string? search, bool excel = false)
+        {
+            var from = fromDate?.Date;
+            var to = toDate?.Date;
+            if ((from.HasValue && to.HasValue && from > to) || (search?.Length ?? 0) > 100 || GetCurrentOfficeId() <= 0) return BadRequest("Invalid report filters.");
+            var isAdmin = User.IsAdminUser();
+            var currentSupervisorId = GetCurrentPersonId();
+            if (!isAdmin && currentSupervisorId <= 0) return Forbid();
+            var scopeSupervisorId = isAdmin ? 0 : currentSupervisorId;
+            var selectedSupervisorId = isAdmin ? supervisorId : currentSupervisorId;
+            var report = new RiceMillProject.DAL.MethPaymentReportDAL(HttpContext.RequestServices.GetRequiredService<IConfiguration>())
+                .Load(GetCurrentOfficeId(), scopeSupervisorId, from, to, selectedSupervisorId, methId, search, isAdmin);
+            if (excel)
+                return File(RiceMillProject.BAL.MethWorkSettlementExcel.Export(report),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Labour-Work-Settlement-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
+            return View(report);
+        }
+
         public IActionResult Dashboard()
         {
             try
@@ -667,6 +687,8 @@ namespace RiceMillProject.Controllers
 
                     AssignedDateTime = unload.UnloadTime,
 
+                    FormFillDate = _unloadBal.GetSupervisorFormFillDate(unload.UnloadId) ?? DateTime.Today,
+
                     VehicleNumber = unload.VehicleNumber ?? "",
 
                     PartyName = unload.PartyName ?? "",
@@ -783,6 +805,28 @@ namespace RiceMillProject.Controllers
                     return Forbid();
                 }
 
+                if (!model.FormFillDate.HasValue)
+                {
+                    TempData["ErrorMessage"] =
+                        "Please select Form Fill Date.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorAction),
+                        new { id = model.UnloadId }
+                    );
+                }
+
+                if (model.FormFillDate.Value.Date > DateTime.Today)
+                {
+                    TempData["ErrorMessage"] =
+                        "Form Fill Date cannot be in the future.";
+
+                    return RedirectToAction(
+                        nameof(SupervisorAction),
+                        new { id = model.UnloadId }
+                    );
+                }
+
 
                 // =====================================================
                 // CLEAN CATEGORY ROWS
@@ -889,6 +933,7 @@ namespace RiceMillProject.Controllers
                         model.StackJute,
                         model.HaudiPP,
                         model.HaudiJute,
+                        model.FormFillDate.Value.Date,
                         rows,
                         locationRows
                     );
@@ -906,9 +951,9 @@ namespace RiceMillProject.Controllers
                 // SUCCESS
                 // =====================================================
 
-                TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Supervisor field details saved successfully.";
+                TempData["SuccessMessage"] = $"RST {unload.RSTNumber} Field Details saved successfully. You can use Edit to update details and Form Fill Date within the allowed edit period.";
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(MethWorkRegister));
             }
             catch (SqlException ex)
             {
@@ -1042,13 +1087,15 @@ namespace RiceMillProject.Controllers
                     MethName = unload.MethName ?? string.Empty,
                     LocationName = unload.LocationName ?? string.Empty,
                     UnloadTime = unload.UnloadTime,
-                    Rows = _unloadBal.GetSupervisorMethEntries(id, supervisorId),
+                    Rows = _unloadBal.GetSupervisorMethEntries(id, supervisorId, "Unloading"),
+                    ReturnRows = _unloadBal.GetSupervisorMethEntries(id, supervisorId, "ReturnLoading"),
                     LooseBagCount = extraCounts.LooseBagCount,
                     ReturnBagCount = extraCounts.ReturnBagCount,
                     HasReturnDuringUnloading = extraCounts.ReturnBagCount.GetValueOrDefault() > 0
                 };
 
                 if (model.Rows.Count == 0) model.Rows.Add(new SupervisorMethEntryRow());
+                if (model.ReturnRows.Count == 0) model.ReturnRows.Add(new SupervisorMethEntryRow());
                 ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName");
                 return View(model);
             }
@@ -1072,6 +1119,8 @@ namespace RiceMillProject.Controllers
                     .FirstOrDefault(row => row.UnloadId == model.UnloadId);
                 if (unload == null) return NotFound();
 
+                ModelState.Clear();
+
                 var rows = (model.Rows ?? [])
                     .Where(row => row.BagTypeId > 0 || row.BagCount > 0 || row.PerBagPrice > 0)
                     .ToList();
@@ -1081,11 +1130,26 @@ namespace RiceMillProject.Controllers
                     ModelState.AddModelError(string.Empty, "Each row requires bag type, positive bag count and a valid per bag price.");
                 if (rows.GroupBy(row => row.BagTypeId).Any(group => group.Count() > 1))
                     ModelState.AddModelError(string.Empty, "Same bag type cannot be entered twice.");
+
+                var returnRows = model.HasReturnDuringUnloading
+                    ? (model.ReturnRows ?? [])
+                        .Where(row => row.BagTypeId > 0 || row.BagCount > 0 || row.PerBagPrice > 0)
+                        .ToList()
+                    : [];
+                if (model.HasReturnDuringUnloading && returnRows.Count == 0)
+                    ModelState.AddModelError(string.Empty, "Please enter at least one return loading row.");
+                if (returnRows.Any(row => row.BagTypeId <= 0 || row.BagCount <= 0 || row.PerBagPrice < 0))
+                    ModelState.AddModelError(string.Empty, "Each return row requires bag type, positive bag count and a valid per bag price.");
+                if (returnRows.GroupBy(row => row.BagTypeId).Any(group => group.Count() > 1))
+                    ModelState.AddModelError(string.Empty, "Same return bag type cannot be entered twice.");
+                var unloadingByBagType = rows
+                    .GroupBy(row => row.BagTypeId)
+                    .ToDictionary(group => group.Key, group => group.Sum(row => row.BagCount));
+                if (returnRows.Any(row => !unloadingByBagType.TryGetValue(row.BagTypeId, out var unloaded) || row.BagCount > unloaded))
+                    ModelState.AddModelError(string.Empty, "Return bag count cannot exceed unloaded count for the same bag type.");
                 if (!model.LooseBagCount.HasValue || model.LooseBagCount < 0)
                     ModelState.AddModelError(nameof(model.LooseBagCount), "Enter loose bag count, or enter 0 when there are no loose bags.");
-                if (model.HasReturnDuringUnloading && model.ReturnBagCount.GetValueOrDefault() <= 0)
-                    ModelState.AddModelError(nameof(model.ReturnBagCount), "Enter return bag count when return during unloading is selected.");
-                if (!model.HasReturnDuringUnloading) model.ReturnBagCount = 0;
+                model.ReturnBagCount = returnRows.Sum(row => row.BagCount);
 
                 if (!ModelState.IsValid)
                 {
@@ -1096,11 +1160,12 @@ namespace RiceMillProject.Controllers
                     model.LocationName = unload.LocationName ?? string.Empty;
                     model.UnloadTime = unload.UnloadTime;
                     model.Rows = rows.Count > 0 ? rows : [new SupervisorMethEntryRow()];
+                    model.ReturnRows = returnRows.Count > 0 ? returnRows : [new SupervisorMethEntryRow()];
                     ViewBag.BagTypes = new SelectList(_bagBal.GetAllBagTypes(), "BagTypeId", "BagTypeName");
                     return View(model);
                 }
 
-                _unloadBal.SaveSupervisorMethEntries(model.UnloadId, supervisorId, model.LooseBagCount!.Value, model.ReturnBagCount.GetValueOrDefault(), rows);
+                _unloadBal.SaveSupervisorMethEntries(model.UnloadId, supervisorId, model.LooseBagCount!.Value, rows, returnRows);
                 TempData["SuccessMessage"] = $"Meth unloading payment details saved for RST {unload.RSTNumber}.";
                 return RedirectToAction(nameof(MethWorkRegister));
             }

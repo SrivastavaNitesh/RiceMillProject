@@ -132,6 +132,7 @@ namespace RiceMillProject.BAL
     int stackJute,
     int haudiPP,
     int haudiJute,
+    DateTime formFillDate,
     List<SupervisorUnloadCategoryRow> categoryRows,
     List<SupervisorUnloadLocationBagRow> locationRows)
         {
@@ -142,9 +143,15 @@ namespace RiceMillProject.BAL
                 stackJute,
                 haudiPP,
                 haudiJute,
+                formFillDate,
                 categoryRows,
                 locationRows
             );
+        }
+
+        public DateTime? GetSupervisorFormFillDate(int unloadId)
+        {
+            return _unloadDal.GetSupervisorFormFillDate(unloadId);
         }
         public List<UnloadTransaction> GetSupervisorMethWorkRegister(
     int supervisorId)
@@ -169,13 +176,13 @@ namespace RiceMillProject.BAL
             _unloadDal.CompleteSupervisorWorkerWork(unloadId, supervisorId, workerRows);
         }
 
-        public List<SupervisorMethEntryRow> GetSupervisorMethEntries(int unloadId, int supervisorId) =>
-            _unloadDal.GetSupervisorMethEntries(unloadId, supervisorId);
+        public List<SupervisorMethEntryRow> GetSupervisorMethEntries(int unloadId, int supervisorId, string workType) =>
+            _unloadDal.GetSupervisorMethEntries(unloadId, supervisorId, workType);
 
         public SupervisorMethExtraCounts GetSupervisorMethExtraCounts(int unloadId, int supervisorId) =>
             _unloadDal.GetSupervisorMethExtraCounts(unloadId, supervisorId);
 
-        public void SaveSupervisorMethEntries(int unloadId, int supervisorId, int looseBagCount, int returnBagCount, List<SupervisorMethEntryRow> rows) =>
-            _unloadDal.SaveSupervisorMethEntries(unloadId, supervisorId, looseBagCount, returnBagCount, rows);
+        public void SaveSupervisorMethEntries(int unloadId, int supervisorId, int looseBagCount, List<SupervisorMethEntryRow> rows, List<SupervisorMethEntryRow> returnRows) =>
+            _unloadDal.SaveSupervisorMethEntries(unloadId, supervisorId, looseBagCount, rows, returnRows);
     }
 }

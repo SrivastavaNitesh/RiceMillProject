@@ -52,6 +52,18 @@
         select.dataset.searchReady = "true";
     }
 
+    function refresh(select) {
+        if (!(select instanceof HTMLSelectElement)) return;
+
+        if (select.dataset.searchReady === "true" && $(select).hasClass("select2-hidden-accessible")) {
+            $(select).trigger("change.select2");
+            return;
+        }
+
+        delete select.dataset.searchReady;
+        enhance(select);
+    }
+
     function scan(root) {
         if (root instanceof HTMLSelectElement) enhance(root);
         root.querySelectorAll?.("select").forEach(enhance);
@@ -73,5 +85,9 @@
                 $(event.target).find("select[data-search-ready='true']").trigger("change.select2");
             }, 0);
         });
+    });
+
+    window.SearchableSelects = Object.assign(window.SearchableSelects || {}, {
+        refresh: refresh
     });
 })(window, document, window.jQuery);

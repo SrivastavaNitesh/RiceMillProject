@@ -18,6 +18,8 @@ namespace RiceMillProject.Models
 
         public DateTime? AssignedDateTime { get; set; }
 
+        public DateTime? FormFillDate { get; set; }
+
         public string VehicleNumber { get; set; } = "";
 
         public string PartyName { get; set; } = "";

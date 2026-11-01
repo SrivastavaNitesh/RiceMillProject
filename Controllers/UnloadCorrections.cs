@@ -37,6 +37,8 @@ public partial class UnloadController
         try
         {
             if(ModelState.Any(m=>(m.Key.StartsWith("CategoryRows")||m.Key.StartsWith("LocationRows")||m.Key=="UnloadId")&&m.Value!.Errors.Count>0))throw new ArgumentException("Complete every field with valid values.");
+            if(!model.FormFillDate.HasValue)throw new ArgumentException("Select Form Fill Date.");
+            if(model.FormFillDate.Value.Date>DateTime.Today)throw new ArgumentException("Form Fill Date cannot be in the future.");
             var current=_edits.Load(ActorId,"Supervisor",model.UnloadId.ToString());
             var rows=model.CategoryRows??[];
             if(rows.Any(r=>r.BagCount<=0))throw new ArgumentException("Every material row must have positive bags.");
@@ -46,6 +48,7 @@ public partial class UnloadController
             var locations=locationRows.Where(r=>r.BagCount>0).ToDictionary(r=>(r.LocationId,r.BagTypeId),r=>(long)r.BagCount);
             if(materials.Count!=locations.Count||materials.Any(m=>!locations.TryGetValue(m.Key,out var count)||count!=m.Value))throw new ArgumentException("Material bags must match each location and bag type total.");
             var posted=new RecordEditForm{ModuleKey="Supervisor",RecordId=model.UnloadId.ToString(),Version=model.EditVersion??"",Reason=model.CorrectionReason??""};
+            posted.Values["FormFillDate"]=model.FormFillDate.Value.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);
             posted.Details=rows.Select(r=>new Dictionary<string,string?>{
                 ["CategoryId"]=r.CategoryId.ToString(),["ItemId"]=r.ItemId.ToString(),["LocationId"]=r.LocationId.ToString(),["BagTypeId"]=r.BagTypeId.ToString(),["BagCount"]=r.BagCount.ToString(),
                 ["ActualWeightKg"]=current.Details.FirstOrDefault(d=>N(d,"CategoryId")==r.CategoryId&&N(d,"ItemId")==r.ItemId&&N(d,"LocationId")==r.LocationId&&N(d,"BagTypeId")==r.BagTypeId)?.GetValueOrDefault("ActualWeightKg")}).ToList();

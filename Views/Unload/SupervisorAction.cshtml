@@ -255,7 +255,6 @@ form[data-readonly="true"] button{display:none}
         <div class="sup-section-body">
             <div class="row g-3">
                 <div class="col-md-3"><span class="sup-label">RST Number</span><div class="sup-readonly sup-rst">@vm.RSTNumber</div></div>
-                <div class="col-md-3"><span class="sup-label">Assigned Date &amp; Time</span><div class="sup-readonly">@(vm.AssignedDateTime?.ToString("dd-MMM-yyyy hh:mm tt") ?? "-")</div></div>
                 <div class="col-md-3"><span class="sup-label">Vehicle</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.VehicleNumber) ? "-" : vm.VehicleNumber)</div></div>
                 <div class="col-md-3"><span class="sup-label">Party / Supplier</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.PartyName) ? "-" : vm.PartyName)</div></div>
                 <div class="col-md-3"><span class="sup-label">Material / Variety</span><div class="sup-readonly">@(string.IsNullOrWhiteSpace(vm.ItemName) ? "-" : vm.ItemName)</div></div>
@@ -1023,16 +1022,29 @@ form[data-readonly="true"] button{display:none}
                     </a>
 
 
-                    <button type="submit"
-                            id="saveRecordButton"
-                            class="btn btn-primary edit-window-action px-4"
-                            disabled>
+                    <div class="d-flex align-items-end flex-wrap gap-2">
+                        <div>
+                            <label for="formFillDate" class="sup-label mb-1">Form Fill Date <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-success"><i class="bi bi-calendar3"></i></span>
+                                <input id="formFillDate"
+                                       asp-for="FormFillDate"
+                                       type="date"
+                                       class="form-control"
+                                       value="@vm.FormFillDate?.ToString("yyyy-MM-dd")"
+                                       max="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                       required />
+                            </div>
+                        </div>
 
-                        <i class="bi bi-check-circle me-1"></i>
-
-                        Save Record
-
-                    </button>
+                        <button type="submit"
+                                id="saveRecordButton"
+                                class="btn btn-primary edit-window-action px-4"
+                                disabled>
+                            <i class="bi bi-check-circle me-1"></i>
+                            Save Record
+                        </button>
+                    </div>
 
                 </div>
 
@@ -1190,11 +1202,17 @@ form[data-readonly="true"] button{display:none}
                     if(saved.length){
                         const template=rowsContainer.querySelector('.material-row').cloneNode(true);rowsContainer.innerHTML='';
                         for(const d of saved){
-                            const row=template.cloneNode(true);rowsContainer.appendChild(row);
+                            const row=template.cloneNode(true);
+                            prepareClonedRow(row);
+                            rowsContainer.appendChild(row);
                             fillCategoryDropdown(row.querySelector('.category-select'));fillBagTypeDropdown(row.querySelector('.bag-type-select'));
                             row.querySelector('.category-select').value=String(d.CategoryId);
+                            window.SearchableSelects?.refresh(row.querySelector('.category-select'));
                             await loadItems(row,d.CategoryId);row.querySelector('.item-select').value=String(d.ItemId);
+                            window.SearchableSelects?.refresh(row.querySelector('.item-select'));
                             row.querySelector('.location-select').value=String(d.LocationId);row.querySelector('.bag-type-select').value=String(d.BagTypeId);
+                            window.SearchableSelects?.refresh(row.querySelector('.location-select'));
+                            window.SearchableSelects?.refresh(row.querySelector('.bag-type-select'));
                             row.querySelector('.bag-count-input').value=d.BagCount;
                         }
                         reIndexRows();updateRemoveButtons();validateForm();
@@ -1318,6 +1336,27 @@ form[data-readonly="true"] button{display:none}
                     select.value =
                         existingValue;
                 }
+
+                window.SearchableSelects?.refresh(select);
+            }
+
+            function prepareClonedRow(row) {
+                row.querySelectorAll(".select2-container").forEach(
+                    function(container) {
+                        container.remove();
+                    }
+                );
+
+                row.querySelectorAll("select").forEach(
+                    function(select) {
+                        select.classList.remove("select2-hidden-accessible");
+                        select.removeAttribute("data-search-ready");
+                        select.removeAttribute("data-select2-id");
+                        select.removeAttribute("tabindex");
+                        select.removeAttribute("aria-hidden");
+                        select.removeAttribute("style");
+                    }
+                );
             }
 
 
@@ -1359,6 +1398,8 @@ form[data-readonly="true"] button{display:none}
                     select.value =
                         existingValue;
                 }
+
+                window.SearchableSelects?.refresh(select);
             }
 
 
@@ -1382,6 +1423,8 @@ form[data-readonly="true"] button{display:none}
 
                 itemSelect.disabled =
                     true;
+
+                window.SearchableSelects?.refresh(itemSelect);
 
 
                 if (!categoryId) {
@@ -1447,6 +1490,8 @@ form[data-readonly="true"] button{display:none}
 
                         itemSelect.disabled =
                             false;
+
+                        window.SearchableSelects?.refresh(itemSelect);
                     }
                 }
                 catch (error) {
@@ -1494,8 +1539,9 @@ form[data-readonly="true"] button{display:none}
             // CATEGORY / OTHER CHANGE
             // =====================================================
 
-            rowsContainer.addEventListener(
+            $(rowsContainer).on(
                 "change",
+                "select, input",
                 function(event) {
                     if (
                         event.target.classList.contains(
@@ -1546,6 +1592,8 @@ form[data-readonly="true"] button{display:none}
                             true
                         );
 
+                    prepareClonedRow(row);
+
 
                     row.querySelector(
                         ".category-select"
@@ -1579,6 +1627,18 @@ form[data-readonly="true"] button{display:none}
 
                     itemSelect.disabled =
                         true;
+
+                    window.SearchableSelects?.refresh(
+                        row.querySelector(".category-select")
+                    );
+
+                    window.SearchableSelects?.refresh(
+                        row.querySelector(".location-select")
+                    );
+
+                    window.SearchableSelects?.refresh(
+                        row.querySelector(".bag-type-select")
+                    );
 
 
                     row.querySelector(

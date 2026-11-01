@@ -84,7 +84,7 @@ public class RecordEditDAL(IConfiguration configuration)
             new("WeighmentCharge", "Weighment charge", "number", true),new("PartyId", "Party / supplier", "select", true),new("VehicleId", "Vehicle", "select", true),
             new("DriverId", "Driver", "select", true),new("CategoryId", "Item category", "select", true)],null,null,[]),
         "Assignment" => ("t_UnloadTransaction", "UnloadId", [new("MethId", "Assigned Meth", "select", true),new("LocationId", "Default unloading location", "select", true)],null,null,[]),
-        "Supervisor" => ("t_SupervisorUnloadAction", "UnloadId", [],"t_SupervisorUnloadDetail","SupervisorActionId",
+        "Supervisor" => ("t_SupervisorUnloadAction", "UnloadId", [new("FormFillDate", "Form fill date", "date", true, 10)],"t_SupervisorUnloadDetail","SupervisorActionId",
             [new("CategoryId", "Category", "select", true),new("ItemId", "Item / variety", "select", true),new("LocationId", "Location", "select", true),
              new("BagTypeId", "Bag type", "select", true),new("BagCount", "Bags", "integer", true),new("ActualWeightKg", "Actual weight (kg)", "number")]),
         "Labour" => ("t_UnloadTransaction", "UnloadId", [],"t_WorkerAllocation","UnloadId",

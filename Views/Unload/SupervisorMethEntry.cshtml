@@ -73,25 +73,48 @@
                     </div>
                 </div>
                 <div class="return-section mt-3">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-auto"><div class="return-icon"><i class="bi bi-arrow-return-left"></i></div></div>
-                        <div class="col-md">
-                            <h6 class="mb-1 fw-bold text-dark">Return During Unloading</h6>
-                            <div class="return-note">Agar unloading ke time kuch bags return karne hain to option enable karke return bag count enter karein.</div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check form-switch mb-2">
-                                <input asp-for="HasReturnDuringUnloading" class="form-check-input" type="checkbox" id="hasReturnDuringUnloading" />
-                                <label class="form-check-label fw-semibold" for="hasReturnDuringUnloading">Return bags</label>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="return-icon"><i class="bi bi-truck-flatbed"></i></div>
+                            <div>
+                                <h6 class="mb-1 fw-bold text-dark">Return Loading Payment</h6>
+                                <div class="return-note">Return vehicle par load kiye gaye bags ka bag type, count aur per bag rate record karein.</div>
                             </div>
-                            <div id="returnCountWrap" class="@(Model.HasReturnDuringUnloading ? "" : "d-none")">
-                                <label asp-for="ReturnBagCount" class="form-label fw-semibold">Return Bag Count</label>
-                                <input asp-for="ReturnBagCount" type="number" min="1" class="form-control" placeholder="Enter return bag count" data-preserve-zero="@(Model.ReturnBagCount.GetValueOrDefault() > 0 ? "true" : "false")" />
-                                <span asp-validation-for="ReturnBagCount" class="text-danger small"></span>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input asp-for="HasReturnDuringUnloading" class="form-check-input" type="checkbox" id="hasReturnDuringUnloading" />
+                            <label class="form-check-label fw-semibold" for="hasReturnDuringUnloading">Bags returned</label>
+                        </div>
+                    </div>
+
+                    <div id="returnDetailWrap" class="@(Model.HasReturnDuringUnloading ? "mt-3" : "d-none mt-3")">
+                        <div class="text-end mb-2"><button type="button" id="addReturnRow" class="btn btn-sm btn-outline-danger"><i class="bi bi-plus-lg me-1"></i>Add Return Bag Type</button></div>
+                        <div id="returnRows">
+                            @for (var index = 0; index < Model.ReturnRows.Count; index++)
+                            {
+                                <div class="meth-row bg-white" data-return-row>
+                                    <input asp-for="ReturnRows[index].EntryId" type="hidden" />
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-4"><label class="form-label fw-semibold">Return Bag Type</label><select asp-for="ReturnRows[index].BagTypeId" asp-items="bagTypes" class="form-select return-bag-type"><option value="">Select Bag Type</option></select></div>
+                                        <div class="col-md-3"><label class="form-label fw-semibold">Loading Bag Count</label><input asp-for="ReturnRows[index].BagCount" type="number" min="1" class="form-control return-bag-count" placeholder="Returned bags" /></div>
+                                        <div class="col-md-3"><label class="form-label fw-semibold">Per Bag Loading Rate (Rs.)</label><input asp-for="ReturnRows[index].PerBagPrice" type="number" min="0" step="0.01" class="form-control return-bag-price" placeholder="Loading rate" /></div>
+                                        <div class="col-md-2"><label class="form-label fw-semibold">Amount</label><div class="meth-row-total text-danger">Rs. <span data-return-row-total>0.00</span></div></div>
+                                        <div class="col-12 text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-return-row"><i class="bi bi-trash"></i> Remove</button></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="meth-summary bg-white mt-2">
+                            <div class="row g-2 text-center">
+                                <div class="col-md-3">Unloaded Bags<br /><strong id="summaryUnloadedBags">0</strong></div>
+                                <div class="col-md-3">Returned Bags<br /><strong class="text-danger" id="summaryReturnBags">0</strong></div>
+                                <div class="col-md-3">Final Retained Bags<br /><strong id="summaryFinalBags">0</strong></div>
+                                <div class="col-md-3">Return Loading Amount<br /><strong>Rs. <span id="summaryReturnAmount">0.00</span></strong></div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="meth-summary d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3"><div>Total payable = unloading payment + return loading payment.</div><div>Total Payable: <strong>Rs. <span id="totalPayableAmount">0.00</span></strong></div></div>
                 <div class="d-flex gap-2 mt-4 pt-3 border-top"><button class="btn btn-success px-4" type="submit"><i class="bi bi-check-circle me-1"></i>Save Meth Details</button><a asp-action="MethWorkRegister" class="btn btn-outline-secondary">Cancel</a></div>
             </div>
         </div>
@@ -108,25 +131,61 @@
     </div></div>
 </template>
 
+<template id="returnRowTemplate">
+    <div class="meth-row bg-white" data-return-row><input type="hidden" data-return-name="EntryId" value="0" /><div class="row g-3 align-items-end">
+        <div class="col-md-4"><label class="form-label fw-semibold">Return Bag Type</label><select data-return-name="BagTypeId" class="form-select return-bag-type"><option value="">Select Bag Type</option>@foreach(var bag in bagTypes){<option value="@bag.Value">@bag.Text</option>}</select></div>
+        <div class="col-md-3"><label class="form-label fw-semibold">Loading Bag Count</label><input data-return-name="BagCount" type="number" min="1" class="form-control return-bag-count" /></div>
+        <div class="col-md-3"><label class="form-label fw-semibold">Per Bag Loading Rate (Rs.)</label><input data-return-name="PerBagPrice" type="number" min="0" step="0.01" class="form-control return-bag-price" /></div>
+        <div class="col-md-2"><label class="form-label fw-semibold">Amount</label><div class="meth-row-total text-danger">Rs. <span data-return-row-total>0.00</span></div></div>
+        <div class="col-12 text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-return-row"><i class="bi bi-trash"></i> Remove</button></div>
+    </div></div>
+</template>
+
 @section Scripts {
 <script>
 (() => {
     const rows = document.getElementById('entryRows');
+    const returnRows = document.getElementById('returnRows');
+    const refreshBagTypeOptions = () => {
+        const unloadingSelects = [...rows.querySelectorAll('.bag-type')];
+        const unloadingValues = new Set(unloadingSelects.map(select => select.value).filter(Boolean));
+        unloadingSelects.forEach(select => [...select.options].forEach(option => {
+            if (!option.value) return;
+            option.disabled = option.value !== select.value && unloadingValues.has(option.value);
+        }));
+
+        const returnSelects = [...returnRows.querySelectorAll('.return-bag-type')];
+        const returnValues = new Set(returnSelects.map(select => select.value).filter(Boolean));
+        returnSelects.forEach(select => [...select.options].forEach(option => {
+            if (!option.value) return;
+            option.disabled = !unloadingValues.has(option.value)
+                || (option.value !== select.value && returnValues.has(option.value));
+        }));
+
+        if (window.jQuery) {
+            window.jQuery([...unloadingSelects, ...returnSelects]).trigger('change.select2');
+        }
+    };
     const rename = () => rows.querySelectorAll('[data-row]').forEach((row, index) => row.querySelectorAll('[name],[data-name]').forEach(input => {
         const property = input.dataset.name || input.name.split('.').pop();
         input.name = `Rows[${index}].${property}`;
     }));
-    const calculate = () => { let bags = 0, amount = 0; rows.querySelectorAll('[data-row]').forEach(row => { const count = Number(row.querySelector('.bag-count')?.value || 0); const price = Number(row.querySelector('.bag-price')?.value || 0); bags += count; amount += count * price; row.querySelector('[data-row-total]').textContent = (count * price).toFixed(2); }); document.getElementById('grandBags').textContent = bags; document.getElementById('grandAmount').textContent = amount.toFixed(2); };
+    const renameReturn = () => returnRows.querySelectorAll('[data-return-row]').forEach((row, index) => row.querySelectorAll('[name],[data-return-name]').forEach(input => { const property = input.dataset.returnName || input.name.split('.').pop(); input.name = `ReturnRows[${index}].${property}`; }));
+    const calculate = () => { let bags = 0, amount = 0, returned = 0, returnAmount = 0; rows.querySelectorAll('[data-row]').forEach(row => { const count = Number(row.querySelector('.bag-count')?.value || 0); const price = Number(row.querySelector('.bag-price')?.value || 0); bags += count; amount += count * price; row.querySelector('[data-row-total]').textContent = (count * price).toFixed(2); }); returnRows.querySelectorAll('[data-return-row]').forEach(row => { const count = Number(row.querySelector('.return-bag-count')?.value || 0); const price = Number(row.querySelector('.return-bag-price')?.value || 0); returned += count; returnAmount += count * price; row.querySelector('[data-return-row-total]').textContent = (count * price).toFixed(2); }); document.getElementById('grandBags').textContent = bags; document.getElementById('grandAmount').textContent = amount.toFixed(2); document.getElementById('summaryUnloadedBags').textContent = bags; document.getElementById('summaryReturnBags').textContent = returned; document.getElementById('summaryFinalBags').textContent = Math.max(0, bags-returned); document.getElementById('summaryReturnAmount').textContent = returnAmount.toFixed(2); document.getElementById('totalPayableAmount').textContent = (amount+returnAmount).toFixed(2); refreshBagTypeOptions(); };
     document.getElementById('addRow').addEventListener('click', () => { rows.append(document.getElementById('rowTemplate').content.cloneNode(true)); rename(); calculate(); });
     rows.addEventListener('input', calculate);
+    rows.addEventListener('change', calculate);
     rows.addEventListener('click', event => { const button = event.target.closest('.remove-row'); if (!button) return; if (rows.querySelectorAll('[data-row]').length === 1) { button.closest('[data-row]').querySelectorAll('input,select').forEach(input => input.value = ''); } else button.closest('[data-row]').remove(); rename(); calculate(); });
+    document.getElementById('addReturnRow').addEventListener('click', () => { returnRows.append(document.getElementById('returnRowTemplate').content.cloneNode(true)); renameReturn(); calculate(); });
+    returnRows.addEventListener('input', calculate);
+    returnRows.addEventListener('change', calculate);
+    returnRows.addEventListener('click', event => { const button = event.target.closest('.remove-return-row'); if (!button) return; if (returnRows.querySelectorAll('[data-return-row]').length === 1) { button.closest('[data-return-row]').querySelectorAll('input,select').forEach(input => input.value = ''); } else button.closest('[data-return-row]').remove(); renameReturn(); calculate(); });
     const returnToggle = document.getElementById('hasReturnDuringUnloading');
-    const returnWrap = document.getElementById('returnCountWrap');
-    const returnCount = document.getElementById('ReturnBagCount');
-    const updateReturn = () => { const enabled = returnToggle.checked; returnWrap.classList.toggle('d-none', !enabled); returnCount.required = enabled; if (!enabled) returnCount.value = ''; };
+    const returnWrap = document.getElementById('returnDetailWrap');
+    const updateReturn = () => { const enabled = returnToggle.checked; returnWrap.classList.toggle('d-none', !enabled); returnRows.querySelectorAll('input,select').forEach(input => input.required = enabled && !input.name.endsWith('.EntryId')); if (!enabled) returnRows.querySelectorAll('input,select').forEach(input => { if (!input.name.endsWith('.EntryId')) input.value = ''; }); calculate(); };
     returnToggle.addEventListener('change', updateReturn);
     updateReturn();
-    rename(); calculate();
+    rename(); renameReturn(); calculate();
 })();
 </script>
 }
