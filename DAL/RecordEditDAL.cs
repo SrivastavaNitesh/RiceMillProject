@@ -126,6 +126,10 @@ public class RecordEditDAL(IConfiguration configuration)
             var owner=Read(c,null,"SELECT COALESCE(p.PersonName,u.Username) Name FROM dbo.sa05_user u LEFT JOIN dbo.P02_Person p ON p.PersonId=u.PersonId WHERE u.UserId=@User",("@User",table.Rows[0]["CreatedBy"]));
             form.GateAddedBy=owner.Rows.Count>0?S(owner.Rows[0],"Name"):"Original Gateman";
         }
+        if(module=="Assignment")
+        {
+            form.SelectedLocationIds=Read(c,null,"SELECT LocationId FROM dbo.t_UnloadLocation WHERE UnloadId=@Id AND IsActive=1 UNION SELECT LocationId FROM dbo.t_UnloadTransaction WHERE UnloadId=@Id AND LocationId IS NOT NULL",("@Id",id)).AsEnumerable().Select(r=>Convert.ToInt32(r[0])).ToList();
+        }
         PopulateOptions(c,form);
         return form;
     }
@@ -189,6 +193,14 @@ public class RecordEditDAL(IConfiguration configuration)
     {
         if(string.IsNullOrWhiteSpace(posted.Reason)||posted.Reason.Length>500)throw new ArgumentException("Enter a correction reason (up to 500 characters).");
         var current=Load(userId,posted.ModuleKey,posted.RecordId);
+        if(posted.ModuleKey=="Assignment")
+        {
+            posted.SelectedLocationIds=posted.SelectedLocationIds.Distinct().ToList();
+            var allowed=current.Fields.Single(f=>f.Name=="LocationId").Options.Select(o=>int.Parse(o.Value)).ToHashSet();
+            if(posted.SelectedLocationIds.Count==0 || posted.SelectedLocationIds.Any(id=>!allowed.Contains(id)))
+                throw new ArgumentException("Select at least one active unloading location in your company.");
+            posted.Values["LocationId"]=posted.SelectedLocationIds[0].ToString(CultureInfo.InvariantCulture);
+        }
         var values=Validate(current.Fields,posted.Values);
         if(posted.Details.Count>200)throw new ArgumentException("At most 200 detail rows are allowed.");
         var details=posted.Details.Select(d=>Validate(current.DetailFields,d)).ToList();
@@ -209,7 +221,7 @@ public class RecordEditDAL(IConfiguration configuration)
                     values["PartyName"]=Read(c,tx,"SELECT PersonName FROM dbo.P02_Person WHERE PersonId=@Id",("@Id",values["PartyId"])).Rows[0][0];
                     break;
                 case "Weight": ValidateWeight(c,tx,posted.RecordId,values,original);break;
-                case "Assignment": ValidateAssignment(c,tx,posted.RecordId,values,original);break;
+                case "Assignment": ValidateAssignment(c,tx,posted.RecordId,values,original,posted.SelectedLocationIds);break;
                 case "Supervisor": SaveSupervisor(c,tx,posted.RecordId,details,original);break;
                 case "Labour": SaveLabour(c,tx,posted.RecordId,details);break;
             }
@@ -264,12 +276,14 @@ public class RecordEditDAL(IConfiguration configuration)
             throw new ArgumentException("Material category cannot change after unloading assignment.");
         v["NetWeight"]=tare.HasValue?gross-tare.Value:null;
     }
-    private static void ValidateAssignment(SqlConnection c,SqlTransaction tx,string id,Dictionary<string,object?> v,DataRow old)
+    private static void ValidateAssignment(SqlConnection c,SqlTransaction tx,string id,Dictionary<string,object?> v,DataRow old,List<int> locations)
     {
         if(Convert.ToInt32(v["MethId"])!=Convert.ToInt32(old["MethId"]) && Read(c,tx,"SELECT 1 FROM dbo.t_WorkerAllocation WHERE UnloadId=@Id",("@Id",id)).Rows.Count>0)
             throw new ArgumentException("Labour work exists; the assigned Meth cannot be replaced independently.");
-        Run(c,tx,@"IF NOT EXISTS(SELECT 1 FROM dbo.t_UnloadLocation WHERE UnloadId=@Id AND LocationId=@Location AND IsActive=1)
-            INSERT dbo.t_UnloadLocation(UnloadId,LocationId,IsActive) VALUES(@Id,@Location,1);",("@Id",id),("@Location",v["LocationId"]));
+        var used=Read(c,tx,@"SELECT d.LocationId FROM dbo.t_SupervisorUnloadAction a JOIN dbo.t_SupervisorUnloadDetail d ON d.SupervisorActionId=a.SupervisorActionId WHERE a.UnloadId=@Id AND d.LocationId IS NOT NULL
+            UNION SELECT d.LocationId FROM dbo.t_SupervisorUnloadAction a JOIN dbo.t_SupervisorUnloadLocationDetail d ON d.SupervisorActionId=a.SupervisorActionId WHERE a.UnloadId=@Id",("@Id",id));
+        if(used.AsEnumerable().Any(r=>!locations.Contains(Convert.ToInt32(r[0]))))throw new ArgumentException("A location with saved unloading details cannot be removed.");
+        Run(c,tx,"EXEC dbo.sp_SaveUnloadLocations @UnloadId=@Id,@LocationIds=@Locations",("@Id",id),("@Locations",System.Text.Json.JsonSerializer.Serialize(locations)));
     }
     private static void SaveSupervisor(SqlConnection c,SqlTransaction tx,string id,List<Dictionary<string,object?>> details,DataRow original)
     {

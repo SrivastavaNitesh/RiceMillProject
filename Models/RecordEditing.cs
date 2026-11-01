@@ -31,6 +31,7 @@ public class RecordEditForm
     [Required] public string Version { get; set; } = "";
     [Required, StringLength(500)] public string Reason { get; set; } = "";
     public Dictionary<string, string?> Values { get; set; } = new();
+    public List<int> SelectedLocationIds { get; set; } = [];
     public List<Dictionary<string, string?>> Details { get; set; } = [];
     [ValidateNever] public List<SelectListItem> GateVehicles { get; set; } = [];
     [ValidateNever] public List<SelectListItem> GateDrivers { get; set; } = [];
