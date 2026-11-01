@@ -35,6 +35,8 @@
         <partial name="_Kpi" model='new DashboardKpi { Title="Pending Billing", Value=Model.PendingBilling.ToString("N0"), Icon="bi-receipt", Tone="slate", DrilldownStage="Billing" }' />
     </div>
 
+    <partial name="_MaterialCards" model="Model.Materials" />
+
     <div class="chart-guide mb-3">
         <div class="guide-title"><i class="bi bi-mouse2-fill me-2"></i>Charts kaise use karein?</div>
         <div class="guide-step"><span>1</span> Bar, column ya pie slice par click karein</div>

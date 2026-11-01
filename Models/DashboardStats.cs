@@ -2,6 +2,7 @@ namespace RiceMillProject.Models;
 
 public class DashboardStats
 {
+    public DashboardMaterialPage Materials { get; set; } = new();
     public int OfficeId { get; set; }
     public string OfficeName { get; set; } = "Company";
     public DateTime AsOf { get; set; } = DateTime.Now;

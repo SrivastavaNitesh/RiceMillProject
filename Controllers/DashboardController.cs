@@ -6,7 +6,7 @@ using RiceMillProject.Models;
 namespace RiceMillProject.Controllers
 {
     [Authorize]
-    public class DashboardController(IConfiguration configuration) : Controller
+    public partial class DashboardController(IConfiguration configuration) : Controller
     {
         private readonly DashboardBAL _dashboard = new(configuration);
 
@@ -58,8 +58,9 @@ namespace RiceMillProject.Controllers
 
 
             if (!User.IsAdminUser()) return Forbid();
-            var rangeEnd = (toDate ?? DateTime.Today).Date;
+            var rangeEnd = (toDate ?? PurchaseReportBuilder.Today).Date;
             var rangeStart = (fromDate ?? rangeEnd.AddDays(-29)).Date;
+            if (!ModelState.IsValid || rangeStart > rangeEnd || rangeEnd.Year > 9998 || (rangeEnd - rangeStart).TotalDays > 366 || User.CompanyId() <= 0) return BadRequest("Select a valid company and date range (up to 366 days).");
             return View(_dashboard.GetAdminDashboard(User.CompanyId(), rangeStart, rangeEnd));
         }
     }

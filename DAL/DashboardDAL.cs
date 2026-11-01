@@ -66,6 +66,7 @@ public class DashboardDAL(IConfiguration configuration)
             RSTNumber = Text(row, "RSTNumber"), VehicleNumber = Text(row, "VehicleNumber"), PartyName = Text(row, "PartyName"),
             CurrentStage = Text(row, "CurrentStage"), CurrentStatus = Text(row, "CurrentStatus"), LastActivity = Value(row, "LastActivity", DateTime.Now), AgeHours = Value(row, "AgeHours", 0m)
         }).ToList();
+        model.Materials = new DashboardMaterialDAL(configuration).Load(officeId, fromDate, toDate);
         return model;
     }
 
