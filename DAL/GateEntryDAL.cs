@@ -33,6 +33,48 @@ public class GateEntryDAL
             return categories;
         }
 
+        public int QuickAddItemCategory(string categoryName)
+        {
+            categoryName = (categoryName ?? string.Empty).Trim();
+            using var con = new SqlConnection(_connectionString);
+            RiceMillProject.DAL.RecordEditContext.Open(con);
+            using var transaction = con.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                using var existingCommand = new SqlCommand(@"
+                    SELECT TOP (1) CategoryId
+                    FROM dbo.m_ItemCategory WITH (UPDLOCK, HOLDLOCK)
+                    WHERE LOWER(LTRIM(RTRIM(CategoryName))) = LOWER(@CategoryName)
+                    ORDER BY IsActive DESC, CategoryId DESC;", con, transaction);
+                existingCommand.Parameters.Add("@CategoryName", SqlDbType.NVarChar, 100).Value = categoryName;
+                var existing = existingCommand.ExecuteScalar();
+                if (existing != null && existing != DBNull.Value)
+                {
+                    int categoryId = Convert.ToInt32(existing);
+                    using var activateCommand = new SqlCommand(
+                        "UPDATE dbo.m_ItemCategory SET IsActive = 1 WHERE CategoryId = @CategoryId;", con, transaction);
+                    activateCommand.Parameters.Add("@CategoryId", SqlDbType.Int).Value = categoryId;
+                    activateCommand.ExecuteNonQuery();
+                    transaction.Commit();
+                    return categoryId;
+                }
+
+                using var insertCommand = new SqlCommand(@"
+                    INSERT INTO dbo.m_ItemCategory (CategoryName, IsActive)
+                    VALUES (@CategoryName, 1);
+                    SELECT CONVERT(int, SCOPE_IDENTITY());", con, transaction);
+                insertCommand.Parameters.Add("@CategoryName", SqlDbType.NVarChar, 100).Value = categoryName;
+                int newCategoryId = Convert.ToInt32(insertCommand.ExecuteScalar());
+                transaction.Commit();
+                return newCategoryId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
         public List<GateEntry> GetAllGateEntries()
         {
             var entries = new List<GateEntry>();
@@ -1055,7 +1097,8 @@ public class GateEntryDAL
 
         public int QuickAddParty(
             string partyName,
-            string? mobileNumber)
+            string? mobileNumber,
+            int partyCategory)
         {
             partyName =
                 (partyName ?? string.Empty).Trim();
@@ -1067,6 +1110,13 @@ public class GateEntryDAL
             {
                 throw new InvalidOperationException(
                     "Party name is required."
+                );
+            }
+
+            if (partyCategory is not (1 or 2))
+            {
+                throw new InvalidOperationException(
+                    "Select Direct Party or Center Party."
                 );
             }
 
@@ -1204,6 +1254,7 @@ public class GateEntryDAL
                         PersonName,
                         MobileNumber,
                         PersonType,
+                        PartyCategory,
                         IsActive
                     )
                     VALUES
@@ -1214,6 +1265,7 @@ public class GateEntryDAL
                             ''
                         ),
                         '8',
+                        @PartyCategory,
                         1
                     );
 
@@ -1238,6 +1290,11 @@ public class GateEntryDAL
                         40
                     ).Value =
                         mobileNumber;
+
+                    insertPersonCmd.Parameters.Add(
+                        "@PartyCategory",
+                        SqlDbType.Int
+                    ).Value = partyCategory;
 
                     partyId =
                         Convert.ToInt32(
@@ -1313,13 +1370,6 @@ public class GateEntryDAL
             int partyId,
             string vehicleNumber)
         {
-            if (partyId <= 0)
-            {
-                throw new InvalidOperationException(
-                    "Select Party first."
-                );
-            }
-
             vehicleNumber =
                 (vehicleNumber ?? string.Empty)
                     .Trim()
@@ -1346,27 +1396,25 @@ public class GateEntryDAL
 
             try
             {
-                using (SqlCommand partyCmd =
-                       new SqlCommand(@"
-                    SELECT COUNT(1)
-                    FROM dbo.P02_Person
-                    WHERE
-                        PersonId = @PartyId
-                        AND IsActive = 1;",
-                           con,
-                           transaction))
+                if (partyId > 0)
                 {
+                    using SqlCommand partyCmd =
+                        new SqlCommand(@"
+                        SELECT COUNT(1)
+                        FROM dbo.P02_Person
+                        WHERE
+                            PersonId = @PartyId
+                            AND IsActive = 1;",
+                            con,
+                            transaction);
+
                     partyCmd.Parameters.Add(
                         "@PartyId",
                         SqlDbType.Int
-                    ).Value =
-                        partyId;
+                    ).Value = partyId;
 
-                    int partyExists =
-                        Convert.ToInt32(
-                            partyCmd.ExecuteScalar()
-                            ?? 0
-                        );
+                    int partyExists = Convert.ToInt32(
+                        partyCmd.ExecuteScalar() ?? 0);
 
                     if (partyExists == 0)
                     {
@@ -1489,20 +1537,6 @@ public class GateEntryDAL
             string driverName,
             string? mobileNumber)
         {
-            if (partyId <= 0)
-            {
-                throw new InvalidOperationException(
-                    "Select Party first."
-                );
-            }
-
-            if (vehicleId <= 0)
-            {
-                throw new InvalidOperationException(
-                    "Select Vehicle first."
-                );
-            }
-
             driverName =
                 (driverName ?? string.Empty).Trim();
 
@@ -1727,13 +1761,16 @@ public class GateEntryDAL
                 }
 
 
-                EnsureVehicleMapping(
-                    con,
-                    transaction,
-                    partyId,
-                    vehicleId,
-                    driverId
-                );
+                if (partyId > 0 && vehicleId > 0)
+                {
+                    EnsureVehicleMapping(
+                        con,
+                        transaction,
+                        partyId,
+                        vehicleId,
+                        driverId
+                    );
+                }
 
 
                 transaction.Commit();

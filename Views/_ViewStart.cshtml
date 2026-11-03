@@ -5,20 +5,22 @@
         if (User.IsAdminUser())
         {
             var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
-            var workRole = Context.Session.GetString("AdminWorkRole") ?? string.Empty;
-            Layout = controller switch
+            var workRole = Context.Session.GetString(RiceMillProject.Models.AdminWorkContext.RoleKey) ?? string.Empty;
+            Layout = workRole switch
             {
-                "GateEntry" => "_LayoutWeighbridge",
-                "Unload" => "_LayoutSupervisor",
-                "Meth" => "_LayoutMeth",
-                "Lab" => "_LayoutLab",
-                "OrderReturn" when workRole == "Gateman" => "_LayoutGateman",
-                "OrderReturn" when workRole == "Weightman" => "_LayoutWeighbridge",
-                "OrderReturn" when workRole == "Supervisor" => "_LayoutSupervisor",
-                "OrderReturn" when workRole == "Worker" => "_LayoutMeth",
-                "Gateman" when workRole == "Weightman" => "_LayoutWeighbridge",
                 "Gateman" => "_LayoutGateman",
-                _ => "_LayoutAdmin"
+                "Weightman" => "_LayoutWeighbridge",
+                "Supervisor" => "_LayoutSupervisor",
+                "Worker" => "_LayoutMeth",
+                _ => controller switch
+                {
+                    "GateEntry" => "_LayoutWeighbridge",
+                    "Unload" => "_LayoutSupervisor",
+                    "Meth" => "_LayoutMeth",
+                    "Lab" => "_LayoutLab",
+                    "Gateman" => "_LayoutGateman",
+                    _ => "_LayoutAdmin"
+                }
             };
         }
         else if (User.IsGatemanUser()) { Layout = "_LayoutGateman"; }

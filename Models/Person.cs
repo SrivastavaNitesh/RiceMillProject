@@ -10,7 +10,7 @@ namespace RiceMillProject.Models
         public string PersonName { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "Mobile Number is required.")]
-        [Phone(ErrorMessage = "Please enter a valid mobile number.")]
+        [RegularExpression(@"^[6-9][0-9]{9}$", ErrorMessage = "Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.")]
         public string MobileNumber { get; set; } = string.Empty;
         
         public string? Address { get; set; }
@@ -22,6 +22,8 @@ namespace RiceMillProject.Models
         public string? FirmDesignation { get; set; }
         
         public bool IsActive { get; set; } = true;
+        [Display(Name = "Share person with another company")]
+        public bool ShareCompany { get; set; }
         public int OfficeId { get; set; }
         public int? GateId { get; set; }
         public string? GateName { get; set; }

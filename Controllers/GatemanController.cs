@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using RiceMillProject.BAL;
 using RiceMillProject.Models;
+using RiceMillProject.Helpers;
 using System.Data;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace RiceMillProject.Controllers
 {
@@ -99,6 +101,10 @@ namespace RiceMillProject.Controllers
                     myEntries = myEntries.Where(e => e.InwardDate.Date >= fromDate.Value.Date).ToList();
                 if (toDate.HasValue)
                     myEntries = myEntries.Where(e => e.InwardDate.Date <= toDate.Value.Date).ToList();
+                myEntries = myEntries
+                    .OrderByDescending(e => e.GateInDateTime)
+                    .ThenByDescending(e => e.InwardId)
+                    .ToList();
                 ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
                 ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
@@ -166,7 +172,8 @@ namespace RiceMillProject.Controllers
                 }
 
                 if (model.ApproxNoOfBags < 0 || model.ApproxWeight < 0) ModelState.AddModelError("", "Approximate bags and weight cannot be negative.");
-                if (string.IsNullOrWhiteSpace(model.VehicleNo) || !System.Text.RegularExpressions.Regex.IsMatch(model.VehicleNo, @"^[A-Za-z0-9][A-Za-z0-9 -]{2,49}$")) ModelState.AddModelError("VehicleNo", "Enter a valid vehicle number.");
+                model.VehicleNo = IndianVehicleNumber.Normalize(model.VehicleNo);
+                if (!IndianVehicleNumber.IsValid(model.VehicleNo)) ModelState.AddModelError("VehicleNo", IndianVehicleNumber.ValidationMessage);
                 if (model.GateId <= 0 || model.InwardTypeId is not (1 or 2) || model.VehicleTypeId <= 0) ModelState.AddModelError("", "Select valid gate, inward and vehicle types.");
                 if (ModelState.IsValid)
                 {
@@ -175,6 +182,7 @@ namespace RiceMillProject.Controllers
                     return RedirectToAction(nameof(Print), new { id = model.InwardId });
                 }
 
+                TempData["ErrorMessage"] = string.Join(" ", ModelState.Values.SelectMany(value => value.Errors).Select(error => error.ErrorMessage).Where(message => !string.IsNullOrWhiteSpace(message)));
                 PopulateDropdowns();
                 var entries = _inwardBal.GetAllInwardEntries();
                 ViewBag.NewInward = model;
@@ -228,6 +236,81 @@ namespace RiceMillProject.Controllers
                 vehicleId=Convert.ToInt32(r["VehicleId"]),vehicleNumber=Convert.ToString(r["VehicleNumber"]),
                 driverId=Convert.ToInt32(r["DriverId"]),driverName=Convert.ToString(r["DriverName"]),driverMobile=Convert.ToString(r["DriverMobile"])}).ToList();
             return Json(new{success=true,mappings=rows});
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "GatemanAccess")]
+        public IActionResult QuickAddParty(string partyName, string? mobileNumber, int partyCategory)
+        {
+            try
+            {
+                partyName = (partyName ?? string.Empty).Trim();
+                mobileNumber = (mobileNumber ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(mobileNumber))
+                    throw new InvalidOperationException("Party / Supplier mobile number is required.");
+                if (partyCategory is not (1 or 2))
+                    throw new InvalidOperationException("Select Direct Party or Center Party.");
+                ValidateQuickPerson(partyName, mobileNumber, "Party / Supplier");
+                int partyId = _gateBal.QuickAddParty(partyName, mobileNumber, partyCategory);
+                return Json(new { success = true, partyId, partyName, mobileNumber, partyCategory });
+            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "GatemanAccess")]
+        public IActionResult QuickAddVehicle(int partyId, string vehicleNumber)
+        {
+            try
+            {
+                vehicleNumber = IndianVehicleNumber.Normalize(vehicleNumber);
+                if (!IndianVehicleNumber.IsValid(vehicleNumber))
+                    throw new InvalidOperationException(IndianVehicleNumber.ValidationMessage);
+                int vehicleId = _gateBal.QuickAddVehicle(partyId, vehicleNumber);
+                return Json(new { success = true, vehicleId, vehicleNumber = vehicleNumber.Replace(" ", string.Empty) });
+            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "GatemanAccess")]
+        public IActionResult QuickAddDriver(int partyId, int vehicleId, string? vehicleNumber, string driverName, string? mobileNumber)
+        {
+            try
+            {
+                driverName = (driverName ?? string.Empty).Trim();
+                mobileNumber = (mobileNumber ?? string.Empty).Trim();
+                ValidateQuickPerson(driverName, mobileNumber, "Driver");
+                if (vehicleId <= 0 && !string.IsNullOrWhiteSpace(vehicleNumber))
+                {
+                    string normalizedVehicle = vehicleNumber.Trim().Replace(" ", string.Empty);
+                    vehicleId = _vehicleBal.GetAllVehicles()
+                        .FirstOrDefault(vehicle => string.Equals(
+                            vehicle.VehicleNumber?.Replace(" ", string.Empty),
+                            normalizedVehicle,
+                            StringComparison.OrdinalIgnoreCase))?.VehicleId ?? 0;
+                }
+                int driverId = _gateBal.QuickAddDriver(partyId, vehicleId, driverName, mobileNumber);
+                return Json(new
+                {
+                    success = true,
+                    driverId,
+                    driverName,
+                    mobileNumber,
+                    driverNameMobile = string.IsNullOrWhiteSpace(mobileNumber) ? driverName : $"{driverName} / {mobileNumber}"
+                });
+            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
+        private static void ValidateQuickPerson(string name, string mobileNumber, string label)
+        {
+            if (name.Length is < 2 or > 150) throw new InvalidOperationException($"{label} name must be 2 to 150 characters.");
+            if (!string.IsNullOrWhiteSpace(mobileNumber) && !Regex.IsMatch(mobileNumber, @"^[6-9][0-9]{9}$"))
+                throw new InvalidOperationException("Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.");
         }
         [HttpGet]
         public IActionResult GetPartyOptions(int partyId)

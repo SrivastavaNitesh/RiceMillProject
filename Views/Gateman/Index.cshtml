@@ -81,7 +81,6 @@
                         <select name="PartyId" id="txtPartyName" class="form-select border-primary-subtle" asp-items="@(ViewBag.Parties as SelectList)" required>
                             <option value="">Select Party / Supplier</option>
                         </select>
-                        <a class="btn btn-outline-primary" href="/Person/Create?post=Party&source=Gateman" title="Add Party"><i class="bi bi-plus-lg"></i></a>
                         </div>
                         <input type="hidden" name="PartyName" id="selectedPartyName" />
                     </div>
@@ -102,7 +101,6 @@
                                 }
                             }
                         </select>
-                        <a class="btn btn-outline-primary" href="/Vehicle/Create?source=Gateman" title="Add Vehicle"><i class="bi bi-plus-lg"></i></a>
                         </div>
                     </div>
 
@@ -122,7 +120,6 @@
                                 }
                             }
                         </select>
-                        <a class="btn btn-outline-primary" href="/Person/Create?post=Driver&source=Gateman" title="Add Driver"><i class="bi bi-plus-lg"></i></a>
                         </div>
                     </div>
                     <input type="hidden" name="DriverMobile" id="txtDriverMobile" />
@@ -241,26 +238,149 @@ catch (Exception ex)
             if (select && window.jQuery && $.fn.select2) $(select).trigger('change.select2');
         }
 
-        function makeSearchableSelect(select, placeholder) {
+        function makeSearchableSelect(select, placeholder, entityType) {
             if (!select || !window.jQuery || !$.fn.select2) return;
             $(select).select2({
                 width: '100%',
                 placeholder: placeholder,
                 allowClear: true,
                 minimumResultsForSearch: 0,
-                dropdownParent: $(select).closest('.erp-card')
+                dropdownParent: $(select).closest('.erp-card'),
+                tags: true,
+                selectOnClose: true,
+                createTag: params => {
+                    const term = (params.term || '').trim();
+                    if (!term) return null;
+                    const exists = Array.from(select.options).some(option =>
+                        option.text.trim().toLocaleLowerCase() === term.toLocaleLowerCase() ||
+                        option.value.trim().toLocaleLowerCase() === term.toLocaleLowerCase());
+                    return exists ? null : { id: `__new__:${term}`, text: term, newTag: true };
+                }
             });
-            $(select).on('select2:select select2:clear', () => {
+            select.dataset.searchReady = 'true';
+            $(select).on('select2:select', async event => {
+                const data = event.params.data;
+                if (data.newTag || String(data.id).startsWith('__new__:')) {
+                    await confirmQuickCreate(select, entityType, data.text.trim(), data.element);
+                    return;
+                }
                 select.dispatchEvent(new Event('change'));
+            });
+            $(select).on('select2:clear', () => {
+                setTimeout(() => {
+                    select.value = '';
+                    select.dispatchEvent(new Event('change'));
+                    refreshSearchableSelect(select);
+                }, 0);
             });
         }
 
-        makeSearchableSelect(txtParty, 'Search party name / mobile');
-        makeSearchableSelect(txtVehicle, 'Search vehicle number');
-        makeSearchableSelect(txtDriverName, 'Search driver name / mobile');
+        const antiForgeryToken = () => document.querySelector('#gatemanForm input[name="__RequestVerificationToken"]')?.value || '';
+        const postQuickAdd = async (url, values) => {
+            values.append('__RequestVerificationToken', antiForgeryToken());
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: values.toString()
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Record could not be saved.');
+            return result;
+        };
+        const removeNewOption = (select, option) => {
+            if (option?.value?.startsWith('__new__:')) option.remove();
+            select.value = '';
+            refreshSearchableSelect(select);
+        };
+        const selectSavedOption = (select, value, text, attributes = {}) => {
+            Array.from(select.options).filter(option => option.value === String(value)).forEach(option => option.remove());
+            const option = new Option(text, value, true, true);
+            Object.entries(attributes).forEach(([key, item]) => option.dataset[key] = item || '');
+            select.add(option);
+            select.value = String(value);
+            refreshSearchableSelect(select);
+        };
+        async function confirmQuickCreate(select, entityType, typedText, temporaryOption) {
+            const label = entityType === 'party' ? 'Party / Supplier' : entityType === 'vehicle' ? 'Vehicle' : 'Driver';
+            const partyId = Number(txtParty.value);
+            let vehicleId = Number(txtVehicle.selectedOptions[0]?.dataset.vehicleId || 0);
+            const requiresMobile = entityType === 'party';
+            const escapedText = typedText.replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+            if (entityType === 'vehicle' && !isValidIndianVehicleNumber(typedText)) {
+                removeNewOption(select, temporaryOption);
+                await Swal.fire({ icon: 'warning', title: 'Invalid Vehicle Number', text: 'Valid format enter karein, jaise UP63AT3088, DL1CAF5032 ya 22BH1234AA.' });
+                return;
+            }
+            const confirmation = await Swal.fire({
+                icon: 'question',
+                title: `Add New ${label}?`,
+                html: requiresMobile
+                    ? `<div class="text-start"><strong>${escapedText}</strong> list mein nahi hai.<div class="mt-3"><label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label><input id="quickPartyMobile" class="swal2-input m-0 w-100" inputmode="numeric" maxlength="10" placeholder="10-digit Indian mobile number" /></div><div class="mt-3"><label class="form-label fw-semibold">Party Type <span class="text-danger">*</span></label><select id="quickPartyCategory" class="swal2-select m-0 w-100"><option value="">Select Party Type</option><option value="1">Direct Party</option><option value="2">Center Party</option></select></div></div>`
+                    : `<div class="text-start"><strong>${escapedText}</strong> list mein nahi hai.<br/>Kya aap ise add karna chahte hain?</div>`,
+                showCancelButton: true,
+                confirmButtonText: `Yes, Add ${label}`,
+                cancelButtonText: 'No',
+                confirmButtonColor: '#07877c',
+                preConfirm: requiresMobile ? () => {
+                    const mobileNumber = document.getElementById('quickPartyMobile')?.value.trim() || '';
+                    const partyCategory = Number(document.getElementById('quickPartyCategory')?.value || 0);
+                    if (!/^[6-9][0-9]{9}$/.test(mobileNumber)) {
+                        Swal.showValidationMessage('Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.');
+                        return false;
+                    }
+                    if (![1, 2].includes(partyCategory)) {
+                        Swal.showValidationMessage('Select Direct Party or Center Party.');
+                        return false;
+                    }
+                    return { mobileNumber, partyCategory };
+                } : undefined
+            });
+            if (!confirmation.isConfirmed) { removeNewOption(select, temporaryOption); return; }
+            try {
+                if (entityType === 'party') {
+                    const values = new URLSearchParams({
+                        partyName: typedText,
+                        mobileNumber: confirmation.value?.mobileNumber || '',
+                        partyCategory: String(confirmation.value?.partyCategory || 0)
+                    });
+                    const result = await postQuickAdd('/Gateman/QuickAddParty', values);
+                    const text = result.mobileNumber ? `${result.partyName} / ${result.mobileNumber}` : result.partyName;
+                    temporaryOption?.remove();
+                    selectSavedOption(txtParty, result.partyId, text);
+                    txtParty.dispatchEvent(new Event('change'));
+                } else if (entityType === 'vehicle') {
+                    const values = new URLSearchParams({ partyId: String(partyId), vehicleNumber: typedText });
+                    const result = await postQuickAdd('/Gateman/QuickAddVehicle', values);
+                    temporaryOption?.remove();
+                    selectSavedOption(txtVehicle, result.vehicleNumber, result.vehicleNumber, { vehicleId: String(result.vehicleId) });
+                    txtVehicle.dispatchEvent(new Event('change'));
+                } else {
+                    const values = new URLSearchParams({ partyId: String(partyId), vehicleId: String(vehicleId), vehicleNumber: txtVehicle.value, driverName: typedText, mobileNumber: '' });
+                    const result = await postQuickAdd('/Gateman/QuickAddDriver', values);
+                    temporaryOption?.remove();
+                    selectSavedOption(txtDriverName, result.driverName, result.driverNameMobile, { mobile: result.mobileNumber || '' });
+                    txtDriverMobile.value = result.mobileNumber || '';
+                    if (partyId > 0 && vehicleId > 0) {
+                        document.getElementById('gatemanForm').dispatchEvent(new CustomEvent('gateman:mapping-added'));
+                    } else {
+                        txtDriverName.dispatchEvent(new Event('change'));
+                    }
+                }
+                await Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `${label} added successfully`, showConfirmButton: false, timer: 2200 });
+            } catch (error) {
+                removeNewOption(select, temporaryOption);
+                await Swal.fire({ icon: 'error', title: `${label} could not be added`, text: error.message });
+            }
+        }
+
+        makeSearchableSelect(txtParty, 'Search or type new party', 'party');
+        makeSearchableSelect(txtVehicle, 'Search or type new vehicle', 'vehicle');
+        makeSearchableSelect(txtDriverName, 'Search or type new driver', 'driver');
 
         // Form Validation & SweetAlert Popup on Submit
         const form = document.getElementById('gatemanForm');
+        const normalizeVehicleNumber = value => (value || '').toUpperCase().replace(/[\s-]+/g, '');
+        const isValidIndianVehicleNumber = value => /^(?:[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}|[0-9]{2}BH[0-9]{4}[A-Z]{1,2})$/.test(normalizeVehicleNumber(value));
         if (form) {
             form.addEventListener('submit', function (e) {
                 const isTypeSelected = document.querySelector('input[name="InwardTypeId"]:checked');
@@ -291,6 +411,16 @@ catch (Exception ex)
                         icon: 'warning',
                         confirmButtonText: 'Okay, I will fill them',
                         confirmButtonColor: '#0d6efd'
+                    });
+                    return false;
+                }
+                if (!isValidIndianVehicleNumber(vehicleNo)) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Invalid Vehicle Number',
+                        text: 'Valid Indian vehicle number enter karein, jaise UP63AT3088, DL1CAF5032 ya 22BH1234AA.',
+                        icon: 'warning',
+                        confirmButtonColor: '#07877c'
                     });
                     return false;
                 }

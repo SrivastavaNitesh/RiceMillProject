@@ -454,9 +454,14 @@
                             <label asp-for="ItemCategoryId" class="form-label fw-bold text-dark">
                                 Item Category <span class="text-danger">*</span>
                             </label>
-                            <select asp-for="ItemCategoryId" id="ddlCategory" asp-items="ViewBag.ItemCategories" class="form-select" required>
-                                <option value="">-- Select Item Category --</option>
-                            </select>
+                            <div class="input-group">
+                                <select asp-for="ItemCategoryId" id="ddlCategory" asp-items="ViewBag.ItemCategories" class="form-select" required>
+                                    <option value="">-- Select Item Category --</option>
+                                </select>
+                                <button type="button" id="btnQuickAddCategory" class="btn btn-outline-primary" title="Add new item category">
+                                    <i class="bi bi-plus-lg"></i> Add New
+                                </button>
+                            </div>
                             <span asp-validation-for="ItemCategoryId" class="text-danger"></span>
                         </div>
 
@@ -1138,6 +1143,52 @@ catch (Exception ex)
 
 
                     return await response.json();
+                }
+
+                const btnQuickAddCategory = document.getElementById('btnQuickAddCategory');
+                const ddlCategory = document.getElementById('ddlCategory');
+                if (btnQuickAddCategory && ddlCategory) {
+                    btnQuickAddCategory.addEventListener('click', async function() {
+                        const prompt = await Swal.fire({
+                            icon: 'question',
+                            title: 'Add Item Category',
+                            input: 'text',
+                            inputLabel: 'Category Name',
+                            inputPlaceholder: 'e.g. PADDY',
+                            showCancelButton: true,
+                            confirmButtonText: 'Save Category',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#07877c',
+                            inputAttributes: { maxlength: '100', autocapitalize: 'characters' },
+                            inputValidator: value => {
+                                const name = (value || '').trim();
+                                if (name.length < 2) return 'Category name kam se kam 2 characters ka hona chahiye.';
+                                if (name.length > 100) return 'Category name 100 characters se zyada nahi ho sakta.';
+                            }
+                        });
+                        if (!prompt.isConfirmed) return;
+
+                        this.disabled = true;
+                        try {
+                            const values = new URLSearchParams({ categoryName: prompt.value.trim() });
+                            const result = await postQuickAdd('/GateEntry/QuickAddItemCategory', values);
+                            if (!result.success) throw new Error(result.message || 'Item category save nahi ho saki.');
+                            insertOrSelectOption(ddlCategory, result.categoryId, result.categoryName);
+                            ddlCategory.dispatchEvent(new Event('change', { bubbles: true }));
+                            await Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: 'Item category added and selected',
+                                showConfirmButton: false,
+                                timer: 2200
+                            });
+                        } catch (error) {
+                            await Swal.fire({ icon: 'error', title: 'Category Save Failed', text: error.message });
+                        } finally {
+                            this.disabled = false;
+                        }
+                    });
                 }
 
 

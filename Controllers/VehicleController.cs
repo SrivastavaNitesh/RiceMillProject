@@ -5,6 +5,7 @@ using RiceMillProject.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
+using RiceMillProject.Helpers;
 
 namespace RiceMillProject.Controllers
 {
@@ -37,6 +38,10 @@ namespace RiceMillProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Vehicle vehicle)
         {
+            vehicle.VehicleNumber = IndianVehicleNumber.Normalize(vehicle.VehicleNumber);
+            if (!IndianVehicleNumber.IsValid(vehicle.VehicleNumber))
+                ModelState.AddModelError(nameof(vehicle.VehicleNumber), IndianVehicleNumber.ValidationMessage);
+
             if (!ModelState.IsValid)
             {
                 PopulateLookups(vehicle.PartyId, vehicle.DriverId);
@@ -45,7 +50,6 @@ namespace RiceMillProject.Controllers
 
             try
             {
-                vehicle.VehicleNumber = vehicle.VehicleNumber.Trim().ToUpperInvariant();
                 int vehicleId = _vehicleBal.AddVehicleWithMapping(vehicle);
                 if (vehicleId <= 0) throw new InvalidOperationException("Vehicle could not be saved.");
                 TempData["SuccessMessage"] = "Vehicle registered and linked with the selected Party and Driver.";
@@ -129,6 +133,10 @@ namespace RiceMillProject.Controllers
         [HttpPost]
         public IActionResult Edit(Vehicle vehicle)
         {
+            vehicle.VehicleNumber = IndianVehicleNumber.Normalize(vehicle.VehicleNumber);
+            if (!IndianVehicleNumber.IsValid(vehicle.VehicleNumber))
+                ModelState.AddModelError(nameof(vehicle.VehicleNumber), IndianVehicleNumber.ValidationMessage);
+
             if (ModelState.IsValid)
             {
                 _vehicleBal.UpdateVehicle(vehicle);

@@ -53,6 +53,14 @@ namespace RiceMillProject.BAL
 
         public System.Data.DataTable GetItemCategories() => _gateDal.GetItemCategories();
 
+        public int QuickAddItemCategory(string categoryName)
+        {
+            categoryName = (categoryName ?? string.Empty).Trim();
+            if (categoryName.Length < 2 || categoryName.Length > 100)
+                throw new ArgumentException("Item category name must be between 2 and 100 characters.", nameof(categoryName));
+            return _gateDal.QuickAddItemCategory(categoryName);
+        }
+
         public bool CompleteGateExit(string rstNumber, decimal tareWeight)
         {
             if (string.IsNullOrWhiteSpace(rstNumber))
@@ -117,11 +125,13 @@ namespace RiceMillProject.BAL
 
         public int QuickAddParty(
             string partyName,
-            string? mobileNumber)
+            string? mobileNumber,
+            int partyCategory)
         {
             return _gateDal.QuickAddParty(
                 partyName,
-                mobileNumber);
+                mobileNumber,
+                partyCategory);
         }
 
 

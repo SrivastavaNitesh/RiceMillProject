@@ -94,9 +94,21 @@
                         <label asp-for="MobileNumber" class="form-label">Mobile Number <span class="req-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-muted"><i class="bi bi-phone"></i></span>
-                            <input asp-for="MobileNumber" class="form-control" placeholder="10 Digit Mobile..." maxlength="10" required />
+                            <input asp-for="MobileNumber" class="form-control" placeholder="10-digit Indian mobile number" maxlength="10" inputmode="numeric" pattern="[6-9][0-9]{9}" required />
                         </div>
                         <span asp-validation-for="MobileNumber" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12" id="shareCompanySection" style="display:none;">
+                        <div class="form-check border rounded-3 p-3 ps-5 bg-light">
+                            <input asp-for="ShareCompany" class="form-check-input" />
+                            <label asp-for="ShareCompany" class="form-check-label fw-semibold">
+                                Existing person ko is company ke saath share karein
+                            </label>
+                            <div class="form-text">
+                                Same mobile number wala person kisi doosri company ya firm mein registered ho to is option ko check karein.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-12" id="employeeDetailsSection" style="display: none;">
@@ -145,6 +157,8 @@
 
                 var selectedText = $('#personTypeSelect option:selected').text().toLowerCase();
                 var val = $('#personTypeSelect').val();
+                $('#shareCompanySection').toggle(val === '8');
+                if (val !== '8') $('#ShareCompany').prop('checked', false);
 
                 if (selectedText.includes('party') || selectedText.includes('kisan') || selectedText.includes('center')) {
                     $("#partyCategorySection").fadeIn();

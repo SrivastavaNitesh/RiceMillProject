@@ -21,16 +21,15 @@ function init(){
  const unique=(rows,key)=>[...new Set(rows.map(r=>r[key]).filter(Boolean))];
  const chooseVehicle=()=>{
   const current=driver.value,rows=vehicle.value?mappings.filter(r=>r.vehicleNumber===vehicle.value):mappings;
-  drivers(mappings,current);if(current&&!rows.some(r=>r.driverName===current))driver.value='';if(!driver.value&&unique(rows,'driverName').length===1)driver.value=unique(rows,'driverName')[0];refresh(driver);syncMobile();
+  drivers(mappings,current,true);if(!driver.value&&unique(rows,'driverName').length===1)driver.value=unique(rows,'driverName')[0];refresh(driver);syncMobile();
  };
  const chooseDriver=()=>{
   const current=vehicle.value,rows=driver.value?mappings.filter(r=>r.driverName===driver.value):mappings;
-  vehicles(mappings,current);if(current&&!rows.some(r=>r.vehicleNumber===current))vehicle.value='';if(!vehicle.value&&unique(rows,'vehicleNumber').length===1)vehicle.value=unique(rows,'vehicleNumber')[0];refresh(vehicle);syncMobile();
+  vehicles(mappings,current,true);if(!vehicle.value&&unique(rows,'vehicleNumber').length===1)vehicle.value=unique(rows,'vehicleNumber')[0];refresh(vehicle);syncMobile();
  };
  async function load(preserve=false){
   const request=++serial,selected={vehicle:vehicle.value,driver:driver.value},id=party.value;
   mappings=[];failed=false;notice.hidden=true;loading=!!id;
-  vehicle.disabled=!!id;driver.disabled=!!id;
   if(!preserve){vehicles([]);drivers([]);syncMobile();}
   if(!id){loading=false;return;}
   try{
@@ -40,9 +39,10 @@ function init(){
    if(!preserve){if(unique(mappings,'vehicleNumber').length===1){vehicle.value=unique(mappings,'vehicleNumber')[0];refresh(vehicle);chooseVehicle();}else if(unique(mappings,'driverName').length===1){driver.value=unique(mappings,'driverName')[0];refresh(driver);chooseDriver();}}
    syncMobile();
   }catch(error){if(request!==serial)return;failed=true;notice.textContent='Vehicle/driver mapping could not be loaded. Please select the party again.';notice.hidden=false;}
-  finally{if(request===serial){loading=false;vehicle.disabled=false;driver.disabled=false;}}
+  finally{if(request===serial)loading=false;}
  }
- party.addEventListener('change',()=>load());vehicle.addEventListener('change',chooseVehicle);driver.addEventListener('change',chooseDriver);
+ party.addEventListener('change',()=>load(true));vehicle.addEventListener('change',chooseVehicle);driver.addEventListener('change',chooseDriver);
+ form.addEventListener('gateman:mapping-added',()=>load(true));
  if(form.id==='record-edit-form'&&window.jQuery&&jQuery.fn.select2)jQuery([party,vehicle,driver]).on('select2:select select2:clear',function(){this.dispatchEvent(new Event('change'));});
  form.addEventListener('submit',event=>{if(loading||failed){event.preventDefault();notice.textContent=loading?'Please wait for the vehicle/driver mapping to load.':'Please select the party again to load vehicle/driver mappings.';notice.hidden=false;}});
  form.addEventListener('reset',()=>setTimeout(()=>{party.value=initial.party;vehicles([],initial.vehicle,true);drivers([],initial.driver,true);refresh(party);load(true);},0));

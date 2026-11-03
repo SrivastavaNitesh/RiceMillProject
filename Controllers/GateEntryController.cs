@@ -605,6 +605,22 @@ namespace RiceMillProject.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult QuickAddItemCategory(string categoryName)
+        {
+            try
+            {
+                categoryName = (categoryName ?? string.Empty).Trim();
+                int categoryId = _gateBal.QuickAddItemCategory(categoryName);
+                return Json(new { success = true, categoryId, categoryName });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
 
         // =========================================================
         // OUTBOUND - GET
@@ -645,7 +661,7 @@ namespace RiceMillProject.Controllers
                     ? $"{action.ActionType} recorded for {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG."
                     : $"New RST {result.NewRSTNumber} generated from {action.RSTNumber}. Received weight: {result.ReceivedWeight:0.###} KG.";
                 return string.IsNullOrWhiteSpace(result.NewRSTNumber)
-                    ? RedirectToAction("Report","Gateman")
+                    ? RedirectToAction(nameof(Index))
                     : RedirectToAction(nameof(WeighmentSlip),new{id=result.NewRSTNumber,stage="first"});
             }
             catch (Exception ex) { TempData["ErrorMessage"] = ex.Message; }

@@ -42,9 +42,10 @@
                         <label asp-for="VehicleNumber" class="form-label">Vehicle Number Plate <span class="req-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-muted"><i class="bi bi-123"></i></span>
-                            <input asp-for="VehicleNumber" class="form-control text-uppercase" required placeholder="e.g. UP32 AB 1234" />
+                            <input asp-for="VehicleNumber" class="form-control text-uppercase" required maxlength="30" placeholder="e.g. UP63AT3088 / 22BH1234AA" />
                         </div>
                         <span asp-validation-for="VehicleNumber" class="text-danger small"></span>
+                        <small class="text-muted">Spaces aur hyphen optional hain; standard state ya BH-series number enter karein.</small>
                     </div>
 
                     <div class="col-12">

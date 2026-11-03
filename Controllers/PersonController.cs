@@ -11,10 +11,12 @@ namespace RiceMillProject.Controllers
     public class PersonController : Controller
     {
         private readonly PersonBAL _personBal;
+        private readonly OfficeBAL _officeBal;
         private readonly BusinessLayer _BusLayer;
         public PersonController(IConfiguration configuration)
         {
             _personBal = new PersonBAL(configuration);
+            _officeBal = new OfficeBAL(configuration);
             _BusLayer = new BusinessLayer(configuration);
         }
 
@@ -54,7 +56,9 @@ namespace RiceMillProject.Controllers
         [HttpPost]
         public IActionResult Create(Person person)
         {
-            if (!_personBal.IsMobileNumberUnique(person.MobileNumber))
+            person.ShareCompany = person.PersonType == "8" && person.ShareCompany;
+
+            if (!person.ShareCompany && !_personBal.IsMobileNumberUnique(person.MobileNumber))
             {
                 ModelState.AddModelError("MobileNumber", "This mobile number is already registered.");
             }
@@ -66,7 +70,9 @@ namespace RiceMillProject.Controllers
                     int newId = _personBal.AddPerson(person);
                     if (newId > 0)
                     {
-                        TempData["SuccessMessage"] = $"{GetPersonRoleName(person.PersonType)} '{person.PersonName}' saved successfully!";
+                        TempData["SuccessMessage"] = person.ShareCompany
+                            ? $"Existing person '{person.PersonName}' assigned to the selected company successfully!"
+                            : $"{GetPersonRoleName(person.PersonType)} '{person.PersonName}' saved successfully!";
                         return RedirectToAction("Index");
                     }
 
@@ -118,12 +124,18 @@ namespace RiceMillProject.Controllers
             ViewBag.Offices = Allclass.CreateDropdown(dt);
             dt = _BusLayer.ManageDepartmentMaster("GETALL");
             ViewBag.Departments = Allclass.CreateDropdown(dt);
-            return View(new Person { IsActive = true });
+            return View(new Person
+            {
+                IsActive = true,
+                OfficeId = User.CompanyId()
+            });
         }
 
         [HttpPost]
         public IActionResult Employee(Person person)
         {
+            person.ShareCompany = person.PersonType == "8" && person.ShareCompany;
+
             if (person.OfficeId <= 0)
                 ModelState.AddModelError(nameof(person.OfficeId), "Company selection is required.");
 
@@ -133,7 +145,7 @@ namespace RiceMillProject.Controllers
             if (person.PersonType == "7" && person.MethdesignatationId.GetValueOrDefault() <= 0)
                 ModelState.AddModelError(nameof(person.MethdesignatationId), "Meth selection is required for Worker.");
 
-            if (!_personBal.IsMobileNumberUnique(person.MobileNumber))
+            if (!person.ShareCompany && !_personBal.IsMobileNumberUnique(person.MobileNumber))
             {
                 ModelState.AddModelError("MobileNumber", "This mobile number is already registered.");
             }
@@ -145,7 +157,9 @@ namespace RiceMillProject.Controllers
                     int newId = _personBal.AddPerson(person);
                     if (newId > 0)
                     {
-                        TempData["SuccessMessage"] = $"Employee '{person.PersonName}' registered successfully!";
+                        TempData["SuccessMessage"] = person.ShareCompany
+                            ? $"Existing person '{person.PersonName}' assigned to the selected company successfully!"
+                            : $"Employee '{person.PersonName}' registered successfully!";
                         return RedirectToAction("EmployeeList");
                     }
 
@@ -176,6 +190,45 @@ namespace RiceMillProject.Controllers
             dt = _BusLayer.ManageDepartmentMaster("GETALL");
             ViewBag.Departments = Allclass.CreateDropdown(dt);
             return View(person);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult QuickAddCompany(string companyName, string location)
+        {
+            if (!User.IsAdminUser()) return Forbid();
+
+            try
+            {
+                companyName = (companyName ?? string.Empty).Trim();
+                location = (location ?? string.Empty).Trim();
+                if (companyName.Length is < 2 or > 150)
+                    throw new InvalidOperationException("Company name must be 2 to 150 characters.");
+                if (location.Length is < 2 or > 250)
+                    throw new InvalidOperationException("Company location is required.");
+
+                var existing = _officeBal.GetAllOffices().FirstOrDefault(office =>
+                    office.IsActive && string.Equals(
+                        office.OfficeName?.Trim(), companyName,
+                        StringComparison.OrdinalIgnoreCase));
+                if (existing != null)
+                    return Json(new { success = true, officeId = existing.OfficeId, officeName = existing.OfficeName, existing = true });
+
+                int officeId = _officeBal.AddOffice(new Office
+                {
+                    OfficeName = companyName,
+                    Location = location,
+                    OfficeTypeId = 1,
+                    IsActive = true
+                });
+                if (officeId <= 0) throw new InvalidOperationException("Company could not be saved.");
+
+                return Json(new { success = true, officeId, officeName = companyName, existing = false });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         private string GetPersonRoleName(string? personType)

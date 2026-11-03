@@ -232,6 +232,13 @@ namespace RiceMillProject.DAL
                             person.MethdesignatationId.GetValueOrDefault() > 0
                                 ? person.MethdesignatationId.GetValueOrDefault()
                                 : (object)DBNull.Value);
+                        cmd.Parameters.Add("@PartyCategory", SqlDbType.Int).Value = person.PartyCategory;
+                        cmd.Parameters.Add("@FirmName", SqlDbType.NVarChar, 200).Value = (object?)person.FirmName ?? DBNull.Value;
+                        cmd.Parameters.Add("@FirmDesignation", SqlDbType.NVarChar, 100).Value = (object?)person.FirmDesignation ?? DBNull.Value;
+                        cmd.Parameters.Add("@DepartmentId", SqlDbType.Int).Value = person.DepartmentId.GetValueOrDefault() > 0
+                            ? person.DepartmentId.GetValueOrDefault()
+                            : DBNull.Value;
+                        cmd.Parameters.Add("@ShareCompany", SqlDbType.Bit).Value = person.ShareCompany;
                         
                         SqlParameter designationparam = new SqlParameter("@designatationId", SqlDbType.Int);
                         designationparam.Direction = ParameterDirection.Output;
@@ -250,7 +257,7 @@ namespace RiceMillProject.DAL
 
                     // If it's an employee (roles 1-6 or Gateman/Weightman), create login
                     var employeeRoles = new List<string> { "1", "2", "3", "4", "5", "6", "Gateman", "Weightman", "Admin", "Supervisor" };
-                    if (personId > 0 && employeeRoles.Contains(person.PersonType))
+                    if (personId > 0 && !person.ShareCompany && employeeRoles.Contains(person.PersonType ?? string.Empty))
                     {
                         using (SqlCommand loginCmd = new SqlCommand("sp_CreateUserLogin", con, trans))
                         {

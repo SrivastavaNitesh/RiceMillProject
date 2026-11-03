@@ -1,0 +1,36 @@
+@{
+    var successMessage = TempData["SuccessMessage"]?.ToString();
+    var errorMessage = TempData["ErrorMessage"]?.ToString();
+    if (string.IsNullOrWhiteSpace(errorMessage))
+    {
+        errorMessage = string.Join(" ", ViewData.ModelState.Values
+            .SelectMany(value => value.Errors)
+            .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage) ? error.Exception?.Message : error.ErrorMessage)
+            .Where(message => !string.IsNullOrWhiteSpace(message)));
+    }
+    TempData.Remove("SuccessMessage");
+    TempData.Remove("ErrorMessage");
+}
+@if (!string.IsNullOrWhiteSpace(successMessage) || !string.IsNullOrWhiteSpace(errorMessage))
+{
+    var isSuccess = !string.IsNullOrWhiteSpace(successMessage);
+    var message = isSuccess ? successMessage : errorMessage;
+    <div id="workflowStatusToast" class="workflow-status-toast @(isSuccess ? "success" : "error")" role="status" aria-live="polite">
+        <i class="bi @(isSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill")"></i>
+        <div><strong>@(isSuccess ? "Success" : "Error")</strong><span>@message</span></div>
+        <button type="button" aria-label="Close">&times;</button>
+    </div>
+    <style>
+        .workflow-status-toast{position:fixed;z-index:10950;top:82px;right:22px;display:flex;align-items:flex-start;gap:11px;width:min(410px,calc(100vw - 30px));padding:15px 16px;border:1px solid;border-radius:12px;background:#fff;box-shadow:0 14px 35px rgba(15,43,48,.2);opacity:0;transform:translateY(-12px);transition:.25s ease}.workflow-status-toast.show{opacity:1;transform:none}.workflow-status-toast.success{border-color:#8bd6b5;color:#087443}.workflow-status-toast.error{border-color:#f1aaa7;color:#b52b27}.workflow-status-toast>i{font-size:20px;margin-top:1px}.workflow-status-toast>div{display:grid;gap:2px;flex:1}.workflow-status-toast strong{font-size:13px}.workflow-status-toast span{color:#405258;font-size:12px;line-height:1.45}.workflow-status-toast button{border:0;background:transparent;color:#718086;font-size:20px;line-height:1;padding:0}
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toast = document.getElementById('workflowStatusToast');
+            if (!toast) return;
+            requestAnimationFrame(() => toast.classList.add('show'));
+            const closeToast = () => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 250); };
+            toast.querySelector('button')?.addEventListener('click', closeToast);
+            setTimeout(closeToast, 6000);
+        });
+    </script>
+}

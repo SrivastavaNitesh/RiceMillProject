@@ -72,9 +72,21 @@
                         <label asp-for="MobileNumber" class="form-label">Mobile Number</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light text-primary"><i class="bi bi-phone"></i></span>
-                            <input asp-for="MobileNumber" class="form-control" placeholder="10-digit mobile number" maxlength="10"/>
+                            <input asp-for="MobileNumber" class="form-control" placeholder="10-digit Indian mobile number" maxlength="10" inputmode="numeric" pattern="[6-9][0-9]{9}" />
                         </div>
                         <span asp-validation-for="MobileNumber" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12 d-none" id="shareCompanySection">
+                        <div class="form-check border rounded-3 p-3 ps-5 bg-light">
+                            <input asp-for="ShareCompany" class="form-check-input" />
+                            <label asp-for="ShareCompany" class="form-check-label fw-semibold">
+                                Existing person ko is company ke saath share karein
+                            </label>
+                            <div class="form-text">
+                                Is option ko tab check karein jab same mobile number wala person pehle se kisi doosri company mein registered ho.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-12 d-flex justify-content-between border-top pt-3 mt-4">
@@ -115,6 +127,83 @@
 
             const selectedGateId = '@(Model.GateId?.ToString() ?? "")';
             const selectedMethId = '@(Model.MethdesignatationId.GetValueOrDefault() > 0 ? Model.MethdesignatationId.ToString() : "")';
+            const companySelect = document.getElementById('companySelect');
+            const shareCompanySection = document.getElementById('shareCompanySection');
+            const shareCompanyCheckbox = document.getElementById('ShareCompany');
+
+            if (companySelect && $.fn.select2) {
+                if ($(companySelect).hasClass('select2-hidden-accessible')) $(companySelect).select2('destroy');
+                $(companySelect).select2({
+                    width: '100%',
+                    placeholder: 'Search or type new company',
+                    minimumResultsForSearch: 0,
+                    tags: true,
+                    createTag: params => {
+                        const term = (params.term || '').trim();
+                        if (!term) return null;
+                        const exists = Array.from(companySelect.options).some(option =>
+                            option.text.trim().toLocaleLowerCase() === term.toLocaleLowerCase());
+                        return exists ? null : { id: `__new__:${term}`, text: term, newTag: true };
+                    }
+                });
+                companySelect.dataset.searchReady = 'true';
+
+                $(companySelect).on('select2:select', async event => {
+                    const data = event.params.data;
+                    if (!(data.newTag || String(data.id).startsWith('__new__:'))) return;
+                    const companyName = data.text.trim();
+                    const temporaryOption = data.element;
+                    const confirmation = await Swal.fire({
+                        icon: 'question',
+                        title: 'Add New Company?',
+                        html: `<div class="text-start"><strong>${$('<div>').text(companyName).html()}</strong> list mein nahi hai.<label class="form-label mt-3">Company Location</label><input id="quickCompanyLocation" class="swal2-input m-0 w-100" maxlength="250" placeholder="Enter company location" /></div>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Add Company',
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#07877c',
+                        preConfirm: () => {
+                            const location = document.getElementById('quickCompanyLocation')?.value.trim();
+                            if (!location) {
+                                Swal.showValidationMessage('Company location is required.');
+                                return false;
+                            }
+                            return location;
+                        }
+                    });
+                    if (!confirmation.isConfirmed) {
+                        temporaryOption?.remove();
+                        companySelect.value = '';
+                        $(companySelect).trigger('change.select2');
+                        return;
+                    }
+
+                    try {
+                        const values = new URLSearchParams({
+                            companyName,
+                            location: confirmation.value,
+                            __RequestVerificationToken: document.querySelector('form input[name="__RequestVerificationToken"]')?.value || ''
+                        });
+                        const response = await fetch('@Url.Action("QuickAddCompany", "Person")', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                            body: values.toString()
+                        });
+                        const result = await response.json();
+                        if (!response.ok || !result.success) throw new Error(result.message || 'Company could not be saved.');
+                        temporaryOption?.remove();
+                        const option = new Option(result.officeName, result.officeId, true, true);
+                        companySelect.add(option);
+                        companySelect.value = String(result.officeId);
+                        $(companySelect).trigger('change');
+                        await Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: result.existing ? 'Existing company selected' : 'Company added successfully', showConfirmButton: false, timer: 2200 });
+                    } catch (error) {
+                        temporaryOption?.remove();
+                        companySelect.value = '';
+                        $(companySelect).trigger('change.select2');
+                        await Swal.fire({ icon: 'error', title: 'Company could not be added', text: error.message });
+                    }
+                });
+            }
 
             function fillDropdown(url, target, placeholder, selectedValue) {
                 const $target = $(target).empty().append($('<option>', { value: '', text: placeholder }));
@@ -130,6 +219,9 @@
                 const roleId = $('#personTypeSelect').val();
                 const isGateman = roleId === '1';
                 const isWorker = roleId === '7';
+                const isParty = roleId === '8';
+                shareCompanySection?.classList.toggle('d-none', !isParty);
+                if (!isParty && shareCompanyCheckbox) shareCompanyCheckbox.checked = false;
                 $('#gateAssignmentSection').toggleClass('d-none', !isGateman);
                 $('#methAssignmentSection').toggleClass('d-none', !isWorker);
                 $('#gateSelect').prop('required', isGateman);
