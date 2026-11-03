@@ -4,6 +4,7 @@
     Layout = "_LayoutGateman";
     var newInward = ViewBag.NewInward as RiceMillProject.Models.InwardHeader ?? new RiceMillProject.Models.InwardHeader();
     bool isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+    var centerContactsJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.CenterContacts ?? Array.Empty<object>());
 }
 
 @try
@@ -51,31 +52,50 @@
                         <input type="text" class="form-control bg-light fw-bold text-primary" id="formLiveClock" value="@DateTime.Now.ToString("hh:mm tt")" disabled readonly />
                     </div>
 
-                    <!-- Inward Type Selection (Radio Buttons - Unchecked by Default) -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-dark">
-                            Inward Type <span class="text-danger">*</span>
-                        </label>
-                        <div class="d-flex align-items-center gap-3 p-2 bg-light rounded border">
-                            <div class="form-check me-2">
-                                <input class="form-check-input" type="radio" name="InwardTypeId" id="inwardWithRST" value="1" required />
-                                <label class="form-check-label fw-bold text-primary" for="inwardWithRST">
-                                    <i class="bi bi-card-checklist me-1"></i> With RST
+                    <div class="col-lg-6">
+                        <div class="entry-choice-group">
+                            <div class="entry-choice-heading"><i class="bi bi-arrow-down-square"></i> Inward Type <span class="text-danger">*</span></div>
+                            <div class="entry-choice-options">
+                                <input class="entry-choice-input" type="radio" name="InwardTypeId" id="inwardWithRST" value="1" required />
+                                <label class="entry-choice-card" for="inwardWithRST">
+                                    <span class="entry-choice-icon"><i class="bi bi-card-checklist"></i></span>
+                                    <span><strong>With RST</strong><small>Weighment required</small></span>
+                                    <i class="bi bi-check-circle-fill entry-choice-check"></i>
                                 </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="InwardTypeId" id="inwardWithoutRST" value="2" required />
-                                <label class="form-check-label fw-bold text-secondary" for="inwardWithoutRST">
-                                    <i class="bi bi-box-seam me-1"></i> Without RST
+                                <input class="entry-choice-input" type="radio" name="InwardTypeId" id="inwardWithoutRST" value="2" required />
+                                <label class="entry-choice-card" for="inwardWithoutRST">
+                                    <span class="entry-choice-icon"><i class="bi bi-box-seam"></i></span>
+                                    <span><strong>Without RST</strong><small>Direct gate record</small></span>
+                                    <i class="bi bi-check-circle-fill entry-choice-check"></i>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Party / Supplier Person Dropdown -->
-                    <div class="col-md-6">
+                    <div class="col-lg-6">
+                        <div class="entry-choice-group">
+                            <div class="entry-choice-heading"><i class="bi bi-people"></i> Party Source <span class="text-danger">*</span></div>
+                            <div class="entry-choice-options">
+                                <input class="entry-choice-input" type="radio" name="PartyCategory" id="partyTypeDirect" value="1" checked required />
+                                <label class="entry-choice-card" for="partyTypeDirect">
+                                    <span class="entry-choice-icon"><i class="bi bi-person-check"></i></span>
+                                    <span><strong>Direct Party</strong><small>Person / supplier</small></span>
+                                    <i class="bi bi-check-circle-fill entry-choice-check"></i>
+                                </label>
+                                <input class="entry-choice-input" type="radio" name="PartyCategory" id="partyTypeCenter" value="2" required />
+                                <label class="entry-choice-card" for="partyTypeCenter">
+                                    <span class="entry-choice-icon"><i class="bi bi-buildings"></i></span>
+                                    <span><strong>Center / Farm</strong><small>Farm-based inward</small></span>
+                                    <i class="bi bi-check-circle-fill entry-choice-check"></i>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Direct Party Person Dropdown -->
+                    <div class="col-md-6" id="directPartySection">
                         <label class="form-label fw-bold text-dark">
-                            Party / Supplier <span class="text-danger">*</span>
+                            Direct Party / Supplier <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
                         <select name="PartyId" id="txtPartyName" class="form-select border-primary-subtle" asp-items="@(ViewBag.Parties as SelectList)" required>
@@ -83,6 +103,23 @@
                         </select>
                         </div>
                         <input type="hidden" name="PartyName" id="selectedPartyName" />
+                    </div>
+
+                    <div class="col-md-6 d-none" id="centerFarmSection">
+                        <label class="form-label fw-bold text-dark">Center / Farm <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <select name="FarmId" id="txtFarmName" class="form-select border-primary-subtle">
+                                <option value="">Select Center / Farm</option>
+                                @if (ViewBag.CenterFarms != null)
+                                {
+                                    foreach (var farm in ViewBag.CenterFarms)
+                                    {
+                                        <option value="@farm.FarmId" data-party-id="@farm.PartyId" data-person-name="@farm.PersonName" data-mobile="@farm.MobileNumber">@farm.FarmName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-text">Farm select karein ya naya farm name type karein.</div>
                     </div>
 
                     <!-- Vehicle Number Dropdown -->
@@ -177,11 +214,27 @@ catch (Exception ex)
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
+    .entry-choice-group { height:100%; padding:14px; border:1px solid #dbe6e5; border-radius:12px; background:#fbfdfd; }
+    .entry-choice-heading { display:flex; align-items:center; gap:8px; margin-bottom:10px; color:#243b53; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; }
+    .entry-choice-heading > i { color:#07877c; font-size:1rem; }
+    .entry-choice-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .entry-choice-input { position:absolute; opacity:0; pointer-events:none; }
+    .entry-choice-card { position:relative; display:flex; align-items:center; gap:10px; min-height:60px; margin:0; padding:10px 34px 10px 11px; border:1px solid #d6e1e0; border-radius:10px; background:#fff; cursor:pointer; transition:.18s ease; }
+    .entry-choice-card:hover { border-color:#80bdb7; background:#f5fbfa; transform:translateY(-1px); }
+    .entry-choice-icon { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 34px; border-radius:9px; color:#087f78; background:#e8f6f4; font-size:1rem; }
+    .entry-choice-card strong,.entry-choice-card small { display:block; }
+    .entry-choice-card strong { color:#183b56; font-size:.83rem; line-height:1.2; }
+    .entry-choice-card small { margin-top:3px; color:#7b8d9b; font-size:.67rem; font-weight:500; }
+    .entry-choice-check { position:absolute; right:11px; color:#aab9b8; font-size:.9rem; }
+    .entry-choice-input:checked + .entry-choice-card { border-color:#07877c; background:#edf9f7; box-shadow:0 0 0 2px rgba(7,135,124,.08); }
+    .entry-choice-input:checked + .entry-choice-card .entry-choice-icon { color:#fff; background:#07877c; }
+    .entry-choice-input:checked + .entry-choice-card .entry-choice-check { color:#07877c; }
     .input-group > .select2-container { flex: 1 1 auto; width: 1% !important; }
     .select2-container .select2-selection--single { height: 39px; border: 1px solid #dee2e6; }
     .select2-container .select2-selection--single .select2-selection__rendered { line-height: 37px; padding-left: 12px; }
     .select2-container .select2-selection--single .select2-selection__arrow { height: 37px; }
     .select2-container--open { z-index: 1060; }
+    @@media (max-width:575.98px) { .entry-choice-options { grid-template-columns:1fr; } }
 </style>
 
 <script>
@@ -231,8 +284,10 @@ catch (Exception ex)
 
         const txtDriverName = document.getElementById('txtDriverName');
         const txtParty = document.getElementById('txtPartyName');
+        const txtFarm = document.getElementById('txtFarmName');
         const txtVehicle = document.getElementById('txtVehicleNo');
         const txtDriverMobile = document.getElementById('txtDriverMobile');
+        const centerContacts = @Html.Raw(centerContactsJson);
 
         function refreshSearchableSelect(select) {
             if (select && window.jQuery && $.fn.select2) $(select).trigger('change.select2');
@@ -301,7 +356,7 @@ catch (Exception ex)
             refreshSearchableSelect(select);
         };
         async function confirmQuickCreate(select, entityType, typedText, temporaryOption) {
-            const label = entityType === 'party' ? 'Party / Supplier' : entityType === 'vehicle' ? 'Vehicle' : 'Driver';
+            const label = entityType === 'party' ? 'Direct Party / Supplier' : entityType === 'farm' ? 'Center / Farm' : entityType === 'vehicle' ? 'Vehicle' : 'Driver';
             const partyId = Number(txtParty.value);
             let vehicleId = Number(txtVehicle.selectedOptions[0]?.dataset.vehicleId || 0);
             const requiresMobile = entityType === 'party';
@@ -314,25 +369,66 @@ catch (Exception ex)
             const confirmation = await Swal.fire({
                 icon: 'question',
                 title: `Add New ${label}?`,
-                html: requiresMobile
-                    ? `<div class="text-start"><strong>${escapedText}</strong> list mein nahi hai.<div class="mt-3"><label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label><input id="quickPartyMobile" class="swal2-input m-0 w-100" inputmode="numeric" maxlength="10" placeholder="10-digit Indian mobile number" /></div><div class="mt-3"><label class="form-label fw-semibold">Party Type <span class="text-danger">*</span></label><select id="quickPartyCategory" class="swal2-select m-0 w-100"><option value="">Select Party Type</option><option value="1">Direct Party</option><option value="2">Center Party</option></select></div></div>`
+                html: entityType === 'farm'
+                    ? `<div class="text-start"><strong>${escapedText}</strong> farm list mein nahi hai.
+                        <div class="mt-3"><label class="form-label fw-semibold">Contact Person <span class="text-danger">*</span></label>
+                        <select id="quickFarmPerson" class="form-select w-100"><option value="">Search or type contact person</option>${centerContacts.map(person => `<option value="${person.PersonId}" data-name="${String(person.PersonName || '').replace(/"/g, '&quot;')}" data-mobile="${String(person.MobileNumber || '').replace(/"/g, '&quot;')}">${String(person.PersonName || '')}${person.MobileNumber ? ` / ${person.MobileNumber}` : ''}</option>`).join('')}</select>
+                        <small class="text-muted">Existing person select karein ya naya naam type karein.</small></div>
+                        <div class="mt-3"><label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label><input id="quickFarmMobile" class="swal2-input m-0 w-100" inputmode="numeric" maxlength="10" placeholder="10-digit Indian mobile number" /></div>
+                        <div id="quickFarmShareSection" class="form-check mt-3 d-none"><input id="quickFarmShare" class="form-check-input" type="checkbox"><label class="form-check-label fw-semibold" for="quickFarmShare">Existing person ko is Center / Farm ke saath share karein</label><small class="d-block text-muted">Ek contact person multiple farms ke saath map ho sakta hai.</small></div></div>`
+                    : requiresMobile
+                    ? `<div class="text-start"><strong>${escapedText}</strong> list mein nahi hai.<div class="mt-3"><label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label><input id="quickPartyMobile" class="swal2-input m-0 w-100" inputmode="numeric" maxlength="10" placeholder="10-digit Indian mobile number" /></div></div>`
                     : `<div class="text-start"><strong>${escapedText}</strong> list mein nahi hai.<br/>Kya aap ise add karna chahte hain?</div>`,
                 showCancelButton: true,
+                allowOutsideClick: false,
                 confirmButtonText: `Yes, Add ${label}`,
                 cancelButtonText: 'No',
                 confirmButtonColor: '#07877c',
-                preConfirm: requiresMobile ? () => {
+                didOpen: entityType === 'farm' ? () => {
+                    const personSelect = document.getElementById('quickFarmPerson');
+                    const mobileInput = document.getElementById('quickFarmMobile');
+                    const shareSection = document.getElementById('quickFarmShareSection');
+                    if (!personSelect || !window.jQuery || !$.fn.select2) return;
+                    $(personSelect).select2({
+                        dropdownParent: $('.swal2-popup'), width: '100%', tags: true,
+                        placeholder: 'Search or type contact person', minimumResultsForSearch: 0,
+                        createTag: params => {
+                            const term = (params.term || '').trim();
+                            if (term.length < 2) return null;
+                            const exists = Array.from(personSelect.options).some(option => (option.dataset.name || option.text).trim().toLocaleLowerCase() === term.toLocaleLowerCase());
+                            return exists ? null : { id: `__new__:${term}`, text: term, newTag: true };
+                        }
+                    }).on('select2:select', event => {
+                        const selected = event.params.data;
+                        const isNew = selected.newTag || String(selected.id).startsWith('__new__:');
+                        const option = selected.element;
+                        mobileInput.value = isNew ? '' : (option?.dataset.mobile || '');
+                        mobileInput.readOnly = !isNew;
+                        shareSection?.classList.toggle('d-none', isNew);
+                        const checkbox = document.getElementById('quickFarmShare');
+                        if (checkbox) checkbox.checked = false;
+                    });
+                } : undefined,
+                preConfirm: entityType === 'farm' ? () => {
+                    const personSelect = document.getElementById('quickFarmPerson');
+                    const selectedValue = personSelect?.value || '';
+                    const selectedOption = personSelect?.selectedOptions?.[0];
+                    const isNew = selectedValue.startsWith('__new__:');
+                    const personId = isNew ? 0 : Number(selectedValue || 0);
+                    const personName = isNew ? selectedValue.substring(8).trim() : (selectedOption?.dataset.name || selectedOption?.text || '').trim();
+                    const mobileNumber = document.getElementById('quickFarmMobile')?.value.trim() || '';
+                    const sharePerson = document.getElementById('quickFarmShare')?.checked || false;
+                    if (personName.length < 2) { Swal.showValidationMessage('Contact person name is required.'); return false; }
+                    if (!/^[6-9][0-9]{9}$/.test(mobileNumber)) { Swal.showValidationMessage('Enter a valid 10-digit Indian mobile number.'); return false; }
+                    if (personId > 0 && !sharePerson) { Swal.showValidationMessage('Existing person ko share karne ke liye checkbox select karein.'); return false; }
+                    return { personId, personName, mobileNumber, sharePerson };
+                } : requiresMobile ? () => {
                     const mobileNumber = document.getElementById('quickPartyMobile')?.value.trim() || '';
-                    const partyCategory = Number(document.getElementById('quickPartyCategory')?.value || 0);
                     if (!/^[6-9][0-9]{9}$/.test(mobileNumber)) {
                         Swal.showValidationMessage('Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.');
                         return false;
                     }
-                    if (![1, 2].includes(partyCategory)) {
-                        Swal.showValidationMessage('Select Direct Party or Center Party.');
-                        return false;
-                    }
-                    return { mobileNumber, partyCategory };
+                    return { mobileNumber };
                 } : undefined
             });
             if (!confirmation.isConfirmed) { removeNewOption(select, temporaryOption); return; }
@@ -341,13 +437,19 @@ catch (Exception ex)
                     const values = new URLSearchParams({
                         partyName: typedText,
                         mobileNumber: confirmation.value?.mobileNumber || '',
-                        partyCategory: String(confirmation.value?.partyCategory || 0)
+                        partyCategory: '1'
                     });
                     const result = await postQuickAdd('/Gateman/QuickAddParty', values);
                     const text = result.mobileNumber ? `${result.partyName} / ${result.mobileNumber}` : result.partyName;
                     temporaryOption?.remove();
                     selectSavedOption(txtParty, result.partyId, text);
                     txtParty.dispatchEvent(new Event('change'));
+                } else if (entityType === 'farm') {
+                    const values = new URLSearchParams({ farmName: typedText, personId: String(confirmation.value?.personId || 0), personName: confirmation.value?.personName || '', mobileNumber: confirmation.value?.mobileNumber || '', sharePerson: String(confirmation.value?.sharePerson || false) });
+                    const result = await postQuickAdd('/Gateman/QuickAddCenterFarm', values);
+                    temporaryOption?.remove();
+                    selectSavedOption(txtFarm, result.farmId, result.farmName, { partyId: String(result.partyId), personName: result.partyName, mobile: result.mobileNumber });
+                    txtFarm.dispatchEvent(new Event('change'));
                 } else if (entityType === 'vehicle') {
                     const values = new URLSearchParams({ partyId: String(partyId), vehicleNumber: typedText });
                     const result = await postQuickAdd('/Gateman/QuickAddVehicle', values);
@@ -374,8 +476,42 @@ catch (Exception ex)
         }
 
         makeSearchableSelect(txtParty, 'Search or type new party', 'party');
+        makeSearchableSelect(txtFarm, 'Search or type new farm', 'farm');
         makeSearchableSelect(txtVehicle, 'Search or type new vehicle', 'vehicle');
         makeSearchableSelect(txtDriverName, 'Search or type new driver', 'driver');
+
+        const directPartySection = document.getElementById('directPartySection');
+        const centerFarmSection = document.getElementById('centerFarmSection');
+        function applyPartyType() {
+            const isCenter = document.querySelector('input[name="PartyCategory"]:checked')?.value === '2';
+            directPartySection?.classList.toggle('d-none', isCenter);
+            centerFarmSection?.classList.toggle('d-none', !isCenter);
+            txtParty.disabled = isCenter;
+            txtFarm.disabled = !isCenter;
+            txtParty.required = !isCenter;
+            txtFarm.required = isCenter;
+            if (isCenter) {
+                const option = txtFarm.selectedOptions[0];
+                document.getElementById('selectedPartyName').value = option?.dataset.personName || '';
+                Array.from(txtParty.options).filter(item => item.dataset.centerContact === 'true').forEach(item => item.remove());
+                if (option?.dataset.partyId) {
+                    const contact = new Option(option.dataset.personName || 'Farm contact', option.dataset.partyId, true, true);
+                    contact.dataset.centerContact = 'true';
+                    txtParty.add(contact);
+                } else txtParty.value = '';
+                refreshSearchableSelect(txtParty);
+                txtParty.dispatchEvent(new Event('change'));
+            } else {
+                const centerContactSelected = txtParty.selectedOptions[0]?.dataset.centerContact === 'true';
+                Array.from(txtParty.options).filter(item => item.dataset.centerContact === 'true').forEach(item => item.remove());
+                if (centerContactSelected) txtParty.value = '';
+                refreshSearchableSelect(txtParty);
+                txtParty.dispatchEvent(new Event('change'));
+            }
+        }
+        document.querySelectorAll('input[name="PartyCategory"]').forEach(radio => radio.addEventListener('change', applyPartyType));
+        txtFarm?.addEventListener('change', applyPartyType);
+        applyPartyType();
 
         // Form Validation & SweetAlert Popup on Submit
         const form = document.getElementById('gatemanForm');
@@ -385,8 +521,9 @@ catch (Exception ex)
             form.addEventListener('submit', function (e) {
                 const isTypeSelected = document.querySelector('input[name="InwardTypeId"]:checked');
                 const partySelect = document.getElementById('txtPartyName');
-                const partyId = partySelect?.value.trim();
-                const partyLabel = partyId ? partySelect.options[partySelect.selectedIndex].text.trim() : '';
+                const isCenterParty = document.querySelector('input[name="PartyCategory"]:checked')?.value === '2';
+                const partyId = isCenterParty ? txtFarm?.selectedOptions[0]?.dataset.partyId : partySelect?.value.trim();
+                const partyLabel = isCenterParty ? (txtFarm?.selectedOptions[0]?.dataset.personName || '') : (partyId ? partySelect.options[partySelect.selectedIndex].text.trim() : '');
                 const partyName = partyLabel.replace(/\s*\/\s*\d+\s*$/, '').trim();
                 document.getElementById('selectedPartyName').value = partyName;
                 const vehicleNo = document.getElementById('txtVehicleNo')?.value.trim();
@@ -397,6 +534,7 @@ catch (Exception ex)
 
                 if (!isTypeSelected) missingFields.push('Inward Type (With RST / Without RST)');
                 if (!partyId) missingFields.push('Party / Supplier Name');
+                if (isCenterParty && !txtFarm?.value) missingFields.push('Center / Farm');
                 if (!vehicleNo) missingFields.push('Vehicle Number');
                 if (!driverName) missingFields.push('Driver Name');
                 if (gatemanDdl && !gatemanDdl.value) missingFields.push('Gateman (Added By)');

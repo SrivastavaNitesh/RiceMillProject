@@ -72,11 +72,11 @@ namespace RiceMillProject.DAL
             var list = new List<InwardHeader>();
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
+                RiceMillProject.DAL.RecordEditContext.Open(con);
                 using (SqlCommand cmd = new SqlCommand("sp_ManageGateInwardEntry", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Action", "SELECT_ALL");
-                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         var hasCreatedBy = HasColumn(rdr, "CreatedBy");
@@ -269,8 +269,11 @@ GROUP BY g.InwardNo,g.RSTNumber,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagT
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
             {
+                RiceMillProject.DAL.RecordEditContext.Open(con);
+                using var transaction = con.BeginTransaction();
                 using (SqlCommand cmd = new SqlCommand("sp_ManageGateInwardEntry", con))
                 {
+                    cmd.Transaction = transaction;
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Action", "INSERT");
                     cmd.Parameters.AddWithValue("@GateId", model.GateId > 0 ? model.GateId : 1);
@@ -288,7 +291,6 @@ GROUP BY g.InwardNo,g.RSTNumber,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagT
                     cmd.Parameters.AddWithValue("@PurposeRemarks", (object?)model.PurposeRemarks ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@CreatedBy", model.CreatedBy > 0 ? model.CreatedBy : 1);
 
-                    RiceMillProject.DAL.RecordEditContext.Open(con);
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         if (rdr.Read())
@@ -298,6 +300,16 @@ GROUP BY g.InwardNo,g.RSTNumber,COALESCE(b.BagTypeName,CONCAT('Bag type ',d.BagT
                             model.GateEntryNo = rdr["GateEntryNo"]?.ToString();
                         }
                     }
+                    if (model.PartyCategory == 2 && model.FarmId.GetValueOrDefault() > 0)
+                    {
+                        using var farmCommand = new SqlCommand(@"
+                            INSERT dbo.t_InwardFarmMapping(InwardId,FarmId)
+                            VALUES(@InwardId,@FarmId);", con, transaction);
+                        farmCommand.Parameters.Add("@InwardId", SqlDbType.Int).Value = model.InwardId;
+                        farmCommand.Parameters.Add("@FarmId", SqlDbType.Int).Value = model.FarmId!.Value;
+                        farmCommand.ExecuteNonQuery();
+                    }
+                    transaction.Commit();
                     return true;
                 }
             }

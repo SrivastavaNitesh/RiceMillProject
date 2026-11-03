@@ -1,4 +1,5 @@
 @model RiceMillProject.Models.Person
+@using RiceMillProject.Models
 @{
     ViewData["Title"] = "Add New Person / Registration";
 }
@@ -61,10 +62,22 @@
 
                     <div class="col-md-6">
                         <label asp-for="PersonName" class="form-label">Full Name <span class="req-star">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-primary"><i class="bi bi-person"></i></span>
-                            <input asp-for="PersonName" class="form-control" required placeholder="Enter full name..." />
-                        </div>
+                        <input asp-for="PersonId" type="hidden" id="selectedPersonId" />
+                        <input asp-for="PersonName" type="hidden" id="selectedPersonName" />
+                        <select id="personNameLookup" class="form-select" required>
+                            <option value="">Search or type full name...</option>
+                            @foreach (var existingPerson in (ViewBag.ExistingPersons as IEnumerable<Person> ?? Enumerable.Empty<Person>()))
+                            {
+                                <option value="@existingPerson.PersonId"
+                                        data-name="@existingPerson.PersonName"
+                                        data-mobile="@existingPerson.MobileNumber"
+                                        data-address="@existingPerson.Address"
+                                        selected="@(Model.PersonId == existingPerson.PersonId ? "selected" : null)">
+                                    @existingPerson.PersonName @(string.IsNullOrWhiteSpace(existingPerson.MobileNumber) ? "" : $"/ {existingPerson.MobileNumber}")
+                                </option>
+                            }
+                        </select>
+                        <div class="form-text">Existing person select karein ya naya full name type karke save karein.</div>
                         <span asp-validation-for="PersonName" class="text-danger small"></span>
                     </div>
 
@@ -130,6 +143,65 @@
             const companySelect = document.getElementById('companySelect');
             const shareCompanySection = document.getElementById('shareCompanySection');
             const shareCompanyCheckbox = document.getElementById('ShareCompany');
+            const personNameLookup = document.getElementById('personNameLookup');
+            const selectedPersonId = document.getElementById('selectedPersonId');
+            const selectedPersonName = document.getElementById('selectedPersonName');
+            const mobileInput = document.getElementById('MobileNumber');
+            const addressInput = document.getElementById('Address');
+
+            if (personNameLookup && $.fn.select2) {
+                $(personNameLookup).select2({
+                    width: '100%',
+                    placeholder: 'Search or type full name',
+                    minimumResultsForSearch: 0,
+                    tags: true,
+                    createTag: params => {
+                        const term = (params.term || '').trim();
+                        if (term.length < 2) return null;
+                        const exists = Array.from(personNameLookup.options).some(option =>
+                            (option.dataset.name || '').trim().toLocaleLowerCase() === term.toLocaleLowerCase());
+                        return exists ? null : { id: `__new__:${term}`, text: term, newTag: true };
+                    },
+                    templateResult: data => {
+                        if (!data.id || data.newTag || String(data.id).startsWith('__new__:')) return data.text;
+                        const option = data.element;
+                        const name = option?.dataset.name || data.text;
+                        const mobile = option?.dataset.mobile || '';
+                        return $(`<div><strong></strong><small class="d-block text-muted"></small></div>`)
+                            .find('strong').text(name).end()
+                            .find('small').text(mobile ? `Mobile: ${mobile}` : 'Mobile not available').end();
+                    }
+                });
+                personNameLookup.dataset.searchReady = 'true';
+
+                $(personNameLookup).on('select2:select', event => {
+                    const data = event.params.data;
+                    const isNew = data.newTag || String(data.id).startsWith('__new__:');
+                    const option = data.element;
+                    selectedPersonId.value = isNew ? '0' : String(data.id);
+                    selectedPersonName.value = isNew ? data.text.trim() : (option?.dataset.name || data.text).trim();
+                    if (!isNew) {
+                        if (mobileInput) mobileInput.value = option?.dataset.mobile || '';
+                        if (addressInput) addressInput.value = option?.dataset.address || '';
+                        if (shareCompanyCheckbox) shareCompanyCheckbox.checked = true;
+                    } else if ($('#personTypeSelect').val() !== '8') {
+                        if (shareCompanyCheckbox) shareCompanyCheckbox.checked = false;
+                    }
+                });
+
+                $(personNameLookup).on('select2:clear', () => {
+                    selectedPersonId.value = '0';
+                    selectedPersonName.value = '';
+                });
+
+                if (selectedPersonId.value && selectedPersonId.value !== '0') {
+                    $(personNameLookup).val(selectedPersonId.value).trigger('change.select2');
+                } else if (selectedPersonName.value) {
+                    const option = new Option(selectedPersonName.value, `__new__:${selectedPersonName.value}`, true, true);
+                    personNameLookup.add(option);
+                    $(personNameLookup).trigger('change.select2');
+                }
+            }
 
             if (companySelect && $.fn.select2) {
                 if ($(companySelect).hasClass('select2-hidden-accessible')) $(companySelect).select2('destroy');

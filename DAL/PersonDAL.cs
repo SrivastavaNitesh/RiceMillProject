@@ -53,7 +53,7 @@ namespace RiceMillProject.DAL
             using SqlCommand cmd = new SqlCommand(@"
                 SELECT DISTINCT p.PersonId, p.PersonName,
                        ISNULL(p.MobileNumber, '') AS MobileNumber,
-                       ISNULL(p.PersonType, '') AS PersonType, p.IsActive
+                       ISNULL(p.PersonType, '') AS PersonType, ISNULL(p.PartyCategory,1) PartyCategory, p.IsActive
                 FROM dbo.P02_Person p
                 INNER JOIN dbo.P11_PersonDesignatation pd
                     ON pd.P02_PersonId = p.PersonId AND pd.IsActive = 1
@@ -74,6 +74,7 @@ namespace RiceMillProject.DAL
                     PersonName = reader["PersonName"]?.ToString() ?? string.Empty,
                     MobileNumber = reader["MobileNumber"]?.ToString() ?? string.Empty,
                     PersonType = reader["PersonType"]?.ToString() ?? string.Empty,
+                    PartyCategory = Convert.ToInt32(reader["PartyCategory"]),
                     IsActive = Convert.ToBoolean(reader["IsActive"])
                 });
             }

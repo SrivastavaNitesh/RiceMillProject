@@ -172,6 +172,25 @@ namespace RiceMillProject.Controllers
                 }
 
                 if (model.ApproxNoOfBags < 0 || model.ApproxWeight < 0) ModelState.AddModelError("", "Approximate bags and weight cannot be negative.");
+                if (model.PartyCategory is not (1 or 2)) ModelState.AddModelError(nameof(model.PartyCategory), "Select Direct Party or Center Party.");
+                if (model.PartyCategory == 2)
+                {
+                    if (model.FarmId.GetValueOrDefault() <= 0) ModelState.AddModelError(nameof(model.FarmId), "Select a center farm.");
+                    else
+                    {
+                        dynamic farm = _gateBal.GetCenterFarm(model.FarmId.Value);
+                        model.PartyId = farm.PersonId;
+                        model.PartyName = $"{farm.FarmName} / {farm.PersonName}";
+                        model.PartyMobile = farm.MobileNumber;
+                        model.FarmName = farm.FarmName;
+                    }
+                }
+                else
+                {
+                    model.FarmId = null;
+                    if (!model.PartyId.HasValue || !_personBal.GetActivePersonsByPost(8).Any(person => person.PersonId == model.PartyId.Value && person.PartyCategory == 1))
+                        ModelState.AddModelError(nameof(model.PartyId), "Select an active Direct Party.");
+                }
                 model.VehicleNo = IndianVehicleNumber.Normalize(model.VehicleNo);
                 if (!IndianVehicleNumber.IsValid(model.VehicleNo)) ModelState.AddModelError("VehicleNo", IndianVehicleNumber.ValidationMessage);
                 if (model.GateId <= 0 || model.InwardTypeId is not (1 or 2) || model.VehicleTypeId <= 0) ModelState.AddModelError("", "Select valid gate, inward and vehicle types.");
@@ -254,6 +273,31 @@ namespace RiceMillProject.Controllers
                 ValidateQuickPerson(partyName, mobileNumber, "Party / Supplier");
                 int partyId = _gateBal.QuickAddParty(partyName, mobileNumber, partyCategory);
                 return Json(new { success = true, partyId, partyName, mobileNumber, partyCategory });
+            }
+            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "GatemanAccess")]
+        public IActionResult QuickAddCenterFarm(string farmName, int? personId, string personName, string mobileNumber, bool sharePerson)
+        {
+            try
+            {
+                if (personId.GetValueOrDefault() > 0)
+                {
+                    int selectedPersonId = personId.GetValueOrDefault();
+                    var existingPerson = _personBal.GetActivePersonsByPost(8)
+                        .FirstOrDefault(person => person.PersonId == selectedPersonId && person.PartyCategory == 2)
+                        ?? throw new InvalidOperationException("Selected contact person is unavailable or inactive.");
+                    if (!sharePerson)
+                        throw new InvalidOperationException("Existing contact ko is farm ke saath share karne ke liye checkbox select karein.");
+                    personName = existingPerson.PersonName;
+                    mobileNumber = existingPerson.MobileNumber ?? string.Empty;
+                }
+
+                dynamic farm = _gateBal.QuickAddCenterFarm(farmName, personId, personName, mobileNumber, sharePerson);
+                return Json(new { success = true, farmId = farm.FarmId, farmName = farm.FarmName, partyId = farm.PersonId, partyName = farm.PersonName, mobileNumber = farm.MobileNumber });
             }
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
@@ -498,7 +542,7 @@ namespace RiceMillProject.Controllers
                 
                 var parties = _personBal.GetActivePersonsByPost(8);
                 ViewBag.Parties = new SelectList(
-                    parties.Select(p => new
+                    parties.Where(p => p.PartyCategory == 1).Select(p => new
                     {
                         p.PersonId,
                         DisplayName = string.IsNullOrWhiteSpace(p.MobileNumber)
@@ -507,6 +551,20 @@ namespace RiceMillProject.Controllers
                     }),
                     "PersonId",
                     "DisplayName");
+                ViewBag.CenterContacts = parties.Where(p => p.PartyCategory == 2).Select(p => new
+                {
+                    p.PersonId,
+                    p.PersonName,
+                    MobileNumber = p.MobileNumber ?? string.Empty
+                }).ToList();
+                ViewBag.CenterFarms = _gateBal.GetCenterFarms().AsEnumerable().Select(row => new
+                {
+                    FarmId = Convert.ToInt32(row["FarmId"]),
+                    FarmName = Convert.ToString(row["FarmName"]),
+                    PartyId = Convert.ToInt32(row["PersonId"]),
+                    PersonName = Convert.ToString(row["PersonName"]),
+                    MobileNumber = Convert.ToString(row["MobileNumber"])
+                }).ToList();
 
                 // Fetch Drivers using INNER JOIN: p02 -> P11(IsActive=1) -> o12(IsActive=1) -> o10_post(PostId=9=Driver)
                 // UNION fallback: PersonType = 'Driver' AND p02.IsActive=1
@@ -566,6 +624,7 @@ namespace RiceMillProject.Controllers
                 ViewBag.Companies = Enumerable.Empty<SelectListItem>();
                 ViewBag.Drivers = Enumerable.Empty<SelectListItem>();
                 ViewBag.Vehicles = Enumerable.Empty<SelectListItem>();
+                ViewBag.CenterFarms = Enumerable.Empty<object>();
             }
         }
     }

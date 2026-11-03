@@ -811,6 +811,87 @@ public class GateEntryDAL
                 WHERE m.PartyId=@Party AND m.IsActive=1 ORDER BY v.VehicleNumber,d.PersonName",con);
             cmd.Parameters.Add("@Party",SqlDbType.Int).Value=partyId;using var adapter=new SqlDataAdapter(cmd);var result=new DataTable();adapter.Fill(result);return result;
         }
+
+        public DataTable GetCenterFarms()
+        {
+            using var con = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(@"
+                SELECT f.FarmId,f.FarmName,p.PersonId,p.PersonName,ISNULL(p.MobileNumber,'') MobileNumber
+                FROM dbo.m_PartyFarm f
+                JOIN dbo.t_PartyFarmPerson fp ON fp.FarmId=f.FarmId AND fp.IsActive=1 AND fp.IsPrimary=1
+                JOIN dbo.P02_Person p ON p.PersonId=fp.PersonId AND p.IsActive=1
+                WHERE f.IsActive=1
+                ORDER BY f.FarmName;", con);
+            using var adapter = new SqlDataAdapter(cmd);
+            var result = new DataTable();
+            adapter.Fill(result);
+            return result;
+        }
+
+        public dynamic GetCenterFarm(int farmId)
+        {
+            var row = GetCenterFarms().AsEnumerable().FirstOrDefault(item => Convert.ToInt32(item["FarmId"]) == farmId)
+                ?? throw new InvalidOperationException("Selected center farm is unavailable or inactive.");
+            return new
+            {
+                FarmId = farmId,
+                FarmName = Convert.ToString(row["FarmName"]) ?? string.Empty,
+                PersonId = Convert.ToInt32(row["PersonId"]),
+                PersonName = Convert.ToString(row["PersonName"]) ?? string.Empty,
+                MobileNumber = Convert.ToString(row["MobileNumber"]) ?? string.Empty
+            };
+        }
+
+        public dynamic QuickAddCenterFarm(string farmName, int? existingPersonId, string personName, string mobileNumber, bool sharePerson)
+        {
+            int personId;
+            if (existingPersonId.GetValueOrDefault() > 0)
+            {
+                if (!sharePerson)
+                    throw new InvalidOperationException("Existing contact sharing confirmation is required.");
+                personId = existingPersonId.GetValueOrDefault();
+            }
+            else
+            {
+                personId = QuickAddParty(personName, mobileNumber, 2);
+            }
+            using var con = new SqlConnection(_connectionString);
+            RiceMillProject.DAL.RecordEditContext.Open(con);
+            using var transaction = con.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                using var farmCommand = new SqlCommand(@"
+                    DECLARE @FarmId int;
+                    SELECT TOP(1) @FarmId=FarmId FROM dbo.m_PartyFarm WITH(UPDLOCK,HOLDLOCK)
+                    WHERE LOWER(LTRIM(RTRIM(FarmName)))=LOWER(@FarmName);
+                    IF @FarmId IS NULL
+                    BEGIN
+                        INSERT dbo.m_PartyFarm(FarmName,IsActive) VALUES(@FarmName,1);
+                        SET @FarmId=CONVERT(int,SCOPE_IDENTITY());
+                    END
+                    ELSE UPDATE dbo.m_PartyFarm SET IsActive=1 WHERE FarmId=@FarmId;
+                    SELECT @FarmId;", con, transaction);
+                farmCommand.Parameters.Add("@FarmName", SqlDbType.NVarChar, 200).Value = farmName;
+                int farmId = Convert.ToInt32(farmCommand.ExecuteScalar());
+
+                using var mappingCommand = new SqlCommand(@"
+                    UPDATE dbo.t_PartyFarmPerson SET IsPrimary=0 WHERE FarmId=@FarmId AND PersonId<>@PersonId AND IsActive=1;
+                    IF EXISTS(SELECT 1 FROM dbo.t_PartyFarmPerson WHERE FarmId=@FarmId AND PersonId=@PersonId)
+                        UPDATE dbo.t_PartyFarmPerson SET IsActive=1,IsPrimary=1 WHERE FarmId=@FarmId AND PersonId=@PersonId;
+                    ELSE
+                        INSERT dbo.t_PartyFarmPerson(FarmId,PersonId,IsPrimary,IsActive) VALUES(@FarmId,@PersonId,1,1);", con, transaction);
+                mappingCommand.Parameters.Add("@FarmId", SqlDbType.Int).Value = farmId;
+                mappingCommand.Parameters.Add("@PersonId", SqlDbType.Int).Value = personId;
+                mappingCommand.ExecuteNonQuery();
+                transaction.Commit();
+                return new { FarmId = farmId, FarmName = farmName, PersonId = personId, PersonName = personName, MobileNumber = mobileNumber };
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
         public List<dynamic> GetVehiclesByParty(
             int partyId)
         {
@@ -1146,6 +1227,7 @@ public class GateEntryDAL
                     WHERE
                         P.IsActive = 1
                         AND D.O10_PostId = 8
+                        AND ISNULL(P.PartyCategory,1) = @PartyCategory
                         AND
                         (
                             (
@@ -1181,6 +1263,7 @@ public class GateEntryDAL
                         40
                     ).Value =
                         mobileNumber;
+                    existingCmd.Parameters.Add("@PartyCategory", SqlDbType.Int).Value = partyCategory;
 
                     object? existingResult =
                         existingCmd.ExecuteScalar();

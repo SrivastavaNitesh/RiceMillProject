@@ -39,6 +39,9 @@ namespace RiceMillProject.Models
         public bool RSTRequired { get; set; } = true;
 
         public int? PartyId { get; set; }
+        public int PartyCategory { get; set; } = 1;
+        public int? FarmId { get; set; }
+        public string? FarmName { get; set; }
 
         [Required(ErrorMessage = "Party / Supplier name is required.")]
         public string? PartyName { get; set; }

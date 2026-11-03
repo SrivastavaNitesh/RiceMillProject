@@ -124,6 +124,10 @@ namespace RiceMillProject.Controllers
             ViewBag.Offices = Allclass.CreateDropdown(dt);
             dt = _BusLayer.ManageDepartmentMaster("GETALL");
             ViewBag.Departments = Allclass.CreateDropdown(dt);
+            ViewBag.ExistingPersons = _personBal.GetAllPersons()
+                .Where(person => person.IsActive)
+                .OrderBy(person => person.PersonName)
+                .ToList();
             return View(new Person
             {
                 IsActive = true,
@@ -134,7 +138,30 @@ namespace RiceMillProject.Controllers
         [HttpPost]
         public IActionResult Employee(Person person)
         {
-            person.ShareCompany = person.PersonType == "8" && person.ShareCompany;
+            if (person.PersonId > 0)
+            {
+                var existingPerson = _personBal.GetAllPersons()
+                    .FirstOrDefault(existing => existing.PersonId == person.PersonId && existing.IsActive);
+                if (existingPerson == null)
+                {
+                    ModelState.AddModelError(nameof(person.PersonName), "Selected person is unavailable or inactive.");
+                }
+                else
+                {
+                    person.PersonName = existingPerson.PersonName;
+                    person.MobileNumber = existingPerson.MobileNumber;
+                    person.Address = existingPerson.Address;
+                    person.ShareCompany = true;
+                    ModelState.Remove(nameof(person.PersonName));
+                    ModelState.Remove(nameof(person.MobileNumber));
+                    ModelState.Remove(nameof(person.Address));
+                    TryValidateModel(person);
+                }
+            }
+            else
+            {
+                person.ShareCompany = person.PersonType == "8" && person.ShareCompany;
+            }
 
             if (person.OfficeId <= 0)
                 ModelState.AddModelError(nameof(person.OfficeId), "Company selection is required.");
@@ -189,6 +216,10 @@ namespace RiceMillProject.Controllers
             ViewBag.Offices = Allclass.CreateDropdown(dt);
             dt = _BusLayer.ManageDepartmentMaster("GETALL");
             ViewBag.Departments = Allclass.CreateDropdown(dt);
+            ViewBag.ExistingPersons = _personBal.GetAllPersons()
+                .Where(existing => existing.IsActive)
+                .OrderBy(existing => existing.PersonName)
+                .ToList();
             return View(person);
         }
 

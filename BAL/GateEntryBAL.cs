@@ -103,6 +103,8 @@ namespace RiceMillProject.BAL
         }
 
         public System.Data.DataTable GetEntryMappings(int partyId) => _gateDal.GetEntryMappings(partyId);
+        public System.Data.DataTable GetCenterFarms() => _gateDal.GetCenterFarms();
+        public dynamic GetCenterFarm(int farmId) => _gateDal.GetCenterFarm(farmId);
         public List<dynamic> GetVehiclesByParty(int partyId)
         {
             return _gateDal.GetVehiclesByParty(partyId);
@@ -132,6 +134,17 @@ namespace RiceMillProject.BAL
                 partyName,
                 mobileNumber,
                 partyCategory);
+        }
+
+        public dynamic QuickAddCenterFarm(string farmName, int? personId, string personName, string mobileNumber, bool sharePerson)
+        {
+            if (string.IsNullOrWhiteSpace(farmName) || farmName.Trim().Length > 200)
+                throw new ArgumentException("Farm name is required and cannot exceed 200 characters.");
+            if (string.IsNullOrWhiteSpace(personName) || personName.Trim().Length > 400)
+                throw new ArgumentException("Contact person name is required.");
+            if (!System.Text.RegularExpressions.Regex.IsMatch((mobileNumber ?? string.Empty).Trim(), @"^[6-9][0-9]{9}$"))
+                throw new ArgumentException("Enter a valid 10-digit Indian mobile number.");
+            return _gateDal.QuickAddCenterFarm(farmName.Trim(), personId, personName.Trim(), (mobileNumber ?? string.Empty).Trim(), sharePerson);
         }
 
 
